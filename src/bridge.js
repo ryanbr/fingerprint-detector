@@ -57,3 +57,26 @@ chrome.storage.onChanged.addListener((changes, area) => {
     });
   }
 });
+
+// ── Extension ID list relay (for export) ────────────────────────────
+// Background/popup requests the full list → bridge asks inject.js → relays back
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg.type === "get-ext-ids") {
+    const handler = (e) => {
+      window.removeEventListener("__fpDetector_extIds", handler);
+      try {
+        sendResponse(JSON.parse(e.detail));
+      } catch (_) {
+        sendResponse(null);
+      }
+    };
+    window.addEventListener("__fpDetector_extIds", handler);
+    window.dispatchEvent(new CustomEvent("__fpDetector_getExtIds"));
+    // Timeout — if no probes happened, respond with null
+    setTimeout(() => {
+      window.removeEventListener("__fpDetector_extIds", handler);
+      sendResponse(null);
+    }, 200);
+    return true; // async sendResponse
+  }
+});

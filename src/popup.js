@@ -714,7 +714,17 @@ function buildSummaryExport(callback) {
         })),
       };
     }
-    callback(summary);
+
+    // Fetch full extension probe list from the page's inject.js
+    chrome.runtime.sendMessage({ type: "get-ext-ids", tabId: activeTabId }, (extData) => {
+      if (extData && extData.ids && extData.ids.length > 0) {
+        summary.extensionProbes = {
+          totalProbes: extData.total,
+          uniqueExtensionIds: extData.ids,
+        };
+      }
+      callback(summary);
+    });
   });
 }
 

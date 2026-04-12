@@ -105,6 +105,17 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     }
   }
 
+  // Get full extension probe ID list from a tab's content script
+  if (msg.type === "get-ext-ids") {
+    const tabId = msg.tabId;
+    if (tabId) {
+      chrome.tabs.sendMessage(tabId, { type: "get-ext-ids" }, (response) => {
+        sendResponse(response);
+      });
+      return true;
+    }
+  }
+
   // List all tabs that have detection data
   if (msg.type === "get-tabs-with-data") {
     const tabIds = Object.keys(tabData).map(Number).filter(id => {

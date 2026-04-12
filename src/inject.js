@@ -705,17 +705,27 @@
       extProbeCount.ids.add(extractExtId(url));
 
       if (!extFirstLogged) {
-        // First probe: full detail with stack trace
         extFirstLogged = true;
         record("ExtensionDetect", method, url);
       }
 
       if (extProbeCount.total % EXT_LOG_EVERY === 0) {
-        // Periodic summary
         record("ExtensionDetect", "extension probe summary",
           extProbeCount.total + " probes across " + extProbeCount.ids.size + " unique extension IDs");
       }
     }
+
+    // Expose full extension ID list for export — dispatched on request from bridge
+    window.addEventListener("__fpDetector_getExtIds", () => {
+      if (extProbeCount.ids.size > 0) {
+        window.dispatchEvent(new CustomEvent("__fpDetector_extIds", {
+          detail: JSON.stringify({
+            total: extProbeCount.total,
+            ids: [...extProbeCount.ids],
+          }),
+        }));
+      }
+    });
 
     // fetch()
     const origFetch = window.fetch;

@@ -354,12 +354,6 @@ function isGlobalMute(type, value) {
   return mutedGlobal.categories.includes(value);
 }
 
-function isDomainMute(type, value) {
-  const dm = mutedByDomain[currentDomain];
-  if (!dm) return false;
-  if (type === "method") return dm.methods.includes(value);
-  return dm.categories.includes(value);
-}
 
 function renderMuteBar() {
   const hasMutes = mutedMethods.size > 0 || mutedCategories.size > 0;
@@ -457,33 +451,6 @@ function setScrollTop(el, val) {
   userScrolling = true;
   el.scrollTop = val;
   requestAnimationFrame(() => { userScrolling = false; });
-}
-
-function addLogEntry(d) {
-  if (paused) {
-    pausedQueue.push(d);
-    updateCounter();
-    return;
-  }
-
-  logCount++;
-  storeLogEntry(d);
-  updateCounter();
-
-  if (isMuted(d)) return;
-
-  const filter = logFilter.value.toLowerCase();
-  if (filter && !matchesFilter(d, filter)) return;
-
-  const frag = document.createDocumentFragment();
-  buildLogNode(d, frag);
-  logList.appendChild(frag);
-  domNodeCount++;
-  trimDOM();
-
-  if (logAutoscroll.checked) {
-    setScrollTop(logList, logList.scrollHeight);
-  }
 }
 
 function updateCounter() {
@@ -902,20 +869,12 @@ logFilter.addEventListener("input", saveUIState);
 logAutoscroll.addEventListener("change", saveUIState);
 
 // ── Load everything and connect ───────────────────────────────────────
-chrome.storage.local.get(["mutedGlobal", "mutedByDomain", "mutedMethods", "mutedCategories"], (localStored) => {
-  // Load new format
+chrome.storage.local.get(["mutedGlobal", "mutedByDomain"], (localStored) => {
   if (localStored.mutedGlobal) {
     mutedGlobal = localStored.mutedGlobal;
   }
   if (localStored.mutedByDomain) {
     mutedByDomain = localStored.mutedByDomain;
-  }
-  // Migrate old format → global (one-time)
-  if (localStored.mutedMethods && !localStored.mutedGlobal) {
-    mutedGlobal.methods = localStored.mutedMethods;
-    mutedGlobal.categories = localStored.mutedCategories || [];
-    chrome.storage.local.remove(["mutedMethods", "mutedCategories"]);
-    saveMutes();
   }
 
   sessionStore.get(["uiPaused", "uiFilter", "uiAutoscroll", "uiWatchedTabs", "uiActivePanel"], (ui) => {

@@ -33,6 +33,7 @@ const CATEGORY_META = {
   ApplePay:       { icon: "🍎", color: "#fb8c00", risk: "medium", desc: "Apple Pay availability probing via ApplePaySession" },
   PrivateClick:   { icon: "🔏", color: "#fb8c00", risk: "medium", desc: "Safari Private Click Measurement via <a>.attributionSourceId" },
   Intl:           { icon: "🌍", color: "#fb8c00", risk: "medium", desc: "Intl locale/formatting APIs reveal language and region settings" },
+  HeadlessDetect: { icon: "🤖", color: "#e94560", risk: "high",   desc: "Headless/automation detection — navigator.webdriver, visualViewport, share API" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────

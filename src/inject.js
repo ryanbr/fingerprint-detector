@@ -674,6 +674,34 @@
     hookGetter(Notification, "permission", "Permissions", "Notification.permission");
   }
 
+  // ── 29b. Storage Quota (disk size leak) ────────────────────────────────
+  // navigator.storage.estimate() returns {usage, quota} — the quota reveals
+  // approximate disk size which is a high-entropy fingerprint signal.
+  if (typeof StorageManager !== "undefined") {
+    hookMethod(StorageManager.prototype, "estimate", "Storage", "navigator.storage.estimate");
+    hookMethod(StorageManager.prototype, "persist", "Storage", "navigator.storage.persist");
+    hookMethod(StorageManager.prototype, "persisted", "Storage", "navigator.storage.persisted");
+  }
+
+  // ── 29c. Headless / Automation Detection ──────────────────────────────
+  // navigator.webdriver is true in automated browsers (Puppeteer, Playwright,
+  // Selenium). Sites read it to detect bots and as a fingerprint signal.
+  hookGetter(Navigator.prototype, "webdriver", "HeadlessDetect", "navigator.webdriver");
+
+  // Additional headless detection signals
+  if (typeof VisualViewport !== "undefined") {
+    for (const prop of ["width", "height", "scale", "offsetTop", "offsetLeft"]) {
+      hookGetter(VisualViewport.prototype, prop, "HeadlessDetect", "visualViewport." + prop);
+    }
+  }
+  // navigator.share / canShare absence indicates headless Chrome
+  if (Navigator.prototype.share) {
+    hookMethod(Navigator.prototype, "share", "HeadlessDetect", "navigator.share");
+  }
+  if (Navigator.prototype.canShare) {
+    hookMethod(Navigator.prototype, "canShare", "HeadlessDetect", "navigator.canShare");
+  }
+
   // ── 30. Math Fingerprinting ───────────────────────────────────────────
   // Math functions are called millions of times by normal code. We use
   // recordHot (fire-once) so the wrapper is effectively free after first call.

@@ -173,7 +173,11 @@ function renderSummary(response) {
     html += `</div></div>`;
   }
 
+  // Preserve scroll position across re-renders
+  const scrollParent = content.closest(".panel") || content.parentElement;
+  const prevScroll = scrollParent.scrollTop;
   content.innerHTML = html;
+  scrollParent.scrollTop = prevScroll;
 
   // Category expand/collapse
   content.querySelectorAll(".category-header").forEach(el => {
@@ -468,6 +472,7 @@ function refilterLog() {
   clearTimeout(filterDebounce);
   filterDebounce = setTimeout(() => {
     const filter = logFilter.value.toLowerCase();
+    const prevScroll = logList.scrollTop;
     logList.innerHTML = "";
     domNodeCount = 0;
     const filtered = getAllLogEntries().filter(d => {
@@ -482,6 +487,7 @@ function refilterLog() {
       domNodeCount++;
     }
     logList.appendChild(frag);
+    logList.scrollTop = prevScroll;
   }, 150);
 }
 

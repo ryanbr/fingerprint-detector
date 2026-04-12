@@ -219,9 +219,9 @@ function renderCategoriesDiff(side, data, allCats, onlyLeft, onlyRight, sideLabe
   for (const cat of sorted) {
     const inThisSide = data.categories && data.categories[cat];
     if (!inThisSide) {
-      // Show as placeholder when it's in the other side only
+      // Placeholder row — category is in the other side only
       const meta = CATEGORY_META[cat] || { icon: "?", color: "#78909c" };
-      html += `<div class="category-row" style="opacity:0.3">
+      html += `<div class="category-row placeholder">
         <span class="name">
           <span class="icon" style="background:${meta.color}22;color:${meta.color}">${meta.icon}</span>
           ${escapeHtml(cat)}

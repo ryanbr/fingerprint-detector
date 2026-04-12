@@ -155,9 +155,25 @@
     }
 
     /* Diff highlights */
-    .category-row.only-left { background: #e9456016; border-left: 3px solid #e94560; }
-    .category-row.only-right { background: #43a04716; border-left: 3px solid #43a047; }
-    .category-row.both { background: transparent; }
+    .category-row.only-left {
+      background: #e9456033;
+      border-left: 4px solid #e94560;
+    }
+    .category-row.only-right {
+      background: #43a04733;
+      border-left: 4px solid #43a047;
+    }
+    .category-row.both {
+      background: transparent;
+      border-left: 4px solid transparent;
+      opacity: 0.55;
+    }
+    .category-row.both .name { color: #90a4ae; }
+    .category-row.placeholder {
+      background: #0a0a1a;
+      border-left: 4px solid #0f3460;
+      opacity: 0.35;
+    }
     .diff-label {
       font-size: 9px;
       font-weight: 700;
@@ -166,9 +182,20 @@
       margin-left: 6px;
       text-transform: uppercase;
     }
-    .diff-label.unique-left { background: #e9456033; color: #ef5350; }
-    .diff-label.unique-right { background: #43a04733; color: #66bb6a; }
-    .diff-label.shared { background: #78909c33; color: #90a4ae; }
+    .diff-label.unique-left {
+      background: #e94560;
+      color: #ffffff;
+      box-shadow: 0 0 0 1px #ff6b82;
+    }
+    .diff-label.unique-right {
+      background: #43a047;
+      color: #ffffff;
+      box-shadow: 0 0 0 1px #66bb6a;
+    }
+    .diff-label.shared {
+      background: #37474f;
+      color: #78909c;
+    }
 
     /* Summary / diff bar */
     .diff-summary {
@@ -269,8 +296,17 @@
       padding: 8px 12px;
       border-bottom: 1px solid #0f346030;
     }
-    .domains-table tr.only-left td { background: #e9456011; }
-    .domains-table tr.only-right td { background: #43a04711; }
+    .domains-table tr.only-left td {
+      background: #e9456022;
+      border-left: 3px solid #e94560;
+    }
+    .domains-table tr.only-left td:first-child { border-left: 3px solid #e94560; }
+    .domains-table tr.only-right td {
+      background: #43a04722;
+      border-left: 3px solid #43a047;
+    }
+    .domains-table tr.only-right td:first-child { border-left: 3px solid #43a047; }
+    .domains-table tr.both td { opacity: 0.55; }
     .domains-table .domain-name {
       font-family: Consolas, "Liberation Mono", Menlo, monospace;
       color: #5c6bc0;

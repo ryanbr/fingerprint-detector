@@ -1,19 +1,44 @@
-// hooks/storage.js — Storage, Storage Quota, openDatabase, sessionStorage
+// hooks/storage.js — Storage, IndexedDB, Storage Quota, openDatabase, sessionStorage, Cache API
 export function register({ hookMethod, hookMethodHot, hookGetter, record, recordHot, captureStack, extractSource, queueEvent }) {
   // ── 11. Storage Fingerprinting ────────────────────────────────────────
   hookGetter(Navigator.prototype, "cookieEnabled", "Storage", "navigator.cookieEnabled");
   if (typeof Storage !== "undefined") {
-    // Hot path — called constantly by many sites
     hookMethodHot(Storage.prototype, "setItem", "Storage", "localStorage.setItem");
     hookMethodHot(Storage.prototype, "getItem", "Storage", "localStorage.getItem");
   }
+
+  // ── IndexedDB fingerprinting ──────────────────────────────────────────
+  // indexedDB.databases() enumerates all DB names — reveals browsing history
+  // and installed PWAs. The open/transaction/read pipeline is used to probe
+  // stored data and test storage capabilities.
   if (typeof window.indexedDB !== "undefined") {
+    // Database lifecycle
     hookMethod(IDBFactory.prototype, "open", "Storage", "indexedDB.open");
+    hookMethod(IDBFactory.prototype, "deleteDatabase", "Storage", "indexedDB.deleteDatabase");
+
+    // databases() — enumerates all DB names (high-value fingerprint)
+    if (IDBFactory.prototype.databases) {
+      hookMethod(IDBFactory.prototype, "databases", "Storage", "indexedDB.databases");
+    }
+
+    // Database operations
+    if (typeof IDBDatabase !== "undefined") {
+      hookMethodHot(IDBDatabase.prototype, "createObjectStore", "Storage", "IDBDatabase.createObjectStore");
+      hookMethodHot(IDBDatabase.prototype, "transaction", "Storage", "IDBDatabase.transaction");
+      hookMethodHot(IDBDatabase.prototype, "close", "Storage", "IDBDatabase.close");
+      hookGetter(IDBDatabase.prototype, "objectStoreNames", "Storage", "IDBDatabase.objectStoreNames");
+    }
+
+    // Object store data reads — probing stored content
+    if (typeof IDBObjectStore !== "undefined") {
+      hookMethodHot(IDBObjectStore.prototype, "get", "Storage", "IDBObjectStore.get");
+      hookMethodHot(IDBObjectStore.prototype, "getAll", "Storage", "IDBObjectStore.getAll");
+      hookMethodHot(IDBObjectStore.prototype, "count", "Storage", "IDBObjectStore.count");
+      hookMethodHot(IDBObjectStore.prototype, "getAllKeys", "Storage", "IDBObjectStore.getAllKeys");
+    }
   }
 
   // ── 29d. Storage Quota (disk size leak) ────────────────────────────────
-  // navigator.storage.estimate() returns {usage, quota} — the quota reveals
-  // approximate disk size which is a high-entropy fingerprint signal.
   if (typeof StorageManager !== "undefined") {
     hookMethod(StorageManager.prototype, "estimate", "Storage", "navigator.storage.estimate");
     hookMethod(StorageManager.prototype, "persist", "Storage", "navigator.storage.persist");
@@ -28,7 +53,6 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
       return origOpenDB.call(this, name, ver, desc, size);
     };
   }
-  // Also check for its existence (boolean probe)
   {
     const desc = Object.getOwnPropertyDescriptor(window, "openDatabase");
     if (desc && desc.get) {

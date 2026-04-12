@@ -729,6 +729,29 @@
       });
     }
 
+    // Catch setAttribute("src", "chrome-extension://...") — covers img, script, iframe, link
+    const origSetAttribute = Element.prototype.setAttribute;
+    Element.prototype.setAttribute = function (name, value) {
+      if (typeof value === "string" &&
+          (name === "src" || name === "href") &&
+          (value.indexOf("chrome-extension://") === 0 || value.indexOf("moz-extension://") === 0)) {
+        record("ExtensionDetect", this.tagName + ".setAttribute(\"" + name + "\", extension URL)", value);
+      }
+      return origSetAttribute.call(this, name, value);
+    };
+
+    // Catch runtime.sendMessage probes — sites try to message known extension IDs
+    if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.sendMessage) {
+      const origRSM = chrome.runtime.sendMessage;
+      chrome.runtime.sendMessage = function () {
+        const extId = arguments[0];
+        if (typeof extId === "string" && extId.length === 32) {
+          record("ExtensionDetect", "chrome.runtime.sendMessage(extension ID)", extId);
+        }
+        return origRSM.apply(this, arguments);
+      };
+    }
+
     // 2. Detect getComputedStyle probing for extension-injected CSS
     // Sites create tripwire elements with known extension-targeted selectors
     // and check if styles were modified. We detect suspicious patterns:

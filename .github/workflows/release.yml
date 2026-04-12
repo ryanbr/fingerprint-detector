@@ -1,8 +1,11 @@
 name: Build and Release CRX
 
 on:
-  release:
-    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g. 1.0.0) — leave blank to read from manifest.json"
+        required: false
 
 jobs:
   build:
@@ -14,40 +17,56 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Get version from manifest
+      - name: Determine version
         id: version
         run: |
-          VERSION=$(jq -r '.version' manifest.json)
+          INPUT_VERSION="${{ github.event.inputs.version }}"
+          if [ -n "$INPUT_VERSION" ]; then
+            VERSION="$INPUT_VERSION"
+          else
+            VERSION=$(jq -r '.version' manifest.json)
+          fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Using version: $VERSION"
+
+      - name: Update manifest version
+        if: ${{ github.event.inputs.version != '' }}
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          jq --arg v "$VERSION" '.version = $v' manifest.json > manifest.tmp && mv manifest.tmp manifest.json
+          echo "Updated manifest.json to version $VERSION"
 
       - name: Generate signing key
-        run: |
-          openssl genrsa -out key.pem 2048
+        run: openssl genrsa -out key.pem 2048
 
-      - name: Build CRX
+      - name: Build CRX and ZIP
         run: |
-          # Install crx3 tool
           npm install -g crx3
+          VERSION=${{ steps.version.outputs.version }}
 
-          # Create zip of extension files (exclude dev files)
           mkdir -p dist
-          zip -r dist/fingerprint-detector.zip \
+
+          zip -r dist/fingerprint-detector-${VERSION}.zip \
             manifest.json \
             icons/ \
             src/ \
             LICENSE \
             -x "*.DS_Store" "*.map"
 
-          # Build CRX from zip
-          crx3 dist/fingerprint-detector.zip \
+          crx3 dist/fingerprint-detector-${VERSION}.zip \
             --keyPath key.pem \
-            --crxPath dist/fingerprint-detector-${{ steps.version.outputs.version }}.crx
+            --crxPath dist/fingerprint-detector-${VERSION}.crx
 
-      - name: Upload assets to release
+      - name: Create release and upload assets
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION=${{ steps.version.outputs.version }}
-          gh release upload "${{ github.event.release.tag_name }}" \
+          TAG=${{ steps.version.outputs.tag }}
+
+          gh release create "$TAG" \
+            --title "Fingerprint Detector $TAG" \
+            --generate-notes \
             dist/fingerprint-detector-${VERSION}.crx \
-            dist/fingerprint-detector.zip
+            dist/fingerprint-detector-${VERSION}.zip

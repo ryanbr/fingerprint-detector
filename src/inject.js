@@ -320,16 +320,52 @@
 
   // ── 4. Navigator / UA Fingerprinting ──────────────────────────────────
   const navProps = [
-    "userAgent", "platform", "language", "languages", "hardwareConcurrency",
-    "deviceMemory", "maxTouchPoints", "vendor", "appVersion", "oscpu",
-    "cpuClass", "productSub", "vendorSub",
+    // Core UA strings
+    "userAgent", "appVersion", "appName", "appCodeName", "product",
+    // Platform/hardware
+    "platform", "oscpu", "cpuClass",
+    // Language
+    "language", "languages",
+    // Hardware capabilities
+    "hardwareConcurrency", "deviceMemory", "maxTouchPoints",
+    // Vendor
+    "vendor", "productSub", "vendorSub",
+    // Firefox-specific
+    "buildID",
+    // Connection object access
+    "connection",
   ];
   for (const prop of navProps) {
-    hookGetter(Navigator.prototype, prop, "Navigator", `navigator.${prop}`);
+    hookGetter(Navigator.prototype, prop, "Navigator", "navigator." + prop);
   }
   hookMethod(Navigator.prototype, "getBattery", "Navigator", "navigator.getBattery");
   if (Navigator.prototype.getGamepads) {
     hookMethod(Navigator.prototype, "getGamepads", "Navigator", "navigator.getGamepads");
+  }
+  // Legacy probes
+  if (Navigator.prototype.javaEnabled) {
+    hookMethod(Navigator.prototype, "javaEnabled", "Navigator", "navigator.javaEnabled");
+  }
+  if (Navigator.prototype.taintEnabled) {
+    hookMethod(Navigator.prototype, "taintEnabled", "Navigator", "navigator.taintEnabled");
+  }
+  // Worker creation — sites run fingerprinting in Workers to cross-check
+  // UA/hardwareConcurrency against main thread (detects spoofing)
+  if (typeof Worker !== "undefined") {
+    const OrigWorker = Worker;
+    window.Worker = function (url, opts) {
+      recordHot("Navigator", "new Worker", typeof url === "string" ? url : "");
+      return opts ? new OrigWorker(url, opts) : new OrigWorker(url);
+    };
+    window.Worker.prototype = OrigWorker.prototype;
+  }
+  if (typeof SharedWorker !== "undefined") {
+    const OrigSW = SharedWorker;
+    window.SharedWorker = function (url, opts) {
+      recordHot("Navigator", "new SharedWorker", typeof url === "string" ? url : "");
+      return opts ? new OrigSW(url, opts) : new OrigSW(url);
+    };
+    window.SharedWorker.prototype = OrigSW.prototype;
   }
 
   // ── 4a. Brave Browser Detection ────────────────────────────────────────

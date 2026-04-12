@@ -200,6 +200,41 @@
     }
     .diff-summary .stat-value.high { color: #ef5350; }
     .diff-summary .stat-value.low { color: #66bb6a; }
+    .diff-summary .actions {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .diff-summary .actions label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #90a4ae;
+      cursor: pointer;
+      user-select: none;
+    }
+    .diff-summary .actions button {
+      background: #e9456022;
+      border: 1px solid #e9456066;
+      color: #e94560;
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .diff-summary .actions button:hover {
+      background: #e9456033;
+      color: #ef5350;
+    }
+
+    /* Hide shared rows when diffs-only is enabled */
+    .container.diffs-only .category-row.both,
+    .container.diffs-only .domains-table tr.both {
+      display: none;
+    }
 
     /* Domain table */
     .domains-section {

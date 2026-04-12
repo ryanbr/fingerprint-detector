@@ -157,7 +157,20 @@ function maybeRenderDiff() {
       <div class="stat-label">Calls (A / B)</div>
       <div class="stat-value">${leftData.totalCalls || 0} / ${rightData.totalCalls || 0}</div>
     </div>
+    <div class="actions">
+      <label>
+        <input type="checkbox" id="diffs-only"> Show only differences
+      </label>
+      <button id="export-diffs">Export differences</button>
+    </div>
   `;
+
+  // Wire up the toggle and export button
+  const diffsOnlyCb = document.getElementById("diffs-only");
+  diffsOnlyCb.addEventListener("change", () => {
+    document.querySelector(".container").classList.toggle("diffs-only", diffsOnlyCb.checked);
+  });
+  document.getElementById("export-diffs").addEventListener("click", exportDifferences);
 
   // Render category lists with diff labels
   renderCategoriesDiff("left", leftData, allCats, onlyLeft, onlyRight, "left");
@@ -273,7 +286,7 @@ function renderDomainDiff() {
     const isThirdPartyB = right?.isThirdParty;
     const isThird = isThirdPartyA || isThirdPartyB;
 
-    let rowClass = "";
+    let rowClass = "both";
     let present = "shared";
     if (left && !right) { rowClass = "only-left"; present = "A only"; }
     else if (!left && right) { rowClass = "only-right"; present = "B only"; }
@@ -286,6 +299,130 @@ function renderDomainDiff() {
     </tr>`;
   }
   tbody.innerHTML = html;
+}
+
+// ── Export differences ────────────────────────────────────────────────
+function exportDifferences() {
+  if (!leftData || !rightData) {
+    alert("Load both sides before exporting differences.");
+    return;
+  }
+
+  const leftCats = leftData.categories || {};
+  const rightCats = rightData.categories || {};
+  const leftKeys = new Set(Object.keys(leftCats));
+  const rightKeys = new Set(Object.keys(rightCats));
+
+  const onlyA = [];
+  const onlyB = [];
+  const shared = [];
+
+  for (const cat of leftKeys) {
+    if (rightKeys.has(cat)) {
+      shared.push({
+        category: cat,
+        callsA: leftCats[cat].totalCalls || 0,
+        callsB: rightCats[cat].totalCalls || 0,
+      });
+    } else {
+      onlyA.push({
+        category: cat,
+        totalCalls: leftCats[cat].totalCalls || 0,
+        risk: leftCats[cat].risk,
+        description: leftCats[cat].description,
+        uniqueMethods: leftCats[cat].uniqueMethods,
+      });
+    }
+  }
+  for (const cat of rightKeys) {
+    if (!leftKeys.has(cat)) {
+      onlyB.push({
+        category: cat,
+        totalCalls: rightCats[cat].totalCalls || 0,
+        risk: rightCats[cat].risk,
+        description: rightCats[cat].description,
+        uniqueMethods: rightCats[cat].uniqueMethods,
+      });
+    }
+  }
+
+  // Domain diff
+  const leftDomains = leftData.domains || {};
+  const rightDomains = rightData.domains || {};
+  const domainsOnlyA = {};
+  const domainsOnlyB = {};
+  const domainsShared = {};
+  for (const d of Object.keys(leftDomains)) {
+    if (rightDomains[d]) {
+      domainsShared[d] = { A: leftDomains[d], B: rightDomains[d] };
+    } else {
+      domainsOnlyA[d] = leftDomains[d];
+    }
+  }
+  for (const d of Object.keys(rightDomains)) {
+    if (!leftDomains[d]) {
+      domainsOnlyB[d] = rightDomains[d];
+    }
+  }
+
+  const diff = {
+    exportedAt: new Date().toISOString(),
+    siteA: {
+      url: leftData.url || "",
+      source: leftFilename || "current tab",
+      exportedAt: leftData.exportedAt,
+      totalTechniques: leftKeys.size,
+      totalCalls: leftData.totalCalls || 0,
+      riskLevel: leftData.riskLevel,
+    },
+    siteB: {
+      url: rightData.url || "",
+      source: rightFilename || "",
+      exportedAt: rightData.exportedAt,
+      totalTechniques: rightKeys.size,
+      totalCalls: rightData.totalCalls || 0,
+      riskLevel: rightData.riskLevel,
+    },
+    summary: {
+      uniqueToA: onlyA.length,
+      uniqueToB: onlyB.length,
+      sharedTechniques: shared.length,
+      domainsOnlyA: Object.keys(domainsOnlyA).length,
+      domainsOnlyB: Object.keys(domainsOnlyB).length,
+      domainsShared: Object.keys(domainsShared).length,
+    },
+    techniques: {
+      uniqueToA: onlyA,
+      uniqueToB: onlyB,
+      shared,
+    },
+    domains: {
+      onlyA: domainsOnlyA,
+      onlyB: domainsOnlyB,
+      shared: domainsShared,
+    },
+  };
+
+  // Build a filename from both sites
+  function siteSlug(url) {
+    if (!url) return "unknown";
+    try {
+      return new URL(url).hostname.replace(/^www\./, "").replace(/[^a-z0-9.-]/gi, "_");
+    } catch {
+      return "unknown";
+    }
+  }
+  const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+  const filename = `fp-diff-${siteSlug(leftData.url)}-vs-${siteSlug(rightData.url)}-${ts}.json`;
+
+  // Trigger download
+  const blob = new Blob([JSON.stringify(diff, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 // ── File loading — button + drag/drop ─────────────────────────────────

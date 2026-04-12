@@ -674,7 +674,98 @@
     hookGetter(Notification, "permission", "Permissions", "Notification.permission");
   }
 
-  // ── 29b. Storage Quota (disk size leak) ────────────────────────────────
+  // ── 29b. Extension Detection ────────────────────────────────────────────
+  // Sites detect installed Chrome extensions via three techniques:
+  // 1. Probing web-accessible resources (chrome-extension://<id>/...)
+  // 2. Detecting injected CSS via getComputedStyle on tripwire elements
+  // 3. Detecting injected DOM elements
+  {
+    // 1. Detect probes for chrome-extension:// URLs via fetch, XMLHttpRequest, Image, link
+    const origFetch = window.fetch;
+    if (typeof origFetch === "function") {
+      window.fetch = function (input) {
+        const url = (typeof input === "string") ? input : (input && input.url) || "";
+        if (url.indexOf("chrome-extension://") === 0 || url.indexOf("moz-extension://") === 0) {
+          record("ExtensionDetect", "fetch(extension URL)", url);
+        }
+        return origFetch.apply(this, arguments);
+      };
+    }
+
+    const origXHROpen = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function (method, url) {
+      if (typeof url === "string" && (url.indexOf("chrome-extension://") === 0 || url.indexOf("moz-extension://") === 0)) {
+        record("ExtensionDetect", "XHR.open(extension URL)", url);
+      }
+      return origXHROpen.apply(this, arguments);
+    };
+
+    // Detect Image/link probes for extension resources
+    const origImageSrc = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, "src");
+    if (origImageSrc && origImageSrc.set) {
+      const origSet = origImageSrc.set;
+      Object.defineProperty(HTMLImageElement.prototype, "src", {
+        ...origImageSrc,
+        set(val) {
+          if (typeof val === "string" && (val.indexOf("chrome-extension://") === 0 || val.indexOf("moz-extension://") === 0)) {
+            record("ExtensionDetect", "Image.src = extension URL", val);
+          }
+          return origSet.call(this, val);
+        },
+      });
+    }
+
+    const origLinkHref = Object.getOwnPropertyDescriptor(HTMLLinkElement.prototype, "href");
+    if (origLinkHref && origLinkHref.set) {
+      const origSet = origLinkHref.set;
+      Object.defineProperty(HTMLLinkElement.prototype, "href", {
+        ...origLinkHref,
+        set(val) {
+          if (typeof val === "string" && (val.indexOf("chrome-extension://") === 0 || val.indexOf("moz-extension://") === 0)) {
+            record("ExtensionDetect", "Link.href = extension URL", val);
+          }
+          return origSet.call(this, val);
+        },
+      });
+    }
+
+    // 2. Detect getComputedStyle probing for extension-injected CSS
+    // Sites create tripwire elements with known extension-targeted selectors
+    // and check if styles were modified. We detect suspicious patterns:
+    // rapid getComputedStyle calls on freshly created elements.
+    const origGetCS = window.getComputedStyle;
+    if (typeof origGetCS === "function") {
+      let csProbeCount = 0;
+      let csProbeStart = 0;
+      const CS_BURST_WINDOW = 500;  // ms
+      const CS_BURST_THRESHOLD = 20; // calls
+      let csBurstReported = false;
+
+      window.getComputedStyle = function (el, pseudo) {
+        const result = origGetCS.call(this, el, pseudo);
+        const now = Date.now();
+
+        // Detect burst pattern: many getComputedStyle calls in quick succession
+        // on elements appended to body (typical extension detection pattern)
+        if (el && el.parentNode && (el.parentNode === document.body || el.parentNode.parentNode === document.body)) {
+          if (now - csProbeStart > CS_BURST_WINDOW) {
+            csProbeCount = 0;
+            csProbeStart = now;
+          }
+          csProbeCount++;
+          if (csProbeCount >= CS_BURST_THRESHOLD && !csBurstReported) {
+            csBurstReported = true;
+            record("ExtensionDetect", "getComputedStyle burst",
+              csProbeCount + " calls in " + CS_BURST_WINDOW + "ms (extension CSS detection pattern)");
+          }
+        }
+
+        return result;
+      };
+    }
+  }
+
+  // ── 29d. Storage Quota (disk size leak) ────────────────────────────────
   // navigator.storage.estimate() returns {usage, quota} — the quota reveals
   // approximate disk size which is a high-entropy fingerprint signal.
   if (typeof StorageManager !== "undefined") {
@@ -683,7 +774,7 @@
     hookMethod(StorageManager.prototype, "persisted", "Storage", "navigator.storage.persisted");
   }
 
-  // ── 29c. Headless / Automation Detection ──────────────────────────────
+  // ── 29e. Headless / Automation Detection ──────────────────────────────
   // navigator.webdriver is true in automated browsers (Puppeteer, Playwright,
   // Selenium). Sites read it to detect bots and as a fingerprint signal.
   hookGetter(Navigator.prototype, "webdriver", "HeadlessDetect", "navigator.webdriver");

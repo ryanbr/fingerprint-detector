@@ -1,10 +1,15 @@
 {
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "esbuild src/inject.js --bundle --outfile=dist/inject.js --format=iife --target=es2020",
-    "watch": "esbuild src/inject.js --bundle --outfile=dist/inject.js --format=iife --target=es2020 --watch"
+    "watch": "esbuild src/inject.js --bundle --outfile=dist/inject.js --format=iife --target=es2020 --watch",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix"
   },
   "devDependencies": {
-    "esbuild": "^0.25.0"
+    "esbuild": "^0.25.0",
+    "eslint": "^9.0.0",
+    "@eslint/js": "^9.0.0"
   }
 }

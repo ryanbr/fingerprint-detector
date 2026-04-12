@@ -46,9 +46,10 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
                 }
                 return handler.call(this, event);
               };
-              return origSet.call(this, wrappedHandler);
+              origSet.call(this, wrappedHandler);
+              return;
             }
-            return origSet.call(this, handler);
+            origSet.call(this, handler);
           },
           configurable: true,
         });

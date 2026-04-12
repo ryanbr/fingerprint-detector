@@ -33,7 +33,7 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
         },
         set(v) {
           record("Touch", "window.ontouchstart", "set");
-          return origSet ? origSet.call(this, v) : undefined;
+          if (origSet) origSet.call(this, v);
         },
         configurable: true,
         enumerable: true,

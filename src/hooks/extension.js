@@ -81,7 +81,7 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
             const c = val.charCodeAt(0);
             if ((c === 99 || c === 109) && isExtUrl(val)) recordExtProbe("Image.src = extension URL", val);
           }
-          return origSet.call(this, val);
+          origSet.call(this, val);
         },
       });
     }
@@ -97,7 +97,7 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
             const c = val.charCodeAt(0);
             if ((c === 99 || c === 109) && isExtUrl(val)) recordExtProbe("Link.href = extension URL", val);
           }
-          return origSet.call(this, val);
+          origSet.call(this, val);
         },
       });
     }

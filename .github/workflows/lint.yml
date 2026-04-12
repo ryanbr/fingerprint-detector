@@ -1,0 +1,55 @@
+name: Lint and Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Verify bundle
+        run: |
+          # Ensure dist/inject.js was generated
+          test -f dist/inject.js || { echo "dist/inject.js not found"; exit 1; }
+
+          # Check all fingerprinting categories are present in the bundle
+          MISSING=""
+          for cat in Canvas WebGL Audio Navigator VendorDetect ClientHints Screen Fonts \
+            WebRTC Network MediaDevices SpeechSynthesis Storage Timing DNT Keyboard \
+            WebGPU Hardware Sensors Touch Credentials Permissions AdBlockDetect \
+            ExtensionDetect HeadlessDetect Math Architecture Plugins MediaQuery \
+            WebSocket GPC Intl; do
+            if ! grep -q "\"$cat\"" dist/inject.js; then
+              MISSING="$MISSING $cat"
+            fi
+          done
+
+          if [ -n "$MISSING" ]; then
+            echo "Missing categories in bundle:$MISSING"
+            exit 1
+          fi
+
+          echo "All categories present in bundle"
+          echo "Bundle size: $(wc -c < dist/inject.js) bytes"

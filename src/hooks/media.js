@@ -23,7 +23,7 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
         get: ovDesc.get ? ovDesc.get.bind(speechSynthesis) : undefined,
         set(handler) {
           recordHot("SpeechSynthesis", "onvoiceschanged", "listener set");
-          return origSet.call(this, handler);
+          origSet.call(this, handler);
         },
         configurable: true,
         enumerable: true,
@@ -53,7 +53,7 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
         ...voiceDesc,
         set(v) {
           record("SpeechSynthesis", "utterance.voice =", v && v.name ? v.name : "");
-          return origSet.call(this, v);
+          origSet.call(this, v);
         },
       });
     }
@@ -64,7 +64,7 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
         ...langDesc,
         set(v) {
           record("SpeechSynthesis", "utterance.lang =", v || "");
-          return origSet.call(this, v);
+          origSet.call(this, v);
         },
       });
     }

@@ -36,6 +36,7 @@
       padding: 16px;
       max-width: 1800px;
       margin: 0 auto;
+      align-items: start; /* don't stretch cards to match each other's height */
     }
 
     .side {
@@ -121,8 +122,13 @@
 
     .categories {
       padding: 0;
-      max-height: 600px;
+      max-height: 70vh;
       overflow-y: auto;
+    }
+    /* In diffs-only mode, let the container shrink to fit visible content */
+    .container.diffs-only .categories {
+      max-height: none;
+      overflow-y: visible;
     }
     .category-row {
       padding: 10px 16px;
@@ -257,8 +263,9 @@
       color: #ef5350;
     }
 
-    /* Hide shared rows when diffs-only is enabled */
+    /* Hide shared and placeholder rows when diffs-only is enabled */
     .container.diffs-only .category-row.both,
+    .container.diffs-only .category-row.placeholder,
     .container.diffs-only .domains-table tr.both {
       display: none;
     }

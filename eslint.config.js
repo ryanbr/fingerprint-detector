@@ -89,6 +89,7 @@ export default [
         IDBObjectStore: "readonly",
         ServiceWorkerContainer: "readonly",
         CacheStorage: "readonly",
+        BroadcastChannel: "readonly",
         Window: "readonly",
         Document: "readonly",
         FontFace: "readonly",

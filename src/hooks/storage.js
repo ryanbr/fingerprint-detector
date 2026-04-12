@@ -5,6 +5,39 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
   if (typeof Storage !== "undefined") {
     hookMethodHot(Storage.prototype, "setItem", "Storage", "localStorage.setItem");
     hookMethodHot(Storage.prototype, "getItem", "Storage", "localStorage.getItem");
+    hookMethodHot(Storage.prototype, "removeItem", "Storage", "localStorage.removeItem");
+    hookMethodHot(Storage.prototype, "clear", "Storage", "localStorage.clear");
+    hookMethodHot(Storage.prototype, "key", "Storage", "localStorage.key");
+    hookGetter(Storage.prototype, "length", "Storage", "localStorage.length");
+  }
+
+  // document.cookie — reading/writing cookies for tracking
+  {
+    const cookieDesc = Object.getOwnPropertyDescriptor(Document.prototype, "cookie");
+    if (cookieDesc) {
+      if (cookieDesc.get) {
+        const origGet = cookieDesc.get;
+        Object.defineProperty(Document.prototype, "cookie", {
+          ...cookieDesc,
+          get() {
+            recordHot("Storage", "document.cookie", "get");
+            return origGet.call(this);
+          },
+          set: cookieDesc.set,
+        });
+      }
+    }
+  }
+
+  // BroadcastChannel — cross-tab communication, can be used to coordinate
+  // fingerprinting across tabs or detect multiple open tabs
+  if (typeof BroadcastChannel !== "undefined") {
+    const OrigBC = BroadcastChannel;
+    window.BroadcastChannel = function (name) {
+      recordHot("Storage", "new BroadcastChannel", name || "");
+      return new OrigBC(name);
+    };
+    window.BroadcastChannel.prototype = OrigBC.prototype;
   }
 
   // ── IndexedDB fingerprinting ──────────────────────────────────────────

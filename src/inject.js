@@ -90,6 +90,8 @@ import { register as misc } from './hooks/misc.js';
   function extractSource(stack) {
     if (!stack) return "";
     const lines = stack.split("\n");
+
+    // First pass: look for a real http(s) URL
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i];
       if (line.length < 10) continue;
@@ -103,7 +105,20 @@ import { register as misc } from './hooks/misc.js';
       if (url.charCodeAt(0) === 99 && url.indexOf("chrome-extension://") === 0) continue;
       return url;
     }
-    return "";
+
+    // Second pass: look for alternative source contexts (eval, blob:, data:, etc.)
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i];
+      if (line.indexOf("inject.js") !== -1) continue;
+      if (line.indexOf("<anonymous>") !== -1) return "<anonymous> (inline script or eval)";
+      if (line.indexOf("blob:") !== -1) return "blob: (dynamic script)";
+      if (line.indexOf("data:") !== -1) return "data: (data URL script)";
+      if (line.indexOf("eval") !== -1) return "eval() (runtime-generated code)";
+      if (line.indexOf("Function") !== -1) return "new Function() (runtime-generated)";
+    }
+
+    // Third pass: use page URL as fallback context
+    return location.href ? "inline on " + location.href : "";
   }
 
   // Main record function

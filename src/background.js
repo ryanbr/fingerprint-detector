@@ -149,6 +149,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     const tabId = msg.tabId;
     if (tabId) {
       chrome.tabs.sendMessage(tabId, { type: "get-ext-ids" }, (response) => {
+        // Consume lastError to avoid "Unchecked runtime.lastError" console noise
+        // when the tab has no content script (chrome://, about:, extension pages)
+        if (chrome.runtime.lastError) {
+          sendResponse(null);
+          return;
+        }
         sendResponse(response);
       });
       return true;

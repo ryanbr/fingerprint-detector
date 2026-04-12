@@ -167,8 +167,43 @@
   hookMethod(CanvasRenderingContext2D.prototype, "toDataURL", "Canvas", "toDataURL");
   hookMethod(CanvasRenderingContext2D.prototype, "toBlob", "Canvas", "toBlob");
   hookMethod(CanvasRenderingContext2D.prototype, "getImageData", "Canvas", "getImageData");
+  hookMethod(CanvasRenderingContext2D.prototype, "measureText", "Canvas", "measureText");
   hookMethod(HTMLCanvasElement.prototype, "toDataURL", "Canvas", "HTMLCanvasElement.toDataURL");
   hookMethod(HTMLCanvasElement.prototype, "toBlob", "Canvas", "HTMLCanvasElement.toBlob");
+
+  // Hook getContext to detect canvas context creation
+  {
+    const origGetContext = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function (type) {
+      if (typeof type === "string") {
+        if (type === "2d") {
+          recordHot("Canvas", "getContext('2d')", "2d");
+        } else if (type === "webgl" || type === "webgl2" || type === "experimental-webgl") {
+          recordHot("WebGL", "getContext('" + type + "')", type);
+        }
+      }
+      return origGetContext.apply(this, arguments);
+    };
+  }
+
+  // OffscreenCanvas — can bypass main-thread canvas hooks
+  if (typeof OffscreenCanvas !== "undefined") {
+    const origOSC = OffscreenCanvas;
+    window.OffscreenCanvas = function () {
+      recordHot("Canvas", "new OffscreenCanvas", "");
+      return new origOSC(...arguments);
+    };
+    window.OffscreenCanvas.prototype = origOSC.prototype;
+    if (OffscreenCanvas.prototype.getContext) {
+      hookMethod(OffscreenCanvas.prototype, "getContext", "Canvas", "OffscreenCanvas.getContext");
+    }
+    if (OffscreenCanvas.prototype.convertToBlob) {
+      hookMethod(OffscreenCanvas.prototype, "convertToBlob", "Canvas", "OffscreenCanvas.convertToBlob");
+    }
+    if (OffscreenCanvas.prototype.transferToImageBitmap) {
+      hookMethod(OffscreenCanvas.prototype, "transferToImageBitmap", "Canvas", "OffscreenCanvas.transferToImageBitmap");
+    }
+  }
 
   // ── 2. WebGL Fingerprinting ───────────────────────────────────────────
   function hookWebGL(proto, label) {
@@ -454,6 +489,32 @@
           }
           return val;
         },
+      });
+    }
+  }
+
+  // ── 6b. FontFace API ───────────────────────────────────────────────────
+  // document.fonts (FontFaceSet) provides direct font availability checks
+  // without the offsetWidth/offsetHeight measurement trick.
+  if (typeof FontFaceSet !== "undefined") {
+    hookMethod(FontFaceSet.prototype, "check", "Fonts", "document.fonts.check");
+    hookMethod(FontFaceSet.prototype, "load", "Fonts", "document.fonts.load");
+    // forEach / iteration — used to enumerate all loaded fonts
+    hookMethod(FontFaceSet.prototype, "forEach", "Fonts", "document.fonts.forEach");
+  }
+  // document.fonts.ready — sites await this before probing
+  if (typeof document !== "undefined" && document.fonts) {
+    const fontsDesc = Object.getOwnPropertyDescriptor(document.fonts, "ready") ||
+                      Object.getOwnPropertyDescriptor(FontFaceSet.prototype, "ready");
+    if (fontsDesc && fontsDesc.get) {
+      const origGet = fontsDesc.get;
+      Object.defineProperty(document.fonts, "ready", {
+        get() {
+          recordHot("Fonts", "document.fonts.ready", "");
+          return origGet.call(this);
+        },
+        configurable: true,
+        enumerable: true,
       });
     }
   }

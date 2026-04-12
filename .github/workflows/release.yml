@@ -97,13 +97,14 @@ jobs:
       - name: Generate signing key
         run: openssl genrsa -out key.pem 2048
 
-      - name: Build CRX and ZIP
+      - name: Build CRX, ZIP, and XPI
         run: |
           npm install -g crx3
           VERSION=${{ steps.version.outputs.version }}
 
-          mkdir -p dist ext
+          mkdir -p dist ext ext-firefox
 
+          # Chrome build
           cp manifest.json ext/
           cp LICENSE ext/
           cp -r icons ext/
@@ -116,6 +117,27 @@ jobs:
           cd ext
           zip -r ../dist/fingerprint-detector-${VERSION}.zip . \
             -x "*.DS_Store"
+          cd ..
+
+          # Firefox build — add browser_specific_settings and adjust manifest
+          cp -r ext/* ext-firefox/
+          jq '. + {
+            "browser_specific_settings": {
+              "gecko": {
+                "id": "fingerprint-detector@ryanbr",
+                "strict_min_version": "109.0"
+              }
+            }
+          }
+          | del(.background.service_worker)
+          | .background = { "scripts": ["src/background.js"] }
+          | .content_scripts = [.content_scripts[] | del(.world)]
+          ' ext/manifest.json > ext-firefox/manifest.json
+
+          cd ext-firefox
+          zip -r ../dist/fingerprint-detector-${VERSION}.xpi . \
+            -x "*.DS_Store"
+          cd ..
 
       - name: Create release with changelog
         env:
@@ -133,7 +155,12 @@ jobs:
 
           ## Install
 
-          - **fingerprint-detector-${VERSION}.crx** — drag into \`chrome://extensions\` to install
-          - **fingerprint-detector-${VERSION}.zip** — unzip and load unpacked via Developer mode" \
+          **Chrome:**
+          - **fingerprint-detector-${VERSION}.crx** — drag into \`chrome://extensions\`
+          - **fingerprint-detector-${VERSION}.zip** — unzip and load unpacked via Developer mode
+
+          **Firefox:**
+          - **fingerprint-detector-${VERSION}.xpi** — open in Firefox or install via \`about:addons\`" \
             dist/fingerprint-detector-${VERSION}.crx \
-            dist/fingerprint-detector-${VERSION}.zip
+            dist/fingerprint-detector-${VERSION}.zip \
+            dist/fingerprint-detector-${VERSION}.xpi

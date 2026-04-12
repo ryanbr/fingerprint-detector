@@ -192,7 +192,7 @@ function renderSummary(response) {
     });
   });
 
-  // Category mute buttons
+  // Category mute buttons — click = domain, right-click = global
   content.querySelectorAll("[data-mute-cat]").forEach(btn => {
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -200,14 +200,22 @@ function renderSummary(response) {
       if (mutedCategories.has(cat)) {
         removeMute("category", cat);
       } else {
-        addMute("category", cat);
+        addMute("category", cat, "domain");
       }
-      // Re-render summary to update visual state
       chrome.runtime.sendMessage({ type: "get-detections" }, renderSummary);
+    });
+    btn.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const cat = btn.dataset.muteCat;
+      if (!mutedCategories.has(cat)) {
+        addMute("category", cat, "global");
+        chrome.runtime.sendMessage({ type: "get-detections" }, renderSummary);
+      }
     });
   });
 
-  // Method mute buttons
+  // Method mute buttons — click = domain, right-click = global
   content.querySelectorAll("[data-mute-method]").forEach(btn => {
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -215,9 +223,18 @@ function renderSummary(response) {
       if (mutedMethods.has(method)) {
         removeMute("method", method);
       } else {
-        addMute("method", method);
+        addMute("method", method, "domain");
       }
       chrome.runtime.sendMessage({ type: "get-detections" }, renderSummary);
+    });
+    btn.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const method = btn.dataset.muteMethod;
+      if (!mutedMethods.has(method)) {
+        addMute("method", method, "global");
+        chrome.runtime.sendMessage({ type: "get-detections" }, renderSummary);
+      }
     });
   });
 }
@@ -252,11 +269,22 @@ const MAX_DOM_NODES = 500;
 let domNodeCount = 0;
 
 // ── Mute System ───────────────────────────────────────────────────────
-// Mute by method name (e.g. "performance.now") or by category (e.g. "Timing").
-// Muted entries are still counted but not rendered.
-// Persisted to chrome.storage.local so they survive popup close / browser restart.
-const mutedMethods = new Set();
+// Two layers: global mutes (apply everywhere) and per-domain mutes
+// (apply only on that domain). Both persist via chrome.storage.local.
+//
+// Storage format:
+//   mutedGlobal:   { methods: [...], categories: [...] }
+//   mutedByDomain: { "google.com": { methods: [...], categories: [...] }, ... }
+//
+// Active mutes = global + current domain merged.
+
+const mutedMethods = new Set();     // effective set (global + domain merged)
 const mutedCategories = new Set();
+
+// Raw stored data
+let mutedGlobal = { methods: [], categories: [] };
+let mutedByDomain = {}; // domain -> { methods: [], categories: [] }
+let currentDomain = ""; // set once we know the active tab URL
 
 function muteKey(d) {
   return d.method.replace(/ \(call #\d+\)$/, "");
@@ -266,27 +294,69 @@ function isMuted(d) {
   return mutedCategories.has(d.category) || mutedMethods.has(muteKey(d));
 }
 
-function saveMutes() {
-  chrome.storage.local.set({
-    mutedMethods: [...mutedMethods],
-    mutedCategories: [...mutedCategories],
-  });
+function rebuildEffectiveMutes() {
+  mutedMethods.clear();
+  mutedCategories.clear();
+  for (const m of mutedGlobal.methods) mutedMethods.add(m);
+  for (const c of mutedGlobal.categories) mutedCategories.add(c);
+  const domainMutes = mutedByDomain[currentDomain];
+  if (domainMutes) {
+    for (const m of domainMutes.methods) mutedMethods.add(m);
+    for (const c of domainMutes.categories) mutedCategories.add(c);
+  }
 }
 
-function addMute(type, value) {
-  if (type === "method") mutedMethods.add(value);
-  else mutedCategories.add(value);
+function saveMutes() {
+  chrome.storage.local.set({ mutedGlobal, mutedByDomain });
+}
+
+// scope: "global" or "domain"
+function addMute(type, value, scope) {
+  scope = scope || "domain"; // default to per-domain
+  if (scope === "global") {
+    if (type === "method") { if (!mutedGlobal.methods.includes(value)) mutedGlobal.methods.push(value); }
+    else { if (!mutedGlobal.categories.includes(value)) mutedGlobal.categories.push(value); }
+  } else {
+    if (!mutedByDomain[currentDomain]) mutedByDomain[currentDomain] = { methods: [], categories: [] };
+    const dm = mutedByDomain[currentDomain];
+    if (type === "method") { if (!dm.methods.includes(value)) dm.methods.push(value); }
+    else { if (!dm.categories.includes(value)) dm.categories.push(value); }
+  }
+  rebuildEffectiveMutes();
   saveMutes();
   renderMuteBar();
   refilterLog();
 }
 
 function removeMute(type, value) {
-  if (type === "method") mutedMethods.delete(value);
-  else mutedCategories.delete(value);
+  // Remove from both global and domain
+  if (type === "method") {
+    mutedGlobal.methods = mutedGlobal.methods.filter(m => m !== value);
+    if (mutedByDomain[currentDomain]) {
+      mutedByDomain[currentDomain].methods = mutedByDomain[currentDomain].methods.filter(m => m !== value);
+    }
+  } else {
+    mutedGlobal.categories = mutedGlobal.categories.filter(c => c !== value);
+    if (mutedByDomain[currentDomain]) {
+      mutedByDomain[currentDomain].categories = mutedByDomain[currentDomain].categories.filter(c => c !== value);
+    }
+  }
+  rebuildEffectiveMutes();
   saveMutes();
   renderMuteBar();
   refilterLog();
+}
+
+function isGlobalMute(type, value) {
+  if (type === "method") return mutedGlobal.methods.includes(value);
+  return mutedGlobal.categories.includes(value);
+}
+
+function isDomainMute(type, value) {
+  const dm = mutedByDomain[currentDomain];
+  if (!dm) return false;
+  if (type === "method") return dm.methods.includes(value);
+  return dm.categories.includes(value);
 }
 
 function renderMuteBar() {
@@ -297,18 +367,20 @@ function renderMuteBar() {
   muteBar.querySelectorAll(".mute-tag").forEach(t => t.remove());
 
   for (const cat of mutedCategories) {
+    const isGlobal = isGlobalMute("category", cat);
     const tag = document.createElement("span");
     tag.className = "mute-tag";
-    tag.title = "Click to unmute category";
-    tag.innerHTML = `${escapeHtml(cat)} <span class="x">&times;</span>`;
+    tag.title = `Click to unmute (${isGlobal ? "global" : currentDomain})`;
+    tag.innerHTML = `${escapeHtml(cat)} <span style="opacity:0.5;font-size:9px">${isGlobal ? "all" : escapeHtml(currentDomain)}</span> <span class="x">&times;</span>`;
     tag.addEventListener("click", () => removeMute("category", cat));
     muteBar.appendChild(tag);
   }
   for (const method of mutedMethods) {
+    const isGlobal = isGlobalMute("method", method);
     const tag = document.createElement("span");
     tag.className = "mute-tag";
-    tag.title = "Click to unmute method";
-    tag.innerHTML = `${escapeHtml(method)} <span class="x">&times;</span>`;
+    tag.title = `Click to unmute (${isGlobal ? "global" : currentDomain})`;
+    tag.innerHTML = `${escapeHtml(method)} <span style="opacity:0.5;font-size:9px">${isGlobal ? "all" : escapeHtml(currentDomain)}</span> <span class="x">&times;</span>`;
     tag.addEventListener("click", () => removeMute("method", method));
     muteBar.appendChild(tag);
   }
@@ -444,23 +516,23 @@ function buildLogNode(d, parent) {
       `<span class="log-cat ${riskClass(d.category)}">${icon} ${escapeHtml(d.category)}${iframeTag}${tabTag}</span>` +
       `<span class="log-method">${escapeHtml(d.method)}</span>` +
       `<span class="log-detail" title="${escapeHtml(d.detail || "")}">${escapeHtml(d.detail || "")}</span>` +
-      `<button class="mute-btn" data-mute-method="${escapeHtml(mk)}" title="Mute ${escapeHtml(mk)}">&#x1F507;</button>` +
+      `<button class="mute-btn" data-mute-method="${escapeHtml(mk)}" title="Click: mute on this site | Right-click: mute on all sites">&#x1F507;</button>` +
     `</div>` +
     (d.source ? `<div class="log-source" title="${escapeHtml(d.source)}">${escapeHtml(shortenUrl(d.source))}</div>` : "") +
     (d.isIframe && d.frameUrl ? `<div class="log-frame" title="${escapeHtml(d.frameUrl)}">iframe: ${escapeHtml(shortenUrl(d.frameUrl))}</div>` : "");
 
-  // Mute button — mute this specific method
+  // Mute button — click = mute method on this domain
   const muteBtn = row.querySelector(".mute-btn");
   muteBtn.addEventListener("click", (e) => {
     e.stopPropagation();
-    addMute("method", mk);
+    addMute("method", mk, "domain");
   });
 
-  // Right-click mute button — mute entire category
+  // Right-click mute button — mute entire category on all sites
   muteBtn.addEventListener("contextmenu", (e) => {
     e.preventDefault();
     e.stopPropagation();
-    addMute("category", d.category);
+    addMute("category", d.category, "global");
   });
 
   // Stack trace — created lazily on click
@@ -818,14 +890,21 @@ logFilter.addEventListener("input", saveUIState);
 logAutoscroll.addEventListener("change", saveUIState);
 
 // ── Load everything and connect ───────────────────────────────────────
-chrome.storage.local.get(["mutedMethods", "mutedCategories"], (localStored) => {
-  if (localStored.mutedMethods) {
-    for (const m of localStored.mutedMethods) mutedMethods.add(m);
+chrome.storage.local.get(["mutedGlobal", "mutedByDomain", "mutedMethods", "mutedCategories"], (localStored) => {
+  // Load new format
+  if (localStored.mutedGlobal) {
+    mutedGlobal = localStored.mutedGlobal;
   }
-  if (localStored.mutedCategories) {
-    for (const c of localStored.mutedCategories) mutedCategories.add(c);
+  if (localStored.mutedByDomain) {
+    mutedByDomain = localStored.mutedByDomain;
   }
-  renderMuteBar();
+  // Migrate old format → global (one-time)
+  if (localStored.mutedMethods && !localStored.mutedGlobal) {
+    mutedGlobal.methods = localStored.mutedMethods;
+    mutedGlobal.categories = localStored.mutedCategories || [];
+    chrome.storage.local.remove(["mutedMethods", "mutedCategories"]);
+    saveMutes();
+  }
 
   sessionStore.get(["uiPaused", "uiFilter", "uiAutoscroll", "uiWatchedTabs", "uiActivePanel"], (ui) => {
     // Restore UI state
@@ -856,6 +935,15 @@ chrome.storage.local.get(["mutedMethods", "mutedCategories"], (localStored) => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       activeTabId = tabs[0]?.id;
       if (!activeTabId) return;
+
+      // Set current domain for per-domain mutes
+      try {
+        currentDomain = new URL(tabs[0].url).hostname;
+      } catch (_) {
+        currentDomain = "";
+      }
+      rebuildEffectiveMutes();
+      renderMuteBar();
 
       port = chrome.runtime.connect({ name: "fp-log" });
 

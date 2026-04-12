@@ -1,9 +1,13 @@
 // Content script (ISOLATED world) — bridges custom events from inject.js to the background service worker
 // Runs in all frames including iframes, attaches the frame URL to each event.
-// Syncs mute state from chrome.storage into the MAIN world inject script.
+// Syncs mute state (global + per-domain) from chrome.storage into the MAIN world inject script.
 
 const frameUrl = location.href;
 const isIframe = window !== window.top;
+
+// Get the domain for this page/frame
+let pageDomain = "";
+try { pageDomain = new URL(location.href).hostname; } catch (_) {}
 
 // ── Forward detection events to background ────────────────────────────
 window.addEventListener("__fpDetector", (e) => {
@@ -27,21 +31,29 @@ function pushMutesToPage(mutes) {
   );
 }
 
+// Merge global + domain-specific mutes into flat lists for inject.js
+function buildEffectiveMutes(stored) {
+  const global = stored.mutedGlobal || { methods: [], categories: [] };
+  const byDomain = stored.mutedByDomain || {};
+  const domain = byDomain[pageDomain] || { methods: [], categories: [] };
+
+  return {
+    mutedMethods: [...new Set([...global.methods, ...domain.methods])],
+    mutedCategories: [...new Set([...global.categories, ...domain.categories])],
+  };
+}
+
 // Load initial mute state
-chrome.storage.local.get(["mutedMethods", "mutedCategories"], (stored) => {
-  pushMutesToPage({
-    mutedMethods: stored.mutedMethods || [],
-    mutedCategories: stored.mutedCategories || [],
-  });
+chrome.storage.local.get(["mutedGlobal", "mutedByDomain"], (stored) => {
+  pushMutesToPage(buildEffectiveMutes(stored));
 });
 
-// Listen for mute changes (fired when user toggles mutes in popup)
+// Listen for mute changes
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== "local") return;
-  if (changes.mutedMethods || changes.mutedCategories) {
-    pushMutesToPage({
-      mutedMethods: changes.mutedMethods?.newValue || [],
-      mutedCategories: changes.mutedCategories?.newValue || [],
+  if (changes.mutedGlobal || changes.mutedByDomain) {
+    chrome.storage.local.get(["mutedGlobal", "mutedByDomain"], (stored) => {
+      pushMutesToPage(buildEffectiveMutes(stored));
     });
   }
 });

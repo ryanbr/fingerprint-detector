@@ -48,6 +48,8 @@ function escapeHtml(str) {
 // ── State ─────────────────────────────────────────────────────────────
 let leftData = null;
 let rightData = null;
+let leftFilename = ""; // filename of loaded file (or "current tab")
+let rightFilename = "";
 
 // ── Loaders ───────────────────────────────────────────────────────────
 function loadFromFile(file, side) {
@@ -63,10 +65,12 @@ function loadFromFile(file, side) {
       }
       if (side === "left") {
         leftData = data;
-        renderSide("left", data);
+        leftFilename = file.name;
+        renderSide("left", data, file.name);
       } else {
         rightData = data;
-        renderSide("right", data);
+        rightFilename = file.name;
+        renderSide("right", data, file.name);
       }
       maybeRenderDiff();
     } catch (err) {
@@ -77,12 +81,18 @@ function loadFromFile(file, side) {
 }
 
 // ── Rendering ─────────────────────────────────────────────────────────
-function renderSide(side, data) {
+function renderSide(side, data, filename) {
   const urlEl = document.getElementById(side + "-url");
   const bodyEl = document.getElementById(side + "-body");
 
-  urlEl.textContent = data.url || "(unknown URL)";
-  urlEl.title = data.url || "";
+  // Show URL + filename in brackets (if loaded from a file)
+  const url = data.url || "(unknown URL)";
+  const fname = filename || (side === "left" ? leftFilename : rightFilename);
+  urlEl.textContent = fname ? url + " [" + fname + "]" : url;
+  urlEl.title = fname ? url + "\nFile: " + fname : url;
+
+  // Also show exportedAt timestamp if present
+  const exportedAt = data.exportedAt ? " — exported " + new Date(data.exportedAt).toLocaleString() : "";
 
   const cats = Object.keys(data.categories || {});
   const risk = data.riskLevel || "unknown";
@@ -91,6 +101,7 @@ function renderSide(side, data) {
     <span class="badge ${riskClass(risk)}">${escapeHtml(risk)}</span>
     <span class="badge none">${cats.length} techniques</span>
     <span class="badge none">${data.totalCalls || 0} total calls</span>
+    ${exportedAt ? `<span class="badge none" title="${escapeHtml(data.exportedAt)}">${escapeHtml(exportedAt)}</span>` : ""}
   </div>
   <div class="categories" id="${side}-categories"></div>`;
 
@@ -330,7 +341,8 @@ document.addEventListener("drop", (e) => {
 chrome.storage.session.get(["compareLeftData"], (stored) => {
   if (stored.compareLeftData) {
     leftData = stored.compareLeftData;
-    renderSide("left", leftData);
+    leftFilename = "current tab";
+    renderSide("left", leftData, "current tab");
     maybeRenderDiff();
     // Clear it so it doesn't get reused stale
     chrome.storage.session.remove("compareLeftData");

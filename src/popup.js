@@ -711,7 +711,7 @@ function buildSummaryExport(callback) {
 }
 
 function buildLogExport() {
-  return getAllLogEntries().map(d => ({
+  const entries = getAllLogEntries().map(d => ({
     timestamp: new Date(d.ts).toISOString(),
     category: d.category,
     method: d.method,
@@ -724,11 +724,29 @@ function buildLogExport() {
     tabTitle: d._tabTitle || "",
     stack: d.stack || "",
   }));
+  return {
+    exportedAt: new Date().toISOString(),
+    url: tabInfoMap[activeTabId]?.url || "",
+    tabTitle: tabInfoMap[activeTabId]?.title || "",
+    totalEntries: entries.length,
+    entries,
+  };
 }
 
 function buildLogCSV() {
+  const url = tabInfoMap[activeTabId]?.url || "";
+  const exportedAt = new Date().toISOString();
+  // Prepend metadata as CSV comments (Excel/Sheets treat # lines as data, so
+  // use a header row approach instead — two metadata rows before the data header)
+  const rows = [
+    `# Fingerprint Detector Export`,
+    `# Exported: ${exportedAt}`,
+    `# URL: ${url}`,
+    `# Total entries: ${getAllLogEntries().length}`,
+    "",
+  ];
   const headers = ["timestamp", "category", "method", "detail", "source", "sourceDomain", "frameUrl", "frameDomain", "isIframe"];
-  const rows = [headers.join(",")];
+  rows.push(headers.join(","));
   for (const d of getAllLogEntries()) {
     const row = [
       new Date(d.ts).toISOString(),
@@ -740,7 +758,7 @@ function buildLogCSV() {
       d.frameUrl || "",
       extractDomain(d.frameUrl),
       d.isIframe ? "true" : "false",
-    ].map(v => `"${v.replace(/"/g, '""')}"`);
+    ].map(v => `"${String(v).replace(/"/g, '""')}"`);
     rows.push(row.join(","));
   }
   return rows.join("\n");
@@ -777,6 +795,9 @@ document.getElementById("export-log-csv").addEventListener("click", () => {
 document.getElementById("export-all-json").addEventListener("click", () => {
   buildSummaryExport((summary) => {
     const report = {
+      exportedAt: new Date().toISOString(),
+      url: tabInfoMap[activeTabId]?.url || "",
+      tabTitle: tabInfoMap[activeTabId]?.title || "",
       summary: summary || {},
       log: buildLogExport(),
     };

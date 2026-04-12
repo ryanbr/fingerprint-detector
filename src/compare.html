@@ -46,6 +46,7 @@
       overflow: hidden;
       display: flex;
       flex-direction: column;
+      align-self: start; /* don't stretch to match sibling height */
     }
     .side-header {
       padding: 12px 16px;
@@ -122,13 +123,8 @@
 
     .categories {
       padding: 0;
-      max-height: 70vh;
-      overflow-y: auto;
-    }
-    /* In diffs-only mode, let the container shrink to fit visible content */
-    .container.diffs-only .categories {
-      max-height: none;
-      overflow-y: visible;
+      /* No max-height — let the card grow naturally and the page scroll.
+         Prevents blank space when one side has fewer rows than the other. */
     }
     .category-row {
       padding: 10px 16px;

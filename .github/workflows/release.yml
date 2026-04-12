@@ -119,19 +119,41 @@ jobs:
             -x "*.DS_Store"
           cd ..
 
-          # Firefox build — add browser_specific_settings and adjust manifest
+          # Firefox build — patch manifest for Firefox compatibility
           cp -r ext/* ext-firefox/
-          jq '. + {
-            "browser_specific_settings": {
-              "gecko": {
-                "id": "fingerprint-detector@ryanbr",
-                "strict_min_version": "109.0"
+
+          # Firefox needs:
+          # 1. browser_specific_settings with gecko ID
+          # 2. background.scripts instead of service_worker
+          # 3. loader.js (injects inject.js via <script> tag) instead of MAIN world
+          # 4. inject.js in web_accessible_resources so the loader can reference it
+          # 5. Remove "world" from content_scripts (Firefox doesn't support it)
+          jq '
+            . + {
+              "browser_specific_settings": {
+                "gecko": {
+                  "id": "fingerprint-detector@ryanbr",
+                  "strict_min_version": "109.0"
+                }
               }
             }
-          }
-          | del(.background.service_worker)
-          | .background = { "scripts": ["src/background.js"] }
-          | .content_scripts = [.content_scripts[] | del(.world)]
+            | del(.background.service_worker)
+            | .background = { "scripts": ["src/background.js"] }
+            | .content_scripts = [
+                {
+                  "matches": ["<all_urls>"],
+                  "js": ["src/loader.js"],
+                  "run_at": "document_start",
+                  "all_frames": true
+                },
+                {
+                  "matches": ["<all_urls>"],
+                  "js": ["src/bridge.js"],
+                  "run_at": "document_start",
+                  "all_frames": true
+                }
+              ]
+            | .web_accessible_resources = ["src/inject.js"]
           ' ext/manifest.json > ext-firefox/manifest.json
 
           cd ext-firefox

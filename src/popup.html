@@ -457,6 +457,8 @@
     /* ── Export dropdown ─────────────────────────────── */
     .export-wrap {
       position: relative;
+    }
+    #compare-btn {
       margin-left: auto;
     }
     .export-btn {
@@ -522,6 +524,15 @@
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
     </svg>
     <h1>Fingerprint Detector</h1>
+    <button class="export-btn" id="compare-btn" title="Compare with another site">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M8 3H5a2 2 0 00-2 2v14a2 2 0 002 2h3"/>
+        <path d="M16 3h3a2 2 0 012 2v14a2 2 0 01-2 2h-3"/>
+        <line x1="12" y1="20" x2="12" y2="10"/>
+        <polyline points="9 13 12 10 15 13"/>
+      </svg>
+      Compare
+    </button>
     <div class="export-wrap">
       <button class="export-btn" id="export-toggle">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

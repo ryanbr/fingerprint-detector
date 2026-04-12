@@ -117,7 +117,7 @@ jobs:
           cp -r dist ext/
           # Copy non-bundled src files (popup, bridge, background)
           mkdir -p ext/src
-          cp src/popup.html src/popup.js src/bridge.js src/background.js ext/src/
+          cp src/popup.html src/popup.js src/bridge.js src/background.js src/compare.html src/compare.js ext/src/
 
           crx3 ext \
             --keyPath key.pem \

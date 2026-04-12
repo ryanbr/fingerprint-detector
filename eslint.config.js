@@ -128,8 +128,8 @@ export default [
     },
   },
   {
-    // Popup/background/bridge use chrome.* APIs
-    files: ["src/popup.js", "src/background.js", "src/bridge.js"],
+    // Popup/background/bridge/compare use chrome.* APIs
+    files: ["src/popup.js", "src/background.js", "src/bridge.js", "src/compare.js"],
     languageOptions: {
       ecmaVersion: 2020,
       sourceType: "script",
@@ -155,6 +155,8 @@ export default [
         browser: "readonly",
         HTMLElement: "readonly",
         Element: "readonly",
+        FileReader: "readonly",
+        alert: "readonly",
       },
     },
   },

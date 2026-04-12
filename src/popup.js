@@ -570,6 +570,21 @@ logClear.addEventListener("click", () => {
   updateCounter();
 });
 
+// ── Compare ────────────────────────────────────────────────────────────
+// Opens compare.html in a new browser tab with the current summary pre-loaded.
+document.getElementById("compare-btn").addEventListener("click", () => {
+  buildSummaryExport((summary) => {
+    if (!summary) {
+      alert("No fingerprinting data to compare — visit a site first.");
+      return;
+    }
+    // Save to session storage so compare.html can pick it up
+    chrome.storage.session.set({ compareLeftData: summary }, () => {
+      chrome.tabs.create({ url: chrome.runtime.getURL("src/compare.html") });
+    });
+  });
+});
+
 // ── Export ─────────────────────────────────────────────────────────────
 const exportToggle = document.getElementById("export-toggle");
 const exportMenu = document.getElementById("export-menu");

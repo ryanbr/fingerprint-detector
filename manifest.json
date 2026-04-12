@@ -47,5 +47,11 @@
       "world": "ISOLATED",
       "all_frames": true
     }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["src/compare.html", "src/compare.js"],
+      "matches": ["<all_urls>"]
+    }
   ]
 }

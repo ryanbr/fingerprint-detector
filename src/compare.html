@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fingerprint Detector — Compare</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 13px;
+      color: #e0e0e0;
+      background: #1a1a2e;
+      min-height: 100vh;
+    }
+    code, .mono {
+      font-family: Consolas, "Liberation Mono", Menlo, "Courier New", monospace;
+    }
+
+    /* Header */
+    header {
+      padding: 16px 24px;
+      background: #16213e;
+      border-bottom: 1px solid #0f3460;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    header h1 { font-size: 18px; font-weight: 600; color: #e94560; }
+    header .subtitle { color: #78909c; font-size: 12px; margin-left: auto; }
+
+    /* Two-column layout */
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      padding: 16px;
+      max-width: 1800px;
+      margin: 0 auto;
+    }
+
+    .side {
+      background: #16213e;
+      border: 1px solid #0f3460;
+      border-radius: 6px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .side-header {
+      padding: 12px 16px;
+      background: #1a1a2e;
+      border-bottom: 1px solid #0f3460;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .side-header .label {
+      font-size: 11px;
+      color: #78909c;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .side-header .site-url {
+      color: #e94560;
+      font-family: Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 12px;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .side-header button {
+      background: none;
+      border: 1px solid #0f3460;
+      color: #90a4ae;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .side-header button:hover { background: #0f3460; color: #e0e0e0; }
+
+    /* Drop zone */
+    .dropzone {
+      padding: 60px 20px;
+      text-align: center;
+      color: #78909c;
+      border: 2px dashed #0f3460;
+      border-radius: 6px;
+      margin: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .dropzone:hover, .dropzone.dragover {
+      border-color: #e94560;
+      background: #e9456011;
+      color: #e0e0e0;
+    }
+    .dropzone svg { margin-bottom: 12px; opacity: 0.5; }
+    .dropzone p { margin: 4px 0; }
+    .dropzone .hint { font-size: 11px; color: #546e7a; }
+
+    /* Summary content */
+    .summary-stats {
+      padding: 12px 16px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid #0f3460;
+    }
+    .badge {
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge.high   { background: #e5393533; color: #ef5350; }
+    .badge.medium { background: #fb8c0033; color: #ffa726; }
+    .badge.low    { background: #43a04733; color: #66bb6a; }
+    .badge.none   { background: #78909c33; color: #90a4ae; }
+
+    .categories {
+      padding: 0;
+      max-height: 600px;
+      overflow-y: auto;
+    }
+    .category-row {
+      padding: 10px 16px;
+      border-bottom: 1px solid #0f346030;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .category-row .name {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+    }
+    .category-row .icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+    }
+    .category-row .count {
+      background: #0f3460;
+      color: #90a4ae;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+    }
+
+    /* Diff highlights */
+    .category-row.only-left { background: #e9456016; border-left: 3px solid #e94560; }
+    .category-row.only-right { background: #43a04716; border-left: 3px solid #43a047; }
+    .category-row.both { background: transparent; }
+    .diff-label {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 3px;
+      margin-left: 6px;
+      text-transform: uppercase;
+    }
+    .diff-label.unique-left { background: #e9456033; color: #ef5350; }
+    .diff-label.unique-right { background: #43a04733; color: #66bb6a; }
+    .diff-label.shared { background: #78909c33; color: #90a4ae; }
+
+    /* Summary / diff bar */
+    .diff-summary {
+      grid-column: 1 / -1;
+      background: #16213e;
+      border: 1px solid #0f3460;
+      border-radius: 6px;
+      padding: 16px;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .diff-summary .stat {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .diff-summary .stat-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      color: #78909c;
+      letter-spacing: 0.5px;
+    }
+    .diff-summary .stat-value {
+      font-size: 20px;
+      font-weight: 600;
+      color: #e0e0e0;
+    }
+    .diff-summary .stat-value.high { color: #ef5350; }
+    .diff-summary .stat-value.low { color: #66bb6a; }
+
+    /* Domain table */
+    .domains-section {
+      grid-column: 1 / -1;
+      background: #16213e;
+      border: 1px solid #0f3460;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .domains-section h2 {
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #e94560;
+      background: #1a1a2e;
+      border-bottom: 1px solid #0f3460;
+    }
+    .domains-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .domains-table th {
+      text-align: left;
+      padding: 8px 12px;
+      color: #78909c;
+      font-weight: 600;
+      font-size: 10px;
+      text-transform: uppercase;
+      border-bottom: 1px solid #0f3460;
+    }
+    .domains-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #0f346030;
+    }
+    .domains-table tr.only-left td { background: #e9456011; }
+    .domains-table tr.only-right td { background: #43a04711; }
+    .domains-table .domain-name {
+      font-family: Consolas, "Liberation Mono", Menlo, monospace;
+      color: #5c6bc0;
+    }
+    .domains-table .third-party {
+      font-size: 9px;
+      background: #e9456033;
+      color: #ef5350;
+      padding: 1px 6px;
+      border-radius: 3px;
+      margin-left: 6px;
+    }
+
+    .placeholder {
+      padding: 60px 20px;
+      text-align: center;
+      color: #546e7a;
+    }
+
+    footer {
+      padding: 12px 24px;
+      text-align: center;
+      font-size: 11px;
+      color: #546e7a;
+      border-top: 1px solid #0f3460;
+      margin-top: 24px;
+    }
+    footer a { color: #78909c; text-decoration: none; }
+    footer a:hover { color: #e94560; }
+  </style>
+</head>
+<body>
+  <header>
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e94560" stroke-width="2">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>
+    <h1>Fingerprint Detector — Compare</h1>
+    <span class="subtitle">Compare fingerprinting between two sites</span>
+  </header>
+
+  <div class="container">
+    <!-- Diff summary (hidden until both sides loaded) -->
+    <div class="diff-summary" id="diff-summary" style="display:none"></div>
+
+    <!-- Left side -->
+    <div class="side" id="side-left">
+      <div class="side-header">
+        <span class="label">Site A</span>
+        <span class="site-url" id="left-url">(no data)</span>
+        <button id="left-load">Load file</button>
+        <input type="file" id="left-file" accept=".json" style="display:none">
+      </div>
+      <div class="side-body" id="left-body">
+        <div class="placeholder">Loading current tab summary…</div>
+      </div>
+    </div>
+
+    <!-- Right side -->
+    <div class="side" id="side-right">
+      <div class="side-header">
+        <span class="label">Site B</span>
+        <span class="site-url" id="right-url">(no data)</span>
+        <button id="right-load">Load file</button>
+        <input type="file" id="right-file" accept=".json" style="display:none">
+      </div>
+      <div class="side-body" id="right-body">
+        <div class="dropzone" id="right-drop">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <p><strong>Drop an exported summary JSON here</strong></p>
+          <p class="hint">Or click "Load file" above</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Domains section (hidden until both sides loaded) -->
+    <div class="domains-section" id="domains-section" style="display:none">
+      <h2>Domain Comparison</h2>
+      <table class="domains-table" id="domains-table">
+        <thead>
+          <tr>
+            <th>Domain</th>
+            <th>Site A</th>
+            <th>Site B</th>
+            <th>Present</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    <a href="https://github.com/ryanbr/fingerprint-detector">github.com/ryanbr/fingerprint-detector</a>
+  </footer>
+
+  <script src="compare.js"></script>
+</body>
+</html>

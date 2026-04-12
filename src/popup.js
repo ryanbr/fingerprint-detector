@@ -29,7 +29,7 @@ const CATEGORY_META = {
   Math:           { icon: "🔢", color: "#e94560", risk: "high",   desc: "Math function output differences across OS/arch reveal platform" },
   Architecture:   { icon: "🧬", color: "#e94560", risk: "high",   desc: "CPU architecture detection via Float32Array NaN bit pattern" },
   VendorDetect:   { icon: "🏢", color: "#fb8c00", risk: "medium", desc: "Browser-specific window globals to distinguish engines/vendors" },
-  AdBlockDetect:  { icon: "🚧", color: "#fb8c00", risk: "medium", desc: "Ad blocker detection via offsetParent on ad-like elements" },
+  AdBlockDetect:  { icon: "🚧", color: "#e94560", risk: "high",   desc: "Ad blocker filter list fingerprinting — bait elements reveal which blockers are active" },
   ApplePay:       { icon: "🍎", color: "#fb8c00", risk: "medium", desc: "Apple Pay availability probing via ApplePaySession" },
   PrivateClick:   { icon: "🔏", color: "#fb8c00", risk: "medium", desc: "Safari Private Click Measurement via <a>.attributionSourceId" },
   Intl:           { icon: "🌍", color: "#fb8c00", risk: "medium", desc: "Intl locale/formatting APIs reveal language and region settings" },

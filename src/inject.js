@@ -1071,27 +1071,33 @@
       return origXHROpen.apply(this, arguments);
     };
 
-    // Image.src setter
+    // Image.src setter — charCodeAt fast-exit (99='c', 109='m')
     const origImageSrc = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, "src");
     if (origImageSrc && origImageSrc.set) {
       const origSet = origImageSrc.set;
       Object.defineProperty(HTMLImageElement.prototype, "src", {
         ...origImageSrc,
         set(val) {
-          if (isExtUrl(val)) recordExtProbe("Image.src = extension URL", val);
+          if (typeof val === "string") {
+            const c = val.charCodeAt(0);
+            if ((c === 99 || c === 109) && isExtUrl(val)) recordExtProbe("Image.src = extension URL", val);
+          }
           return origSet.call(this, val);
         },
       });
     }
 
-    // Link.href setter
+    // Link.href setter — charCodeAt fast-exit
     const origLinkHref = Object.getOwnPropertyDescriptor(HTMLLinkElement.prototype, "href");
     if (origLinkHref && origLinkHref.set) {
       const origSet = origLinkHref.set;
       Object.defineProperty(HTMLLinkElement.prototype, "href", {
         ...origLinkHref,
         set(val) {
-          if (isExtUrl(val)) recordExtProbe("Link.href = extension URL", val);
+          if (typeof val === "string") {
+            const c = val.charCodeAt(0);
+            if ((c === 99 || c === 109) && isExtUrl(val)) recordExtProbe("Link.href = extension URL", val);
+          }
           return origSet.call(this, val);
         },
       });
@@ -1136,17 +1142,20 @@
 
       window.getComputedStyle = function (el, pseudo) {
         const result = origGetCS.call(this, el, pseudo);
-        const now = Date.now();
+
+        // Short-circuit after detection — no more overhead on subsequent calls
+        if (csBurstReported) return result;
 
         // Detect burst pattern: many getComputedStyle calls in quick succession
         // on elements appended to body (typical extension detection pattern)
         if (el && el.parentNode && (el.parentNode === document.body || el.parentNode.parentNode === document.body)) {
+          const now = Date.now();
           if (now - csProbeStart > CS_BURST_WINDOW) {
             csProbeCount = 0;
             csProbeStart = now;
           }
           csProbeCount++;
-          if (csProbeCount >= CS_BURST_THRESHOLD && !csBurstReported) {
+          if (csProbeCount >= CS_BURST_THRESHOLD) {
             csBurstReported = true;
             record("ExtensionDetect", "getComputedStyle burst",
               csProbeCount + " calls in " + CS_BURST_WINDOW + "ms (extension CSS detection pattern)");
@@ -1423,14 +1432,22 @@
               "id=\"" + this.id + "\" (FingerprintJS filter list probe)");
           }
 
-          // 3. Known bait class match
+          // 3. Known bait class match — avoid split() on every call
           if (this.className && typeof this.className === "string") {
-            const classes = this.className.split(" ");
-            for (let i = 0; i < classes.length; i++) {
-              if (KNOWN_BAIT_CLASSES.has(classes[i])) {
+            // Fast path: single-class elements (most bait elements)
+            if (this.className.indexOf(" ") === -1) {
+              if (KNOWN_BAIT_CLASSES.has(this.className)) {
                 record("AdBlockDetect", "known bait element",
-                  "class=\"" + classes[i] + "\" (FingerprintJS filter list probe)");
-                break;
+                  "class=\"" + this.className + "\" (FingerprintJS filter list probe)");
+              }
+            } else {
+              const classes = this.className.split(" ");
+              for (let i = 0; i < classes.length; i++) {
+                if (KNOWN_BAIT_CLASSES.has(classes[i])) {
+                  record("AdBlockDetect", "known bait element",
+                    "class=\"" + classes[i] + "\" (FingerprintJS filter list probe)");
+                  break;
+                }
               }
             }
           }

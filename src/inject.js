@@ -1570,11 +1570,13 @@
     // numbering system, timezone, and formatting preferences
     if (Intl.NumberFormat) {
       hookMethod(Intl.NumberFormat.prototype, "resolvedOptions", "Intl", "Intl.NumberFormat.resolvedOptions");
-      hookMethodHot(Intl.NumberFormat.prototype, "format", "Intl", "Intl.NumberFormat.format");
+      // format is a getter returning a bound function — hook the getter
+      hookGetter(Intl.NumberFormat.prototype, "format", "Intl", "Intl.NumberFormat.format");
     }
     if (Intl.Collator) {
       hookMethod(Intl.Collator.prototype, "resolvedOptions", "Intl", "Intl.Collator.resolvedOptions");
-      hookMethodHot(Intl.Collator.prototype, "compare", "Intl", "Intl.Collator.compare");
+      // compare is a getter returning a bound function — hook the getter
+      hookGetter(Intl.Collator.prototype, "compare", "Intl", "Intl.Collator.compare");
     }
     for (const cls of ["ListFormat", "PluralRules", "RelativeTimeFormat", "Segmenter"]) {
       if (Intl[cls] && Intl[cls].prototype.resolvedOptions) {

@@ -7,7 +7,7 @@ const isIframe = window !== window.top;
 
 // Get the domain for this page/frame
 let pageDomain = "";
-try { pageDomain = new URL(location.href).hostname; } catch (_) { /* invalid URL */ }
+try { pageDomain = new URL(location.href).hostname; } catch { /* invalid URL */ }
 
 // ── Forward detection events to background ────────────────────────────
 window.addEventListener("__fpDetector", (e) => {
@@ -19,7 +19,7 @@ window.addEventListener("__fpDetector", (e) => {
       data.isIframe = isIframe;
     }
     chrome.runtime.sendMessage({ type: "fp-detection-batch", data: events });
-  } catch (_) { /* ignore malformed events */ }
+  } catch { /* ignore malformed events */ }
 });
 
 // ── Sync mute state into inject.js (MAIN world) ──────────────────────
@@ -66,7 +66,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       window.removeEventListener("__fpDetector_extIds", handler);
       try {
         sendResponse(JSON.parse(e.detail));
-      } catch (_) {
+      } catch {
         sendResponse(null);
       }
     };

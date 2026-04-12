@@ -34,7 +34,7 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
       try {
         const u = new URL(url);
         return u.port || (u.protocol === "wss:" ? "443" : "80");
-      } catch (_) {
+      } catch {
         return "";
       }
     }

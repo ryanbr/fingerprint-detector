@@ -88,7 +88,7 @@ function shortenUrl(url) {
     if (path.length > 40) path = path.slice(0, 37) + "...";
     const loc = url.match(/:(\d+:\d+)$/);
     return u.origin + path + (loc ? ":" + loc[1] : "");
-  } catch (_) {
+  } catch {
     // Not a valid URL, just truncate
     return url.length > 80 ? url.slice(0, 77) + "..." : url;
   }
@@ -601,7 +601,7 @@ function extractDomain(url) {
   if (!url) return "";
   try {
     return new URL(url).hostname;
-  } catch (_) {
+  } catch {
     return "";
   }
 }
@@ -910,7 +910,7 @@ chrome.storage.local.get(["mutedGlobal", "mutedByDomain"], (localStored) => {
       // Set current domain for per-domain mutes
       try {
         currentDomain = new URL(tabs[0].url).hostname;
-      } catch (_) {
+      } catch {
         currentDomain = "";
       }
       rebuildEffectiveMutes();

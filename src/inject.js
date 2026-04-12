@@ -65,7 +65,7 @@ import { register as misc } from './hooks/misc.js';
       mutedCategoriesSet.clear();
       for (const m of (mutedMethods || [])) mutedMethodsSet.add(m);
       for (const c of (mutedCategories || [])) mutedCategoriesSet.add(c);
-    } catch (_) { /* ignore malformed mute data */ }
+    } catch { /* ignore malformed mute data */ }
   });
 
   // ── Rate limiting per method ──────────────────────────────────────────

@@ -678,75 +678,104 @@
   // Sites detect installed Chrome extensions via three techniques:
   // 1. Probing web-accessible resources (chrome-extension://<id>/...)
   // 2. Detecting injected CSS via getComputedStyle on tripwire elements
-  // 3. Detecting injected DOM elements
+  // 3. Messaging known extension IDs via chrome.runtime.sendMessage
+  //
+  // Sites like browserleaks.com probe 1000+ extension IDs. To avoid flooding
+  // the log, we count probes and only emit:
+  //   - The first probe (with full URL and stack trace)
+  //   - A periodic summary every 50 probes with total count + unique IDs seen
   {
-    // 1. Detect probes for chrome-extension:// URLs via fetch, XMLHttpRequest, Image, link
+    const extProbeCount = { total: 0, ids: new Set() };
+    const EXT_LOG_EVERY = 50;
+    let extFirstLogged = false;
+
+    function isExtUrl(url) {
+      return typeof url === "string" &&
+        (url.indexOf("chrome-extension://") === 0 || url.indexOf("moz-extension://") === 0);
+    }
+
+    function extractExtId(url) {
+      // chrome-extension://abcdefghijklmnopabcdefghijklmnop/...
+      const m = url.match(/:\/\/([a-z]{32})\//);
+      return m ? m[1] : url.slice(0, 60);
+    }
+
+    function recordExtProbe(method, url) {
+      extProbeCount.total++;
+      extProbeCount.ids.add(extractExtId(url));
+
+      if (!extFirstLogged) {
+        // First probe: full detail with stack trace
+        extFirstLogged = true;
+        record("ExtensionDetect", method, url);
+      }
+
+      if (extProbeCount.total % EXT_LOG_EVERY === 0) {
+        // Periodic summary
+        record("ExtensionDetect", "extension probe summary",
+          extProbeCount.total + " probes across " + extProbeCount.ids.size + " unique extension IDs");
+      }
+    }
+
+    // fetch()
     const origFetch = window.fetch;
     if (typeof origFetch === "function") {
       window.fetch = function (input) {
         const url = (typeof input === "string") ? input : (input && input.url) || "";
-        if (url.indexOf("chrome-extension://") === 0 || url.indexOf("moz-extension://") === 0) {
-          record("ExtensionDetect", "fetch(extension URL)", url);
-        }
+        if (isExtUrl(url)) recordExtProbe("fetch(extension URL)", url);
         return origFetch.apply(this, arguments);
       };
     }
 
+    // XMLHttpRequest
     const origXHROpen = XMLHttpRequest.prototype.open;
     XMLHttpRequest.prototype.open = function (method, url) {
-      if (typeof url === "string" && (url.indexOf("chrome-extension://") === 0 || url.indexOf("moz-extension://") === 0)) {
-        record("ExtensionDetect", "XHR.open(extension URL)", url);
-      }
+      if (isExtUrl(url)) recordExtProbe("XHR.open(extension URL)", url);
       return origXHROpen.apply(this, arguments);
     };
 
-    // Detect Image/link probes for extension resources
+    // Image.src setter
     const origImageSrc = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, "src");
     if (origImageSrc && origImageSrc.set) {
       const origSet = origImageSrc.set;
       Object.defineProperty(HTMLImageElement.prototype, "src", {
         ...origImageSrc,
         set(val) {
-          if (typeof val === "string" && (val.indexOf("chrome-extension://") === 0 || val.indexOf("moz-extension://") === 0)) {
-            record("ExtensionDetect", "Image.src = extension URL", val);
-          }
+          if (isExtUrl(val)) recordExtProbe("Image.src = extension URL", val);
           return origSet.call(this, val);
         },
       });
     }
 
+    // Link.href setter
     const origLinkHref = Object.getOwnPropertyDescriptor(HTMLLinkElement.prototype, "href");
     if (origLinkHref && origLinkHref.set) {
       const origSet = origLinkHref.set;
       Object.defineProperty(HTMLLinkElement.prototype, "href", {
         ...origLinkHref,
         set(val) {
-          if (typeof val === "string" && (val.indexOf("chrome-extension://") === 0 || val.indexOf("moz-extension://") === 0)) {
-            record("ExtensionDetect", "Link.href = extension URL", val);
-          }
+          if (isExtUrl(val)) recordExtProbe("Link.href = extension URL", val);
           return origSet.call(this, val);
         },
       });
     }
 
-    // Catch setAttribute("src", "chrome-extension://...") — covers img, script, iframe, link
+    // setAttribute("src"/"href") — covers script, iframe, img, link
     const origSetAttribute = Element.prototype.setAttribute;
     Element.prototype.setAttribute = function (name, value) {
-      if (typeof value === "string" &&
-          (name === "src" || name === "href") &&
-          (value.indexOf("chrome-extension://") === 0 || value.indexOf("moz-extension://") === 0)) {
-        record("ExtensionDetect", this.tagName + ".setAttribute(\"" + name + "\", extension URL)", value);
+      if ((name === "src" || name === "href") && isExtUrl(value)) {
+        recordExtProbe(this.tagName + ".setAttribute(\"" + name + "\", extension URL)", value);
       }
       return origSetAttribute.call(this, name, value);
     };
 
-    // Catch runtime.sendMessage probes — sites try to message known extension IDs
+    // chrome.runtime.sendMessage to probe extension IDs
     if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.sendMessage) {
       const origRSM = chrome.runtime.sendMessage;
       chrome.runtime.sendMessage = function () {
         const extId = arguments[0];
         if (typeof extId === "string" && extId.length === 32) {
-          record("ExtensionDetect", "chrome.runtime.sendMessage(extension ID)", extId);
+          recordExtProbe("chrome.runtime.sendMessage(extension ID)", extId);
         }
         return origRSM.apply(this, arguments);
       };

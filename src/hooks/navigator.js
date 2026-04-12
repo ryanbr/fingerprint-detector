@@ -75,6 +75,28 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
     window.SharedWorker.prototype = OrigSW.prototype;
   }
 
+  // ServiceWorker — registration reveals PWA state, getRegistrations
+  // enumerates installed SWs (browsing history signal), and SWs can run
+  // fingerprinting code in a separate context to cross-validate values.
+  if (typeof navigator !== "undefined" && navigator.serviceWorker) {
+    if (typeof ServiceWorkerContainer !== "undefined") {
+      hookMethod(ServiceWorkerContainer.prototype, "register", "Navigator", "serviceWorker.register");
+      hookMethod(ServiceWorkerContainer.prototype, "getRegistrations", "Navigator", "serviceWorker.getRegistrations");
+      hookMethod(ServiceWorkerContainer.prototype, "getRegistration", "Navigator", "serviceWorker.getRegistration");
+      hookGetter(ServiceWorkerContainer.prototype, "ready", "Navigator", "serviceWorker.ready");
+      hookGetter(ServiceWorkerContainer.prototype, "controller", "Navigator", "serviceWorker.controller");
+    }
+  }
+
+  // Cache API — caches.keys() enumerates cache names which can reveal
+  // browsing history, installed PWAs, and previously visited sites.
+  if (typeof CacheStorage !== "undefined") {
+    hookMethod(CacheStorage.prototype, "keys", "Storage", "caches.keys");
+    hookMethod(CacheStorage.prototype, "open", "Storage", "caches.open");
+    hookMethod(CacheStorage.prototype, "has", "Storage", "caches.has");
+    hookMethod(CacheStorage.prototype, "match", "Storage", "caches.match");
+  }
+
   // SharedArrayBuffer + Atomics — used for timing-based core counting.
   // Sites create SABs and use Atomics.wait/notify across Workers to
   // measure parallel execution throughput, inferring actual core count

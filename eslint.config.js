@@ -85,6 +85,8 @@ export default [
         VisualViewport: "readonly",
         CredentialsContainer: "readonly",
         IDBFactory: "readonly",
+        ServiceWorkerContainer: "readonly",
+        CacheStorage: "readonly",
         Window: "readonly",
         Document: "readonly",
         FontFace: "readonly",

@@ -94,6 +94,11 @@ jobs:
           git tag -a "$TAG" -m "Release $TAG"
           git push origin "$TAG"
 
+      - name: Bundle inject.js
+        run: |
+          npm ci
+          npm run build
+
       - name: Generate signing key
         run: openssl genrsa -out key.pem 2048
 
@@ -102,13 +107,16 @@ jobs:
           npm install -g crx3
           VERSION=${{ steps.version.outputs.version }}
 
-          mkdir -p dist ext ext-firefox
+          mkdir -p ext ext-firefox
 
-          # Chrome build
+          # Chrome build — uses dist/inject.js (bundled), not src/inject.js
           cp manifest.json ext/
           cp LICENSE ext/
           cp -r icons ext/
-          cp -r src ext/
+          cp -r dist ext/
+          # Copy non-bundled src files (popup, bridge, background)
+          mkdir -p ext/src
+          cp src/popup.html src/popup.js src/bridge.js src/background.js ext/src/
 
           crx3 ext \
             --keyPath key.pem \

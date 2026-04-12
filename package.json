@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "esbuild src/inject.js --bundle --outfile=dist/inject.js --format=iife --target=es2020",
+    "watch": "esbuild src/inject.js --bundle --outfile=dist/inject.js --format=iife --target=es2020 --watch"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}

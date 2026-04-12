@@ -15,7 +15,7 @@
       background: #1a1a2e;
     }
     code, .mono {
-      font-family: "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+      font-family: Consolas, "Liberation Mono", Menlo, "Courier New", monospace;
     }
 
     /* ── Header ─────────────────────────────────────── */
@@ -150,7 +150,7 @@
     .detection:last-child { border-bottom: none; }
     .detection .method {
       color: #e94560;
-      font-family: "SF Mono", Menlo, Consolas, monospace;
+      font-family: Consolas, "Liberation Mono", Menlo, "Courier New", monospace;
       font-size: 11px;
     }
     .detection .detail {
@@ -160,12 +160,12 @@
     .detection .source {
       color: #5c6bc0; font-size: 10px;
       margin-top: 2px; word-break: break-all;
-      font-family: "SF Mono", Menlo, Consolas, monospace;
+      font-family: Consolas, "Liberation Mono", Menlo, "Courier New", monospace;
     }
     .detection .frame-url {
       color: #ab47bc; font-size: 10px;
       margin-top: 1px; word-break: break-all;
-      font-family: "SF Mono", Menlo, Consolas, monospace;
+      font-family: Consolas, "Liberation Mono", Menlo, "Courier New", monospace;
     }
     .iframe-tag {
       display: inline-block;
@@ -258,7 +258,7 @@
       padding: 2px 8px;
       border-radius: 3px;
       font-size: 10px;
-      font-family: "SF Mono", Menlo, Consolas, monospace;
+      font-family: Consolas, "Liberation Mono", Menlo, "Courier New", monospace;
       background: #e9456018;
       color: #ef5350;
       cursor: pointer;
@@ -305,28 +305,34 @@
     .log-row {
       display: flex;
       gap: 0;
+      align-items: baseline;
     }
     .log-ts {
-      width: 72px;
+      min-width: 74px;
+      max-width: 74px;
       flex-shrink: 0;
       color: #546e7a;
-      padding: 0 8px;
-      font-family: "SF Mono", Menlo, Consolas, monospace;
+      padding: 0 6px;
+      font-family: Consolas, "Liberation Mono", Menlo, "Courier New", monospace;
       font-size: 10px;
+      box-sizing: border-box;
     }
     .log-cat {
-      width: 100px;
+      min-width: 105px;
+      max-width: 105px;
       flex-shrink: 0;
       font-weight: 600;
       padding: 0 4px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      box-sizing: border-box;
     }
     .log-method {
       flex: 1;
+      min-width: 0;
       color: #e94560;
-      font-family: "SF Mono", Menlo, Consolas, monospace;
+      font-family: Consolas, "Liberation Mono", Menlo, "Courier New", monospace;
       padding: 0 4px;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -341,19 +347,19 @@
       white-space: nowrap;
     }
     .log-source {
-      padding: 0 8px 0 76px;
+      padding: 0 8px 0 80px;
       font-size: 10px;
       color: #5c6bc0;
-      font-family: "SF Mono", Menlo, Consolas, monospace;
+      font-family: Consolas, "Liberation Mono", Menlo, "Courier New", monospace;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
     .log-frame {
-      padding: 0 8px 0 76px;
+      padding: 0 8px 0 80px;
       font-size: 10px;
       color: #ab47bc;
-      font-family: "SF Mono", Menlo, Consolas, monospace;
+      font-family: Consolas, "Liberation Mono", Menlo, "Courier New", monospace;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -364,7 +370,7 @@
       padding: 4px 8px 4px 80px;
       font-size: 10px;
       color: #546e7a;
-      font-family: "SF Mono", Menlo, Consolas, monospace;
+      font-family: Consolas, "Liberation Mono", Menlo, "Courier New", monospace;
       white-space: pre-wrap;
       word-break: break-all;
       border-bottom: 1px solid #0f346030;

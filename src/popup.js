@@ -551,10 +551,57 @@ function timestamp() {
   return new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
 }
 
+// Extract domain from a URL string (preserves subdomain)
+function extractDomain(url) {
+  if (!url) return "";
+  try {
+    return new URL(url).hostname;
+  } catch (_) {
+    return "";
+  }
+}
+
+// Build a domain breakdown from detections: { "ads.google.com": { categories: [...], calls: N }, ... }
+function buildDomainSummary(detections) {
+  const domains = {};
+  for (const d of detections) {
+    const sources = [d.source, d.frameUrl].map(extractDomain).filter(Boolean);
+    for (const domain of sources) {
+      if (!domains[domain]) {
+        domains[domain] = { calls: 0, categories: new Set(), methods: new Set(), isThirdParty: false };
+      }
+      domains[domain].calls++;
+      domains[domain].categories.add(d.category);
+      domains[domain].methods.add(d.method);
+    }
+  }
+
+  // Determine first-party domain from the page URL
+  const pageUrl = tabInfoMap[activeTabId]?.url || "";
+  const pageDomain = extractDomain(pageUrl);
+  // Get the registrable domain (last two parts) for comparison
+  const pageBase = pageDomain.split(".").slice(-2).join(".");
+
+  // Convert Sets to arrays and flag third-party
+  const result = {};
+  const sortedDomains = Object.keys(domains).sort((a, b) => domains[b].calls - domains[a].calls);
+  for (const domain of sortedDomains) {
+    const info = domains[domain];
+    const domainBase = domain.split(".").slice(-2).join(".");
+    result[domain] = {
+      calls: info.calls,
+      categories: [...info.categories].sort(),
+      methods: [...info.methods].sort(),
+      isThirdParty: domainBase !== pageBase,
+    };
+  }
+  return result;
+}
+
 function buildSummaryExport(callback) {
   chrome.runtime.sendMessage({ type: "get-detections", tabId: activeTabId }, (response) => {
     if (!response) { callback(null); return; }
-    const { categories } = response;
+    const { categories, detections } = response;
     const riskOrder = { high: 0, medium: 1, low: 2 };
     const cats = Object.keys(categories).sort((a, b) => {
       const ra = riskOrder[CATEGORY_META[a]?.risk] ?? 2;
@@ -567,7 +614,8 @@ function buildSummaryExport(callback) {
       url: tabInfoMap[activeTabId]?.url || "",
       riskLevel: getRiskLevel(categories).label,
       totalTechniques: cats.length,
-      totalCalls: response.detections.length,
+      totalCalls: detections.length,
+      domains: buildDomainSummary(detections),
       categories: {},
     };
 
@@ -582,7 +630,9 @@ function buildSummaryExport(callback) {
           method: d.method,
           detail: d.detail || "",
           source: d.source || "",
+          sourceDomain: extractDomain(d.source),
           frameUrl: d.isIframe ? d.frameUrl : undefined,
+          frameDomain: d.isIframe ? extractDomain(d.frameUrl) : undefined,
         })),
       };
     }
@@ -597,7 +647,9 @@ function buildLogExport() {
     method: d.method,
     detail: d.detail || "",
     source: d.source || "",
+    sourceDomain: extractDomain(d.source),
     frameUrl: d.frameUrl || "",
+    frameDomain: extractDomain(d.frameUrl),
     isIframe: d.isIframe || false,
     tabTitle: d._tabTitle || "",
     stack: d.stack || "",
@@ -605,7 +657,7 @@ function buildLogExport() {
 }
 
 function buildLogCSV() {
-  const headers = ["timestamp", "category", "method", "detail", "source", "frameUrl", "isIframe"];
+  const headers = ["timestamp", "category", "method", "detail", "source", "sourceDomain", "frameUrl", "frameDomain", "isIframe"];
   const rows = [headers.join(",")];
   for (const d of getAllLogEntries()) {
     const row = [
@@ -614,7 +666,9 @@ function buildLogCSV() {
       d.method,
       d.detail || "",
       d.source || "",
+      extractDomain(d.source),
       d.frameUrl || "",
+      extractDomain(d.frameUrl),
       d.isIframe ? "true" : "false",
     ].map(v => `"${v.replace(/"/g, '""')}"`);
     rows.push(row.join(","));

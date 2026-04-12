@@ -351,11 +351,34 @@ function addLogBatch(events) {
     domNodeCount += added;
     trimDOM();
     if (logAutoscroll.checked) {
-      logList.scrollTop = logList.scrollHeight;
+      setScrollTop(logList, logList.scrollHeight);
     }
   }
 
   updateCounter();
+}
+
+// Auto-disable auto-scroll when user scrolls up manually
+let userScrolling = false;
+logList.addEventListener("scroll", () => {
+  if (userScrolling) return;
+  // If scrolled more than 50px from the bottom, user is reading — disable auto-scroll
+  const atBottom = logList.scrollHeight - logList.scrollTop - logList.clientHeight < 50;
+  if (!atBottom && logAutoscroll.checked) {
+    logAutoscroll.checked = false;
+    saveUIState();
+  } else if (atBottom && !logAutoscroll.checked) {
+    logAutoscroll.checked = true;
+    saveUIState();
+  }
+});
+
+// Flag programmatic scrolls so the scroll listener doesn't interfere
+const _origScrollTop = Object.getOwnPropertyDescriptor(Element.prototype, "scrollTop");
+function setScrollTop(el, val) {
+  userScrolling = true;
+  el.scrollTop = val;
+  requestAnimationFrame(() => { userScrolling = false; });
 }
 
 function addLogEntry(d) {
@@ -381,7 +404,7 @@ function addLogEntry(d) {
   trimDOM();
 
   if (logAutoscroll.checked) {
-    logList.scrollTop = logList.scrollHeight;
+    setScrollTop(logList, logList.scrollHeight);
   }
 }
 
@@ -472,7 +495,7 @@ function refilterLog() {
   clearTimeout(filterDebounce);
   filterDebounce = setTimeout(() => {
     const filter = logFilter.value.toLowerCase();
-    const prevScroll = logList.scrollTop;
+    const prevScroll = logList.scrollTop; // save before rebuild
     logList.innerHTML = "";
     domNodeCount = 0;
     const filtered = getAllLogEntries().filter(d => {
@@ -487,7 +510,7 @@ function refilterLog() {
       domNodeCount++;
     }
     logList.appendChild(frag);
-    logList.scrollTop = prevScroll;
+    setScrollTop(logList, prevScroll);
   }, 150);
 }
 

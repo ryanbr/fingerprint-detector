@@ -587,16 +587,16 @@
   // ── 6b. FontFace API ───────────────────────────────────────────────────
   // document.fonts (FontFaceSet) provides direct font availability checks
   // without the offsetWidth/offsetHeight measurement trick.
-  if (typeof FontFaceSet !== "undefined") {
+  if (typeof window.FontFaceSet !== "undefined") {
     // check() can be called 100s of times during font probing — fire-once
-    hookMethodHot(FontFaceSet.prototype, "check", "Fonts", "document.fonts.check");
-    hookMethodHot(FontFaceSet.prototype, "load", "Fonts", "document.fonts.load");
-    hookMethodHot(FontFaceSet.prototype, "forEach", "Fonts", "document.fonts.forEach");
+    hookMethodHot(window.FontFaceSet.prototype, "check", "Fonts", "document.fonts.check");
+    hookMethodHot(window.FontFaceSet.prototype, "load", "Fonts", "document.fonts.load");
+    hookMethodHot(window.FontFaceSet.prototype, "forEach", "Fonts", "document.fonts.forEach");
   }
   // document.fonts.ready — sites await this before probing
   if (typeof document !== "undefined" && document.fonts) {
     const fontsDesc = Object.getOwnPropertyDescriptor(document.fonts, "ready") ||
-                      Object.getOwnPropertyDescriptor(FontFaceSet.prototype, "ready");
+                      (typeof window.FontFaceSet !== "undefined" && Object.getOwnPropertyDescriptor(window.FontFaceSet.prototype, "ready"));
     if (fontsDesc && fontsDesc.get) {
       const origGet = fontsDesc.get;
       Object.defineProperty(document.fonts, "ready", {

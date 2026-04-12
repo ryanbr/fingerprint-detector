@@ -86,6 +86,7 @@ export default [
         CredentialsContainer: "readonly",
         IDBFactory: "readonly",
         Window: "readonly",
+        Document: "readonly",
         FontFace: "readonly",
         ApplePaySession: "readonly",
 

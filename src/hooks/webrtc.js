@@ -15,7 +15,7 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
         const urls = [];
         for (const server of config.iceServers) {
           const u = server.urls || server.url;
-          if (Array.isArray(u)) urls.push(...u);
+          if (Array.isArray(u)) { for (let j = 0; j < u.length; j++) urls.push(u[j]); }
           else if (u) urls.push(u);
         }
         stunServers = urls.join(", ");

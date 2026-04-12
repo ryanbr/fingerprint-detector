@@ -4,23 +4,46 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
   // Sites create elements with specific fontFamily values and measure their
   // dimensions to determine which fonts are installed. Common elements: SPAN, DIV.
   // offsetWidth/offsetHeight/scrollWidth/scrollHeight are all used.
+  // System font keywords for default font preference detection
+  const SYSTEM_FONTS = new Set([
+    "system-ui", "-apple-system", "-apple-system-body", "BlinkMacSystemFont",
+    "serif", "sans-serif", "monospace", "cursive", "fantasy",
+    "caption", "icon", "menu", "message-box", "small-caption", "status-bar",
+  ]);
+  let systemFontLogged = false;
+
   if (typeof document !== "undefined") {
     let fontProbeCount = 0;
     let fontProbeLogged = false;
 
     function checkFontProbe(el, method) {
       // Fast exit: only check elements with fontFamily set
-      // Common probe elements: SPAN (83='S'), DIV (68='D'), P (80='P'), A (65='A')
       if (!el.style || !el.style.fontFamily) return;
       const tag = el.tagName;
       const c = tag.charCodeAt(0);
-      // Only flag common probe elements — skip layout elements like BODY, HTML, TABLE
+      // Common probe elements: SPAN (83='S'), DIV (68='D'), P (80='P'), A (65='A')
       if (c !== 83 && c !== 68 && c !== 80 && c !== 65) return;
 
       fontProbeCount++;
       if (!fontProbeLogged || fontProbeCount % 200 === 0) {
         fontProbeLogged = true;
         record("Fonts", method + " probe", "fontFamily=\"" + el.style.fontFamily + "\" (probe #" + fontProbeCount + ")");
+      }
+
+      // Also check for system font keyword probing
+      if (!systemFontLogged) {
+        const ff = el.style.fontFamily;
+        const fc = ff.charCodeAt(0);
+        // Fast gate: system font keywords start with s/m/c/f/i/-/B
+        if (fc === 115 || fc === 109 || fc === 99 || fc === 102 ||
+            fc === 105 || fc === 45 || fc === 66) {
+          const clean = ff.indexOf("'") !== -1 || ff.indexOf('"') !== -1
+            ? ff.replace(/['"]/g, "").trim() : ff.trim();
+          if (SYSTEM_FONTS.has(clean)) {
+            systemFontLogged = true;
+            recordHot("Fonts", "system font probe", "fontFamily=\"" + clean + "\"");
+          }
+        }
       }
     }
 
@@ -118,39 +141,6 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
       return descriptors ? new OrigFF(family, source, descriptors) : new OrigFF(family, source);
     };
     window.FontFace.prototype = OrigFF.prototype;
-  }
-
-  // ── 6c. System font / default font detection ──────────────────────────
-  // FingerprintJS measures text rendered with system font keywords to detect
-  // the user's default font preferences. We detect getComputedStyle reads
-  // on elements using system font keywords.
-  {
-    const SYSTEM_FONTS = new Set([
-      "system-ui", "-apple-system", "-apple-system-body", "BlinkMacSystemFont",
-      "serif", "sans-serif", "monospace", "cursive", "fantasy",
-      "caption", "icon", "menu", "message-box", "small-caption", "status-bar",
-    ]);
-
-    // Detect system font probing: elements with system font keywords
-    // being measured via getBoundingClientRect (already hooked as fire-once
-    // in misc.js). We add specific detection for font-family reads.
-    const origGetCS = window.getComputedStyle;
-    if (typeof origGetCS === "function") {
-      let systemFontProbed = false;
-      const _origGCS = window.getComputedStyle;
-      window.getComputedStyle = function (el, pseudo) {
-        const result = _origGCS.call(this, el, pseudo);
-        // Check if the element uses a system font keyword
-        if (!systemFontProbed && el && el.style && el.style.fontFamily) {
-          const ff = el.style.fontFamily.replace(/['"]/g, "").trim();
-          if (SYSTEM_FONTS.has(ff)) {
-            systemFontProbed = true;
-            recordHot("Fonts", "system font probe", "fontFamily=\"" + ff + "\" via getComputedStyle");
-          }
-        }
-        return result;
-      };
-    }
   }
 
   // ── 17. Font Access API (direct font enumeration) ─────────────────────

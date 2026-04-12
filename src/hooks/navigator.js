@@ -78,17 +78,20 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
   // ServiceWorker — registration reveals PWA state, getRegistrations
   // enumerates installed SWs (browsing history signal), and SWs can run
   // fingerprinting code in a separate context to cross-validate values.
-  // Wrapped in try/catch because sandboxed iframes (lacking allow-same-origin)
-  // throw SecurityError on navigator.serviceWorker access.
-  try {
-    if (typeof ServiceWorkerContainer !== "undefined" && navigator.serviceWorker) {
-      hookMethod(ServiceWorkerContainer.prototype, "register", "Navigator", "serviceWorker.register");
-      hookMethod(ServiceWorkerContainer.prototype, "getRegistrations", "Navigator", "serviceWorker.getRegistrations");
-      hookMethod(ServiceWorkerContainer.prototype, "getRegistration", "Navigator", "serviceWorker.getRegistration");
-      hookGetter(ServiceWorkerContainer.prototype, "ready", "Navigator", "serviceWorker.ready");
-      hookGetter(ServiceWorkerContainer.prototype, "controller", "Navigator", "serviceWorker.controller");
-    }
-  } catch { /* sandboxed iframe — ServiceWorker not accessible */ }
+  //
+  // IMPORTANT: We hook ServiceWorkerContainer.prototype directly without
+  // ever accessing navigator.serviceWorker. Sandboxed iframes (lacking
+  // allow-same-origin) throw SecurityError on navigator.serviceWorker
+  // access — even inside try/catch in some execution contexts. The
+  // prototype is always accessible regardless of sandbox state.
+  if (typeof ServiceWorkerContainer !== "undefined" &&
+      typeof ServiceWorkerContainer.prototype === "object") {
+    hookMethod(ServiceWorkerContainer.prototype, "register", "Navigator", "serviceWorker.register");
+    hookMethod(ServiceWorkerContainer.prototype, "getRegistrations", "Navigator", "serviceWorker.getRegistrations");
+    hookMethod(ServiceWorkerContainer.prototype, "getRegistration", "Navigator", "serviceWorker.getRegistration");
+    hookGetter(ServiceWorkerContainer.prototype, "ready", "Navigator", "serviceWorker.ready");
+    hookGetter(ServiceWorkerContainer.prototype, "controller", "Navigator", "serviceWorker.controller");
+  }
 
   // Cache API — caches.keys() enumerates cache names which can reveal
   // browsing history, installed PWAs, and previously visited sites.

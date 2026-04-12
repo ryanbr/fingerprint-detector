@@ -1,0 +1,53 @@
+name: Build and Release CRX
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get version from manifest
+        id: version
+        run: |
+          VERSION=$(jq -r '.version' manifest.json)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Generate signing key
+        run: |
+          openssl genrsa -out key.pem 2048
+
+      - name: Build CRX
+        run: |
+          # Install crx3 tool
+          npm install -g crx3
+
+          # Create zip of extension files (exclude dev files)
+          mkdir -p dist
+          zip -r dist/fingerprint-detector.zip \
+            manifest.json \
+            icons/ \
+            src/ \
+            LICENSE \
+            -x "*.DS_Store" "*.map"
+
+          # Build CRX from zip
+          crx3 dist/fingerprint-detector.zip \
+            --keyPath key.pem \
+            --crxPath dist/fingerprint-detector-${{ steps.version.outputs.version }}.crx
+
+      - name: Upload assets to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          gh release upload "${{ github.event.release.tag_name }}" \
+            dist/fingerprint-detector-${VERSION}.crx \
+            dist/fingerprint-detector.zip

@@ -167,7 +167,7 @@
   hookMethod(CanvasRenderingContext2D.prototype, "toDataURL", "Canvas", "toDataURL");
   hookMethod(CanvasRenderingContext2D.prototype, "toBlob", "Canvas", "toBlob");
   hookMethod(CanvasRenderingContext2D.prototype, "getImageData", "Canvas", "getImageData");
-  hookMethod(CanvasRenderingContext2D.prototype, "measureText", "Canvas", "measureText");
+  hookMethodHot(CanvasRenderingContext2D.prototype, "measureText", "Canvas", "measureText");
   hookMethod(HTMLCanvasElement.prototype, "toDataURL", "Canvas", "HTMLCanvasElement.toDataURL");
   hookMethod(HTMLCanvasElement.prototype, "toBlob", "Canvas", "HTMLCanvasElement.toBlob");
 
@@ -189,9 +189,9 @@
   // OffscreenCanvas — can bypass main-thread canvas hooks
   if (typeof OffscreenCanvas !== "undefined") {
     const origOSC = OffscreenCanvas;
-    window.OffscreenCanvas = function () {
+    window.OffscreenCanvas = function (w, h) {
       recordHot("Canvas", "new OffscreenCanvas", "");
-      return new origOSC(...arguments);
+      return new origOSC(w, h);
     };
     window.OffscreenCanvas.prototype = origOSC.prototype;
     if (OffscreenCanvas.prototype.getContext) {
@@ -497,10 +497,10 @@
   // document.fonts (FontFaceSet) provides direct font availability checks
   // without the offsetWidth/offsetHeight measurement trick.
   if (typeof FontFaceSet !== "undefined") {
-    hookMethod(FontFaceSet.prototype, "check", "Fonts", "document.fonts.check");
-    hookMethod(FontFaceSet.prototype, "load", "Fonts", "document.fonts.load");
-    // forEach / iteration — used to enumerate all loaded fonts
-    hookMethod(FontFaceSet.prototype, "forEach", "Fonts", "document.fonts.forEach");
+    // check() can be called 100s of times during font probing — fire-once
+    hookMethodHot(FontFaceSet.prototype, "check", "Fonts", "document.fonts.check");
+    hookMethodHot(FontFaceSet.prototype, "load", "Fonts", "document.fonts.load");
+    hookMethodHot(FontFaceSet.prototype, "forEach", "Fonts", "document.fonts.forEach");
   }
   // document.fonts.ready — sites await this before probing
   if (typeof document !== "undefined" && document.fonts) {
@@ -522,9 +522,9 @@
   // ── 7. WebRTC (local IP leak) ─────────────────────────────────────────
   if (typeof RTCPeerConnection !== "undefined") {
     const OrigRTC = RTCPeerConnection;
-    window.RTCPeerConnection = function (...args) {
-      record("WebRTC", "new RTCPeerConnection", JSON.stringify(args[0] || {}));
-      return new OrigRTC(...args);
+    window.RTCPeerConnection = function (config, constraints) {
+      recordHot("WebRTC", "new RTCPeerConnection", "");
+      return constraints ? new OrigRTC(config, constraints) : new OrigRTC(config);
     };
     window.RTCPeerConnection.prototype = OrigRTC.prototype;
   }
@@ -582,9 +582,9 @@
   // HTTP-level IP vs WebSocket IP, and detect network characteristics.
   if (typeof WebSocket !== "undefined") {
     const OrigWS = WebSocket;
-    window.WebSocket = function (url, ...rest) {
-      record("WebSocket", "new WebSocket", url);
-      return new OrigWS(url, ...rest);
+    window.WebSocket = function (url, protocols) {
+      recordHot("WebSocket", "new WebSocket", "");
+      return protocols !== undefined ? new OrigWS(url, protocols) : new OrigWS(url);
     };
     window.WebSocket.prototype = OrigWS.prototype;
     // Preserve static properties
@@ -640,9 +640,9 @@
   // Hot path — called 1000s of times per second by frameworks/animations
   hookMethodHot(Performance.prototype, "now", "Timing", "performance.now");
   if (Performance.prototype.getEntries) {
-    hookMethod(Performance.prototype, "getEntries", "Timing", "performance.getEntries");
-    hookMethod(Performance.prototype, "getEntriesByType", "Timing", "performance.getEntriesByType");
-    hookMethod(Performance.prototype, "getEntriesByName", "Timing", "performance.getEntriesByName");
+    hookMethodHot(Performance.prototype, "getEntries", "Timing", "performance.getEntries");
+    hookMethodHot(Performance.prototype, "getEntriesByType", "Timing", "performance.getEntriesByType");
+    hookMethodHot(Performance.prototype, "getEntriesByName", "Timing", "performance.getEntriesByName");
   }
   if (typeof PerformanceObserver !== "undefined") {
     const OrigPO = PerformanceObserver;
@@ -691,9 +691,10 @@
     "LinearAccelerationSensor", "GravitySensor", "AmbientLightSensor"]) {
     if (typeof window[SensorCls] !== "undefined") {
       const Orig = window[SensorCls];
-      window[SensorCls] = function (...args) {
-        record("Sensors", `new ${SensorCls}`, JSON.stringify(args[0] || {}));
-        return new Orig(...args);
+      const sensorLabel = "new " + SensorCls;
+      window[SensorCls] = function (options) {
+        recordHot("Sensors", sensorLabel, SensorCls);
+        return options ? new Orig(options) : new Orig();
       };
       window[SensorCls].prototype = Orig.prototype;
     }
@@ -832,10 +833,14 @@
     }
 
     // setAttribute("src"/"href") — covers script, iframe, img, link
+    // Fast path: only check values starting with 'c' (chrome-extension) or 'm' (moz-extension)
     const origSetAttribute = Element.prototype.setAttribute;
     Element.prototype.setAttribute = function (name, value) {
-      if ((name === "src" || name === "href") && isExtUrl(value)) {
-        recordExtProbe(this.tagName + ".setAttribute(\"" + name + "\", extension URL)", value);
+      if (typeof value === "string" && (name === "src" || name === "href")) {
+        const c = value.charCodeAt(0);
+        if ((c === 99 || c === 109) && isExtUrl(value)) { // 'c' or 'm'
+          recordExtProbe(this.tagName + ".setAttribute(extension URL)", value);
+        }
       }
       return origSetAttribute.call(this, name, value);
     };
@@ -944,11 +949,14 @@
     const OrigFloat32 = Float32Array;
     const origF32From = Float32Array.from;
     // Hook the constructor — architecture probing always creates new Float32Array(1)
-    window.Float32Array = function (...args) {
-      if (args[0] === 1) {
-        record("Architecture", "new Float32Array", "size=1 (possible NaN bit pattern probe)");
+    window.Float32Array = function (arg0, arg1, arg2) {
+      if (arg0 === 1) {
+        recordHot("Architecture", "new Float32Array", "size=1 (possible NaN bit pattern probe)");
       }
-      return new OrigFloat32(...args);
+      // Fast path for common constructor signatures
+      if (arg2 !== undefined) return new OrigFloat32(arg0, arg1, arg2);
+      if (arg1 !== undefined) return new OrigFloat32(arg0, arg1);
+      return new OrigFloat32(arg0);
     };
     window.Float32Array.prototype = OrigFloat32.prototype;
     window.Float32Array.BYTES_PER_ELEMENT = OrigFloat32.BYTES_PER_ELEMENT;
@@ -1044,12 +1052,13 @@
   // -moz- (Firefox), -ms- (Edge legacy).
   if (typeof CSS !== "undefined" && CSS.supports) {
     const origSupports = CSS.supports;
-    CSS.supports = function (...args) {
-      const query = args.join(" ");
-      if (/-(webkit|moz|ms|o)-/i.test(query)) {
-        record("VendorDetect", "CSS.supports", query);
+    const prefixRe = /-(webkit|moz|ms|o)-/i; // pre-compiled
+    CSS.supports = function (prop, val) {
+      const query = val !== undefined ? prop + " " + val : prop;
+      if (prefixRe.test(query)) {
+        recordHot("VendorDetect", "CSS.supports", query);
       }
-      return origSupports.apply(this, args);
+      return val !== undefined ? origSupports.call(this, prop, val) : origSupports.call(this, prop);
     };
   }
 
@@ -1103,10 +1112,11 @@
       "revenue_unit_item",
     ]);
 
-    // Burst detection: track offsetParent reads in a sliding window
+    // Burst detection: count offsetParent reads in a time window
     const BURST_WINDOW = 200; // ms
     const BURST_THRESHOLD = 15; // reads within window = fingerprinting
-    let burstReadTimes = [];
+    let burstCount = 0;
+    let burstWindowStart = 0;
     let burstDetected = false;
     let burstReported = false;
 
@@ -1130,15 +1140,15 @@
 
           // 1. Burst detection — many offsetParent reads in a short window
           if (!burstReported) {
-            burstReadTimes.push(now);
-            // Trim old entries outside window
-            while (burstReadTimes.length > 0 && burstReadTimes[0] < now - BURST_WINDOW) {
-              burstReadTimes.shift();
+            if (now - burstWindowStart > BURST_WINDOW) {
+              burstCount = 0;
+              burstWindowStart = now;
             }
-            if (burstReadTimes.length >= BURST_THRESHOLD && !burstDetected) {
+            burstCount++;
+            if (burstCount >= BURST_THRESHOLD && !burstDetected) {
               burstDetected = true;
               record("AdBlockDetect", "offsetParent burst",
-                burstReadTimes.length + " reads in " + BURST_WINDOW + "ms (filter list fingerprinting pattern)");
+                burstCount + " reads in " + BURST_WINDOW + "ms (filter list fingerprinting pattern)");
             }
           }
 
@@ -1247,9 +1257,9 @@
   // ── 38. openDatabase (Web SQL) ────────────────────────────────────────
   if (typeof window.openDatabase === "function") {
     const origOpenDB = window.openDatabase;
-    window.openDatabase = function (...args) {
-      record("Storage", "openDatabase", args[0] || "");
-      return origOpenDB.apply(this, args);
+    window.openDatabase = function (name, ver, desc, size) {
+      recordHot("Storage", "openDatabase", "");
+      return origOpenDB.call(this, name, ver, desc, size);
     };
   }
   // Also check for its existence (boolean probe)
@@ -1308,11 +1318,11 @@
   // ── 42. TouchEvent creation probe ─────────────────────────────────────
   {
     const origCreateEvent = document.createEvent;
-    document.createEvent = function (type, ...rest) {
-      if (typeof type === "string" && /touch/i.test(type)) {
-        record("Touch", "document.createEvent", type);
+    document.createEvent = function (type) {
+      if (typeof type === "string" && (type.charCodeAt(0) === 84 || type.charCodeAt(0) === 116) && /touch/i.test(type)) {
+        recordHot("Touch", "document.createEvent", type);
       }
-      return origCreateEvent.call(this, type, ...rest);
+      return origCreateEvent.call(this, type);
     };
   }
 

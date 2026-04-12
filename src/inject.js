@@ -58,23 +58,40 @@
   const METHOD_LOG_FIRST = 3;
   const METHOD_LOG_EVERY = 100;
 
-  // Pre-cached regex for source extraction (compiled once)
-  const SOURCE_RE = /https?:\/\/[^\s)]+/;
+  // ── V8 optimization #3: Error.captureStackTrace ───────────────────────
+  // Skips creating the full Error object — just captures the stack string.
+  // V8-specific but this is a Chrome extension, so always available.
+  const hasCapture = typeof Error.captureStackTrace === "function";
 
+  function captureStack() {
+    if (hasCapture) {
+      const obj = {};
+      Error.captureStackTrace(obj, captureStack);
+      return obj.stack;
+    }
+    return new Error().stack;
+  }
+
+  // Extract the first non-inject.js caller URL from a stack trace.
+  // Uses indexOf instead of regex for the common case (faster in V8).
   function extractSource(stack) {
     if (!stack) return "";
     const lines = stack.split("\n");
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i];
-      if (line.length < 10) continue; // skip short lines fast
-      const m = SOURCE_RE.exec(line);
-      if (m) {
-        const url = m[0];
-        // Skip our own frames — use charCodeAt for fast prefix check
-        // 'i' = 105, checking for "inject.js" or "chrome-extension://"
-        if (url.indexOf("inject.js") !== -1 || url.charCodeAt(0) === 99 /* 'c' */ && url.indexOf("chrome-extension://") === 0) continue;
-        return url;
-      }
+      if (line.length < 10) continue;
+      // Fast indexOf scan instead of regex
+      let idx = line.indexOf("https://");
+      if (idx === -1) idx = line.indexOf("http://");
+      if (idx === -1) continue;
+      // Extract URL: runs until whitespace (32) or closing paren (41)
+      let end = idx;
+      while (end < line.length && line.charCodeAt(end) !== 32 && line.charCodeAt(end) !== 41) end++;
+      const url = line.substring(idx, end);
+      // Skip our own frames
+      if (url.indexOf("inject.js") !== -1) continue;
+      if (url.charCodeAt(0) === 99 && url.indexOf("chrome-extension://") === 0) continue;
+      return url;
     }
     return "";
   }
@@ -98,8 +115,8 @@
     // Skip if rate-limited — this is the fast-exit path for 99%+ of calls
     if (count > METHOD_LOG_FIRST && count % METHOD_LOG_EVERY !== 0) return;
 
-    // Slow path: capture stack (expensive) and queue event
-    const stack = new Error().stack;
+    // Slow path: capture stack and queue event
+    const stack = captureStack();
     const source = extractSource(stack);
     const countLabel = count > METHOD_LOG_FIRST ? " (call #" + count + ")" : "";
     queueEvent({
@@ -110,8 +127,6 @@
   }
 
   // ── Lightweight hook for extremely high-frequency APIs ────────────────
-  // These only record the FIRST call (to register the technique exists),
-  // then silently count. No stack trace on subsequent calls.
   const hotMethodFirstSeen = {};
 
   function recordHot(category, method, detail) {
@@ -119,17 +134,20 @@
     if (mutedMethodsSet.size > 0 && mutedMethodsSet.has(method)) return;
 
     const key = category + "|" + method;
-    if (hotMethodFirstSeen[key]) return; // already recorded — pure no-op
+    if (hotMethodFirstSeen[key]) return;
     hotMethodFirstSeen[key] = true;
 
-    const stack = new Error().stack;
+    const stack = captureStack();
     const source = extractSource(stack);
     queueEvent({
       category, method, detail, source, ts: Date.now(), stack,
     });
   }
 
-  // Helper: wrap a getter on a prototype
+  // ── V8 optimization #1: Inline mute check into hook wrappers ─────────
+  // Avoids the function call to record() + string concat for the rate-limit
+  // key when the method is muted. The wrapper exits immediately.
+
   function hookGetter(obj, prop, category, method) {
     const desc = Object.getOwnPropertyDescriptor(obj, prop);
     if (!desc || !desc.get) return;
@@ -137,28 +155,41 @@
     Object.defineProperty(obj, prop, {
       ...desc,
       get() {
-        record(category, method, prop);
+        if (!(mutedCategoriesSet.size > 0 && mutedCategoriesSet.has(category)) &&
+            !(mutedMethodsSet.size > 0 && mutedMethodsSet.has(method))) {
+          record(category, method, prop);
+        }
         return origGet.call(this);
       },
     });
   }
 
-  // Helper: wrap a method — avoids ...args spread for perf
   function hookMethod(obj, prop, category, method) {
     const orig = obj[prop];
     if (typeof orig !== "function") return;
     obj[prop] = function () {
-      record(category, method, prop);
+      if (!(mutedCategoriesSet.size > 0 && mutedCategoriesSet.has(category)) &&
+          !(mutedMethodsSet.size > 0 && mutedMethodsSet.has(method))) {
+        record(category, method, prop);
+      }
       return orig.apply(this, arguments);
     };
   }
 
-  // Helper: wrap a method with recordHot (fire-once)
+  // hookMethodHot: fully inlined — mute check + hot check + capture in one
   function hookMethodHot(obj, prop, category, method) {
     const orig = obj[prop];
     if (typeof orig !== "function") return;
+    const hotKey = category + "|" + method;
     obj[prop] = function () {
-      recordHot(category, method, prop);
+      if (!hotMethodFirstSeen[hotKey] &&
+          !(mutedCategoriesSet.size > 0 && mutedCategoriesSet.has(category)) &&
+          !(mutedMethodsSet.size > 0 && mutedMethodsSet.has(method))) {
+        hotMethodFirstSeen[hotKey] = true;
+        const stack = captureStack();
+        const source = extractSource(stack);
+        queueEvent({ category, method, detail: prop, source, ts: Date.now(), stack });
+      }
       return orig.apply(this, arguments);
     };
   }

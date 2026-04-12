@@ -45,18 +45,23 @@ jobs:
           npm install -g crx3
           VERSION=${{ steps.version.outputs.version }}
 
-          mkdir -p dist
+          mkdir -p dist ext
 
-          zip -r dist/fingerprint-detector-${VERSION}.zip \
-            manifest.json \
-            icons/ \
-            src/ \
-            LICENSE \
-            -x "*.DS_Store" "*.map"
+          # Copy extension files into a clean directory
+          cp manifest.json ext/
+          cp LICENSE ext/
+          cp -r icons ext/
+          cp -r src ext/
 
-          crx3 dist/fingerprint-detector-${VERSION}.zip \
+          # Build CRX from directory (crx3 expects a dir with manifest.json)
+          crx3 ext \
             --keyPath key.pem \
             --crxPath dist/fingerprint-detector-${VERSION}.crx
+
+          # Build ZIP for sideloading / Chrome Web Store
+          cd ext
+          zip -r ../dist/fingerprint-detector-${VERSION}.zip . \
+            -x "*.DS_Store"
 
       - name: Create release and upload assets
         env:

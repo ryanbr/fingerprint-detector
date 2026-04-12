@@ -2,12 +2,50 @@
 // and streams new events to connected popup ports.
 // Handles batched events from bridge.js and caps stored detections per tab.
 // Supports multi-tab watching from the popup.
+//
+// IMPORTANT: Chrome kills service workers after ~30s of inactivity.
+// All tabData is persisted to chrome.storage.session so it survives restarts.
 
-const tabData = {};
-const popupPorts = new Map(); // tabId -> Set<port>
-const portWatchedTabs = new Map(); // port -> Set<tabId>
+let tabData = {};
+const popupPorts = new Map();
+const portWatchedTabs = new Map();
 const MAX_DETECTIONS_PER_TAB = 5000;
+const MAX_PER_CATEGORY = 500;
 
+// ── Persistence layer ─────────────────────────────────────────────────
+// chrome.storage.session is RAM-only (cleared on browser close) but
+// survives service worker restarts. Perfect for detection data.
+let saveTimer = 0;
+const SAVE_DEBOUNCE = 500; // ms — batch writes to avoid thrashing storage
+
+function scheduleSave() {
+  if (saveTimer) return;
+  saveTimer = setTimeout(() => {
+    saveTimer = 0;
+    chrome.storage.session.set({ tabData });
+  }, SAVE_DEBOUNCE);
+}
+
+// Restore tabData from session storage on service worker startup
+chrome.storage.session.get(["tabData"], (stored) => {
+  if (stored.tabData) {
+    tabData = stored.tabData;
+    // Restore badges for all tabs with data
+    for (const tabId of Object.keys(tabData)) {
+      const id = Number(tabId);
+      if (tabData[id] && tabData[id].categories) {
+        updateBadge(id, tabData[id]);
+      }
+    }
+  }
+});
+
+// Increase session storage quota (default is 1MB, max 10MB)
+chrome.storage.session.setAccessLevel?.({
+  accessLevel: "TRUSTED_AND_UNTRUSTED_CONTEXTS",
+});
+
+// ── Port management ───────────────────────────────────────────────────
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name !== "fp-log") return;
 
@@ -31,7 +69,7 @@ chrome.runtime.onConnect.addListener((port) => {
       popupPorts.get(tabId).add(port);
       portWatchedTabs.get(port)?.add(tabId);
 
-      // Send existing detections as backlog with tabId tagged
+      // Send existing detections as backlog
       const existing = tabData[tabId];
       if (existing && existing.detections.length > 0) {
         port.postMessage({ type: "fp-batch", tabId, data: existing.detections });
@@ -47,8 +85,7 @@ chrome.runtime.onConnect.addListener((port) => {
   });
 });
 
-const MAX_PER_CATEGORY = 500;
-
+// ── Detection storage ─────────────────────────────────────────────────
 function storeDetection(tabId, d) {
   if (!tabData[tabId]) {
     tabData[tabId] = { detections: [], categories: {} };
@@ -75,6 +112,7 @@ function broadcastToWatchers(tabId, events) {
   }
 }
 
+// ── Message handling ──────────────────────────────────────────────────
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === "fp-detection-batch" && sender.tab) {
     const tabId = sender.tab.id;
@@ -83,6 +121,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     }
     updateBadge(tabId, tabData[tabId]);
     broadcastToWatchers(tabId, msg.data);
+    scheduleSave();
   }
 
   if (msg.type === "fp-detection" && sender.tab) {
@@ -90,6 +129,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     storeDetection(tabId, msg.data);
     updateBadge(tabId, tabData[tabId]);
     broadcastToWatchers(tabId, [msg.data]);
+    scheduleSave();
   }
 
   if (msg.type === "get-detections") {
@@ -105,7 +145,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     }
   }
 
-  // Get full extension probe ID list from a tab's content script
   if (msg.type === "get-ext-ids") {
     const tabId = msg.tabId;
     if (tabId) {
@@ -116,12 +155,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     }
   }
 
-  // List all tabs that have detection data
   if (msg.type === "get-tabs-with-data") {
     const tabIds = Object.keys(tabData).map(Number).filter(id => {
       return tabData[id] && tabData[id].detections.length > 0;
     });
-    // Get tab info for each
     Promise.all(tabIds.map(id =>
       chrome.tabs.get(id).then(tab => ({
         tabId: id,
@@ -138,6 +175,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 });
 
+// ── Badge ─────────────────────────────────────────────────────────────
 function updateBadge(tabId, data) {
   const count = Object.keys(data.categories).length;
   const text = count > 0 ? String(count) : "";
@@ -148,14 +186,17 @@ function updateBadge(tabId, data) {
   });
 }
 
+// ── Cleanup ───────────────────────────────────────────────────────────
 chrome.webNavigation?.onCommitted.addListener((details) => {
   if (details.frameId === 0) {
     delete tabData[details.tabId];
     chrome.action.setBadgeText({ text: "", tabId: details.tabId });
+    scheduleSave();
   }
 });
 
 chrome.tabs.onRemoved.addListener((tabId) => {
   delete tabData[tabId];
   popupPorts.delete(tabId);
+  scheduleSave();
 });

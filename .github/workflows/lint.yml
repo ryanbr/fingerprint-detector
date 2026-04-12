@@ -23,11 +23,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint
+      - name: ESLint
         run: npm run lint
 
       - name: Build
         run: npm run build
+
+      - name: web-ext lint (extension manifest + structure)
+        run: |
+          node scripts/prepare-ext.js
+          npx web-ext lint --source-dir=build-tmp
 
       - name: Verify bundle
         run: |

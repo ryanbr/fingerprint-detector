@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 480px;
+      height: 520px;
+      display: flex;
+      flex-direction: column;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 13px;
+      color: #e0e0e0;
+      background: #1a1a2e;
+    }
+    code, .mono {
+      font-family: "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    /* ── Header ─────────────────────────────────────── */
+    header {
+      padding: 12px 16px;
+      background: #16213e;
+      border-bottom: 1px solid #0f3460;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    header h1 { font-size: 15px; font-weight: 600; color: #e94560; }
+
+    /* ── Tabs ────────────────────────────────────────── */
+    .tabs {
+      display: flex;
+      background: #16213e;
+      border-bottom: 1px solid #0f3460;
+      flex-shrink: 0;
+    }
+    .tab {
+      flex: 1;
+      padding: 9px 0;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      color: #78909c;
+      border-bottom: 2px solid transparent;
+      user-select: none;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .tab:hover { color: #b0bec5; }
+    .tab.active { color: #e94560; border-bottom-color: #e94560; }
+
+    /* ── Panels ──────────────────────────────────────── */
+    .panel { display: none; flex: 1; overflow-y: auto; }
+    .panel.active { display: flex; flex-direction: column; }
+
+    /* ── Summary panel ───────────────────────────────── */
+    .summary {
+      padding: 12px 16px;
+      background: #16213e;
+      border-bottom: 1px solid #0f3460;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge.high   { background: #e5393533; color: #ef5350; }
+    .badge.medium { background: #fb8c0033; color: #ffa726; }
+    .badge.low    { background: #43a04733; color: #66bb6a; }
+    .badge.none   { background: #78909c33; color: #90a4ae; }
+
+    .empty {
+      padding: 40px 16px;
+      text-align: center;
+      color: #78909c;
+      flex: 1;
+    }
+    .empty svg { margin-bottom: 12px; opacity: 0.4; }
+
+    .category { border-bottom: 1px solid #0f3460; }
+    .category-header {
+      padding: 10px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #1a1a2e;
+      user-select: none;
+    }
+    .category-header:hover { background: #16213e; }
+    .category-name {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .category-icon {
+      width: 20px; height: 20px;
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; flex-shrink: 0;
+    }
+    .count {
+      background: #0f3460; color: #90a4ae;
+      padding: 2px 8px; border-radius: 10px; font-size: 11px;
+    }
+    .category-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .summary-mute-btn {
+      visibility: hidden;
+      background: none;
+      border: none;
+      color: #546e7a;
+      font-size: 13px;
+      cursor: pointer;
+      padding: 0 2px;
+      line-height: 1;
+    }
+    .category-header:hover .summary-mute-btn { visibility: visible; }
+    .detection:hover .summary-mute-btn { visibility: visible; }
+    .summary-mute-btn:hover { color: #ef5350; }
+    .summary-mute-btn.is-muted { visibility: visible; color: #ef5350; }
+    .category.is-muted .category-header { opacity: 0.4; }
+    .detection.is-muted { opacity: 0.4; }
+    .arrow { transition: transform 0.2s; color: #546e7a; }
+    .category.open .arrow { transform: rotate(90deg); }
+    .category-body { display: none; padding: 0 16px 10px; }
+    .category.open .category-body { display: block; }
+
+    .detection {
+      padding: 6px 0;
+      border-bottom: 1px solid #0f346033;
+      font-size: 12px;
+    }
+    .detection:last-child { border-bottom: none; }
+    .detection .method {
+      color: #e94560;
+      font-family: "SF Mono", Menlo, Consolas, monospace;
+      font-size: 11px;
+    }
+    .detection .detail {
+      color: #78909c; font-size: 11px;
+      margin-top: 2px; word-break: break-all;
+    }
+    .detection .source {
+      color: #5c6bc0; font-size: 10px;
+      margin-top: 2px; word-break: break-all;
+      font-family: "SF Mono", Menlo, Consolas, monospace;
+    }
+    .detection .frame-url {
+      color: #ab47bc; font-size: 10px;
+      margin-top: 1px; word-break: break-all;
+      font-family: "SF Mono", Menlo, Consolas, monospace;
+    }
+    .iframe-tag {
+      display: inline-block;
+      background: #ab47bc33;
+      color: #ce93d8;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 3px;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+    .detection .time {
+      color: #546e7a; font-size: 10px; float: right;
+    }
+
+    /* ── Debug Log panel ─────────────────────────────── */
+    .log-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: #16213e;
+      border-bottom: 1px solid #0f3460;
+      flex-shrink: 0;
+    }
+    .log-toolbar input {
+      flex: 1;
+      padding: 5px 8px;
+      border: 1px solid #0f3460;
+      border-radius: 4px;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      font-size: 11px;
+      outline: none;
+    }
+    .log-toolbar input::placeholder { color: #546e7a; }
+    .log-toolbar input:focus { border-color: #e94560; }
+    .log-toolbar button {
+      padding: 5px 10px;
+      border: 1px solid #0f3460;
+      border-radius: 4px;
+      background: #1a1a2e;
+      color: #90a4ae;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .log-toolbar button:hover { background: #0f3460; color: #e0e0e0; }
+    .log-toolbar button.paused {
+      background: #e9456033;
+      color: #ef5350;
+      border-color: #e94560;
+    }
+
+    /* ── Mute controls ──────────────────────────────── */
+    .mute-btn {
+      visibility: hidden;
+      background: none;
+      border: none;
+      color: #546e7a;
+      font-size: 11px;
+      cursor: pointer;
+      padding: 0 4px;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .log-entry:hover .mute-btn { visibility: visible; }
+    .mute-btn:hover { color: #ef5350; }
+
+    .mute-bar {
+      display: none;
+      flex-wrap: wrap;
+      gap: 4px;
+      padding: 6px 12px;
+      background: #12122a;
+      border-bottom: 1px solid #0f3460;
+      flex-shrink: 0;
+    }
+    .mute-bar.active { display: flex; }
+    .mute-bar-label {
+      font-size: 10px;
+      color: #546e7a;
+      align-self: center;
+      margin-right: 4px;
+    }
+    .mute-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-family: "SF Mono", Menlo, Consolas, monospace;
+      background: #e9456018;
+      color: #ef5350;
+      cursor: pointer;
+      border: 1px solid #e9456033;
+    }
+    .mute-tag:hover {
+      background: #e9456033;
+      border-color: #e94560;
+    }
+    .mute-tag .x {
+      font-weight: 700;
+      font-size: 11px;
+    }
+    .log-counter {
+      font-size: 11px; color: #546e7a; white-space: nowrap;
+    }
+    #log-autoscroll-label {
+      font-size: 11px;
+      color: #78909c;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    #log-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0;
+    }
+    .log-entry {
+      border-bottom: 1px solid #0f346030;
+      font-size: 11px;
+      line-height: 1.5;
+      padding: 4px 0;
+      animation: logFlash 0.4s ease-out;
+    }
+    @keyframes logFlash {
+      from { background: #e9456018; }
+      to   { background: transparent; }
+    }
+    .log-entry:hover { background: #16213e; }
+    .log-row {
+      display: flex;
+      gap: 0;
+    }
+    .log-ts {
+      width: 72px;
+      flex-shrink: 0;
+      color: #546e7a;
+      padding: 0 8px;
+      font-family: "SF Mono", Menlo, Consolas, monospace;
+      font-size: 10px;
+    }
+    .log-cat {
+      width: 100px;
+      flex-shrink: 0;
+      font-weight: 600;
+      padding: 0 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .log-method {
+      flex: 1;
+      color: #e94560;
+      font-family: "SF Mono", Menlo, Consolas, monospace;
+      padding: 0 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .log-detail {
+      padding: 0 8px 0 4px;
+      color: #78909c;
+      max-width: 140px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .log-source {
+      padding: 0 8px 0 76px;
+      font-size: 10px;
+      color: #5c6bc0;
+      font-family: "SF Mono", Menlo, Consolas, monospace;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .log-frame {
+      padding: 0 8px 0 76px;
+      font-size: 10px;
+      color: #ab47bc;
+      font-family: "SF Mono", Menlo, Consolas, monospace;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .log-entry.expanded .log-stack-row { display: block; }
+    .log-stack-row {
+      display: none;
+      padding: 4px 8px 4px 80px;
+      font-size: 10px;
+      color: #546e7a;
+      font-family: "SF Mono", Menlo, Consolas, monospace;
+      white-space: pre-wrap;
+      word-break: break-all;
+      border-bottom: 1px solid #0f346030;
+      background: #12122a;
+    }
+
+    /* risk colors for log category */
+    .risk-high   { color: #ef5350; }
+    .risk-medium { color: #ffa726; }
+    .risk-low    { color: #66bb6a; }
+
+    /* ── Tab selector bar ────────────────────────────── */
+    .tab-selector {
+      display: none;
+      padding: 6px 12px;
+      background: #12122a;
+      border-bottom: 1px solid #0f3460;
+      flex-shrink: 0;
+      gap: 4px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .tab-selector.active { display: flex; }
+    .tab-selector-label {
+      font-size: 10px;
+      color: #546e7a;
+      margin-right: 4px;
+    }
+    .tab-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      background: #0f3460;
+      color: #90a4ae;
+      border: 1px solid #0f3460;
+      cursor: pointer;
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .tab-chip:hover { background: #16213e; color: #e0e0e0; }
+    .tab-chip.watching {
+      background: #e9456022;
+      color: #e94560;
+      border-color: #e9456066;
+    }
+    .tab-chip .chip-count {
+      background: #0f3460;
+      color: #78909c;
+      padding: 0 4px;
+      border-radius: 3px;
+      font-size: 9px;
+    }
+    .tab-chip.watching .chip-count {
+      background: #e9456033;
+      color: #ef5350;
+    }
+    .tab-chip-favicon {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+    .log-tab-tag {
+      font-size: 9px;
+      font-weight: 600;
+      padding: 1px 5px;
+      border-radius: 3px;
+      background: #0f346066;
+      color: #78909c;
+      margin-left: 4px;
+      vertical-align: middle;
+      max-width: 100px;
+      display: inline-block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* ── Export dropdown ─────────────────────────────── */
+    .export-wrap {
+      position: relative;
+      margin-left: auto;
+    }
+    .export-btn {
+      background: none;
+      border: 1px solid #0f3460;
+      border-radius: 4px;
+      color: #78909c;
+      font-size: 11px;
+      padding: 4px 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .export-btn:hover { background: #0f3460; color: #e0e0e0; }
+    .export-menu {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 100%;
+      margin-top: 4px;
+      background: #16213e;
+      border: 1px solid #0f3460;
+      border-radius: 4px;
+      z-index: 10;
+      min-width: 180px;
+      box-shadow: 0 4px 12px #00000066;
+    }
+    .export-menu.open { display: block; }
+    .export-item {
+      display: block;
+      width: 100%;
+      padding: 8px 12px;
+      background: none;
+      border: none;
+      color: #e0e0e0;
+      font-size: 11px;
+      text-align: left;
+      cursor: pointer;
+    }
+    .export-item:hover { background: #0f3460; }
+    .export-item .export-desc {
+      display: block;
+      font-size: 9px;
+      color: #546e7a;
+      margin-top: 2px;
+    }
+
+    /* ── Footer ──────────────────────────────────────── */
+    footer {
+      padding: 8px 16px;
+      text-align: center;
+      font-size: 10px;
+      color: #546e7a;
+      border-top: 1px solid #0f3460;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e94560" stroke-width="2">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>
+    <h1>Fingerprint Detector</h1>
+    <div class="export-wrap">
+      <button class="export-btn" id="export-toggle">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Export
+      </button>
+      <div class="export-menu" id="export-menu">
+        <button class="export-item" id="export-summary-json">
+          Summary (JSON)
+          <span class="export-desc">Categories, risk levels, unique detections</span>
+        </button>
+        <button class="export-item" id="export-log-json">
+          Debug Log (JSON)
+          <span class="export-desc">Full event log with timestamps and stacks</span>
+        </button>
+        <button class="export-item" id="export-log-csv">
+          Debug Log (CSV)
+          <span class="export-desc">Spreadsheet-friendly: time, category, method, detail, source</span>
+        </button>
+        <button class="export-item" id="export-all-json">
+          Full Report (JSON)
+          <span class="export-desc">Summary + debug log combined</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" data-panel="summary-panel">Summary</div>
+    <div class="tab" data-panel="log-panel">Debug Log</div>
+  </div>
+
+  <!-- Summary Panel -->
+  <div id="summary-panel" class="panel active">
+    <div id="content">
+      <div class="empty">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M8 15s1.5 2 4 2 4-2 4-2"/>
+          <line x1="9" y1="9" x2="9.01" y2="9"/>
+          <line x1="15" y1="9" x2="15.01" y2="9"/>
+        </svg>
+        <p>No fingerprinting detected on this page.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Debug Log Panel -->
+  <div id="log-panel" class="panel">
+    <div class="tab-selector" id="tab-selector">
+      <span class="tab-selector-label">Tabs:</span>
+    </div>
+    <div class="log-toolbar">
+      <input type="text" id="log-filter" placeholder="Filter by category, method, or detail...">
+      <button id="log-pause">Pause</button>
+      <label id="log-autoscroll-label">
+        <input type="checkbox" id="log-autoscroll" checked> Auto
+      </label>
+      <span class="log-counter" id="log-counter">0 events</span>
+      <button id="log-clear">Clear</button>
+    </div>
+    <div class="mute-bar" id="mute-bar">
+      <span class="mute-bar-label">Muted:</span>
+    </div>
+    <div id="log-list"></div>
+  </div>
+
+  <footer>Fingerprint Detector v1.0</footer>
+  <script src="popup.js"></script>
+</body>
+</html>

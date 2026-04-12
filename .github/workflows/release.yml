@@ -120,40 +120,22 @@ jobs:
           cd ..
 
           # Firefox build — patch manifest for Firefox compatibility
-          cp -r ext/* ext-firefox/
-
-          # Firefox needs:
-          # 1. browser_specific_settings with gecko ID
+          # Firefox 128+ supports "world": "MAIN", so we keep the same
+          # content script setup as Chrome. Only differences:
+          # 1. browser_specific_settings with gecko ID (min version 128)
           # 2. background.scripts instead of service_worker
-          # 3. loader.js (injects inject.js via <script> tag) instead of MAIN world
-          # 4. inject.js in web_accessible_resources so the loader can reference it
-          # 5. Remove "world" from content_scripts (Firefox doesn't support it)
+          cp -r ext/* ext-firefox/
           jq '
             . + {
               "browser_specific_settings": {
                 "gecko": {
                   "id": "fingerprint-detector@ryanbr",
-                  "strict_min_version": "109.0"
+                  "strict_min_version": "128.0"
                 }
               }
             }
             | del(.background.service_worker)
             | .background = { "scripts": ["src/background.js"] }
-            | .content_scripts = [
-                {
-                  "matches": ["<all_urls>"],
-                  "js": ["src/loader.js"],
-                  "run_at": "document_start",
-                  "all_frames": true
-                },
-                {
-                  "matches": ["<all_urls>"],
-                  "js": ["src/bridge.js"],
-                  "run_at": "document_start",
-                  "all_frames": true
-                }
-              ]
-            | .web_accessible_resources = ["src/inject.js"]
           ' ext/manifest.json > ext-firefox/manifest.json
 
           cd ext-firefox

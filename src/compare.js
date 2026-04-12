@@ -206,8 +206,11 @@ function renderCategoriesDiff(side, data, allCats, onlyLeft, onlyRight, sideLabe
   const onlyLeftSet = new Set(onlyLeft);
   const onlyRightSet = new Set(onlyRight);
 
-  const sorted = [...allCats].sort((a, b) => {
-    // Unique first, then shared
+  // Only iterate over categories present on THIS side — no placeholders.
+  // This eliminates blank/dim rows that don't belong to this side.
+  const thisSideCats = Object.keys(data.categories || {});
+  const sorted = thisSideCats.sort((a, b) => {
+    // Unique to this side first, then shared
     const aUnique = (sideLabel === "left" ? onlyLeftSet : onlyRightSet).has(a);
     const bUnique = (sideLabel === "left" ? onlyLeftSet : onlyRightSet).has(b);
     if (aUnique && !bUnique) return -1;
@@ -217,20 +220,7 @@ function renderCategoriesDiff(side, data, allCats, onlyLeft, onlyRight, sideLabe
 
   let html = "";
   for (const cat of sorted) {
-    const inThisSide = data.categories && data.categories[cat];
-    if (!inThisSide) {
-      // Placeholder row — category is in the other side only
-      const meta = CATEGORY_META[cat] || { icon: "?", color: "#78909c" };
-      html += `<div class="category-row placeholder">
-        <span class="name">
-          <span class="icon" style="background:${meta.color}22;color:${meta.color}">${meta.icon}</span>
-          ${escapeHtml(cat)}
-        </span>
-        <span class="count">—</span>
-      </div>`;
-      continue;
-    }
-
+    const inThisSide = data.categories[cat];
     const meta = CATEGORY_META[cat] || { icon: "?", color: "#78909c", risk: "low" };
     const calls = inThisSide.totalCalls || 0;
     const isUniqueLeft = onlyLeftSet.has(cat);

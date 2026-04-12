@@ -171,11 +171,6 @@
       opacity: 0.55;
     }
     .category-row.both .name { color: #90a4ae; }
-    .category-row.placeholder {
-      background: #0a0a1a;
-      border-left: 4px solid #0f3460;
-      opacity: 0.35;
-    }
     .diff-label {
       font-size: 9px;
       font-weight: 700;
@@ -259,9 +254,8 @@
       color: #ef5350;
     }
 
-    /* Hide shared and placeholder rows when diffs-only is enabled */
+    /* Hide shared rows when diffs-only is enabled */
     .container.diffs-only .category-row.both,
-    .container.diffs-only .category-row.placeholder,
     .container.diffs-only .domains-table tr.both {
       display: none;
     }

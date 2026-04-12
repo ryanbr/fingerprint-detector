@@ -611,6 +611,29 @@ function timestamp() {
   return new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
 }
 
+// Build a filesystem-safe site slug from the current tab URL.
+// "https://www.google.com/search?q=..." → "google.com"
+// Strips protocol, www, path, query, and any filesystem-unsafe characters.
+function siteSlug() {
+  const url = tabInfoMap[activeTabId]?.url || "";
+  if (!url) return "";
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, "");
+    // Replace any remaining unsafe filename chars with underscore
+    return host.replace(/[^a-z0-9.-]/gi, "_");
+  } catch {
+    return "";
+  }
+}
+
+// Compose a filename with optional site slug
+function makeFilename(prefix, ext) {
+  const slug = siteSlug();
+  return slug
+    ? `${prefix}-${slug}-${timestamp()}.${ext}`
+    : `${prefix}-${timestamp()}.${ext}`;
+}
+
 // Extract domain from a URL string (preserves subdomain)
 function extractDomain(url) {
   if (!url) return "";
@@ -768,7 +791,7 @@ document.getElementById("export-summary-json").addEventListener("click", () => {
   buildSummaryExport((summary) => {
     if (!summary) return;
     downloadFile(
-      `fp-summary-${timestamp()}.json`,
+      makeFilename("fp-summary", "json"),
       JSON.stringify(summary, null, 2),
       "application/json"
     );
@@ -778,7 +801,7 @@ document.getElementById("export-summary-json").addEventListener("click", () => {
 document.getElementById("export-log-json").addEventListener("click", () => {
   const log = buildLogExport();
   downloadFile(
-    `fp-log-${timestamp()}.json`,
+    makeFilename("fp-log", "json"),
     JSON.stringify(log, null, 2),
     "application/json"
   );
@@ -786,7 +809,7 @@ document.getElementById("export-log-json").addEventListener("click", () => {
 
 document.getElementById("export-log-csv").addEventListener("click", () => {
   downloadFile(
-    `fp-log-${timestamp()}.csv`,
+    makeFilename("fp-log", "csv"),
     buildLogCSV(),
     "text/csv"
   );
@@ -802,7 +825,7 @@ document.getElementById("export-all-json").addEventListener("click", () => {
       log: buildLogExport(),
     };
     downloadFile(
-      `fp-report-${timestamp()}.json`,
+      makeFilename("fp-report", "json"),
       JSON.stringify(report, null, 2),
       "application/json"
     );

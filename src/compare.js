@@ -303,28 +303,34 @@ document.getElementById("right-file").addEventListener("change", (e) => {
   if (e.target.files[0]) loadFromFile(e.target.files[0], "right");
 });
 
-// Drag and drop on right side (A is usually pre-loaded from current tab)
-const rightDrop = document.getElementById("right-drop");
-if (rightDrop) {
+// Wire up a dropzone — drag/drop + click to open file dialog
+function wireDropzone(dropzoneEl, side) {
+  if (!dropzoneEl) return;
   ["dragenter", "dragover"].forEach(ev => {
-    rightDrop.addEventListener(ev, (e) => {
+    dropzoneEl.addEventListener(ev, (e) => {
       e.preventDefault();
       e.stopPropagation();
-      rightDrop.classList.add("dragover");
+      dropzoneEl.classList.add("dragover");
     });
   });
   ["dragleave", "drop"].forEach(ev => {
-    rightDrop.addEventListener(ev, (e) => {
+    dropzoneEl.addEventListener(ev, (e) => {
       e.preventDefault();
       e.stopPropagation();
-      rightDrop.classList.remove("dragover");
+      dropzoneEl.classList.remove("dragover");
     });
   });
-  rightDrop.addEventListener("drop", (e) => {
+  dropzoneEl.addEventListener("drop", (e) => {
     const file = e.dataTransfer.files[0];
-    if (file) loadFromFile(file, "right");
+    if (file) loadFromFile(file, side);
+  });
+  // Click anywhere on the dropzone to open the file picker
+  dropzoneEl.addEventListener("click", () => {
+    document.getElementById(side + "-file").click();
   });
 }
+
+wireDropzone(document.getElementById("right-drop"), "right");
 
 // Whole-window drag and drop — allows dropping on either side
 document.addEventListener("dragover", (e) => e.preventDefault());
@@ -355,27 +361,9 @@ chrome.storage.session.get(["compareLeftData"], (stored) => {
           <polyline points="17 8 12 3 7 8"/>
           <line x1="12" y1="3" x2="12" y2="15"/>
         </svg>
-        <p><strong>Drop an exported summary JSON here</strong></p>
-        <p class="hint">Or click "Load file" above</p>
+        <p><strong>Drop or click to load an exported summary JSON</strong></p>
+        <p class="hint">Or click "Load file" in the header</p>
       </div>`;
-    const leftDrop = document.getElementById("left-drop");
-    ["dragenter", "dragover"].forEach(ev => {
-      leftDrop.addEventListener(ev, (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        leftDrop.classList.add("dragover");
-      });
-    });
-    ["dragleave", "drop"].forEach(ev => {
-      leftDrop.addEventListener(ev, (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        leftDrop.classList.remove("dragover");
-      });
-    });
-    leftDrop.addEventListener("drop", (e) => {
-      const file = e.dataTransfer.files[0];
-      if (file) loadFromFile(file, "left");
-    });
+    wireDropzone(document.getElementById("left-drop"), "left");
   }
 });

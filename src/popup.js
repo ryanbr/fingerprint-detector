@@ -103,6 +103,10 @@ function cleanStack(stack) {
     .join("\n") || "(no caller frames)";
 }
 
+// ── Version from manifest ─────────────────────────────────────────────
+document.getElementById("footer").textContent =
+  "Fingerprint Detector v" + chrome.runtime.getManifest().version;
+
 // ── Tab Switching ──────────────────────────────────────────────────────
 document.querySelectorAll(".tab").forEach(tab => {
   tab.addEventListener("click", () => {

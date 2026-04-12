@@ -1,19 +1,19 @@
 // hooks/extension.js — Extension Detection (resource probing, CSS detection, messaging)
 export function register({ hookMethod, hookMethodHot, hookGetter, record, recordHot, captureStack, extractSource, queueEvent }) {
   // ── 29b. Extension Detection ────────────────────────────────────────────
-  // Sites detect installed Chrome extensions via three techniques:
+  // Sites detect installed Chrome extensions via:
   // 1. Probing web-accessible resources (chrome-extension://<id>/...)
   // 2. Detecting injected CSS via getComputedStyle on tripwire elements
   // 3. Messaging known extension IDs via chrome.runtime.sendMessage
   //
-  // Sites like browserleaks.com probe 1000+ extension IDs. To avoid flooding
-  // the log, we count probes and only emit:
-  //   - The first probe (with full URL and stack trace)
-  //   - A periodic summary every 50 probes with total count + unique IDs seen
+  // Rate limiting: first probe + summary every 50. Self-unwrapping hooks
+  // after probing completes (detected via idle timeout).
   {
     const extProbeCount = { total: 0, ids: new Set() };
     const EXT_LOG_EVERY = 50;
+    const MAX_EXT_IDS = 5000; // cap memory for extension ID Set
     let extFirstLogged = false;
+    let extProbesDone = false; // true after idle timeout → unwrap hooks
 
     function isExtUrl(url) {
       return typeof url === "string" &&
@@ -21,14 +21,43 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
     }
 
     function extractExtId(url) {
-      // chrome-extension://abcdefghijklmnopabcdefghijklmnop/...
       const m = url.match(/:\/\/([a-z]{32})\//);
       return m ? m[1] : url.slice(0, 60);
     }
 
+    // Self-unwrap timer: if no probes for 2s after first probe, restore hooks
+    let unwrapTimer = 0;
+    const UNWRAP_DELAY = 2000;
+
+    // Saved originals for unwrapping
+    const savedOriginals = {};
+
+    function scheduleUnwrap() {
+      if (unwrapTimer) clearTimeout(unwrapTimer);
+      unwrapTimer = setTimeout(() => {
+        extProbesDone = true;
+        // Restore setAttribute to original
+        if (savedOriginals.setAttribute) {
+          Element.prototype.setAttribute = savedOriginals.setAttribute;
+        }
+        // Restore Image.src and Link.href setters
+        if (savedOriginals.imageSrc) {
+          Object.defineProperty(HTMLImageElement.prototype, "src", savedOriginals.imageSrc);
+        }
+        if (savedOriginals.linkHref) {
+          Object.defineProperty(HTMLLinkElement.prototype, "href", savedOriginals.linkHref);
+        }
+        record("ExtensionDetect", "hooks unwrapped",
+          "probing complete — " + extProbeCount.total + " probes, " +
+          extProbeCount.ids.size + " unique IDs. Restoring native setters");
+      }, UNWRAP_DELAY);
+    }
+
     function recordExtProbe(method, url) {
       extProbeCount.total++;
-      extProbeCount.ids.add(extractExtId(url));
+      if (extProbeCount.ids.size < MAX_EXT_IDS) {
+        extProbeCount.ids.add(extractExtId(url));
+      }
 
       if (!extFirstLogged) {
         extFirstLogged = true;
@@ -39,9 +68,12 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
         record("ExtensionDetect", "extension probe summary",
           extProbeCount.total + " probes across " + extProbeCount.ids.size + " unique extension IDs");
       }
+
+      // Reset unwrap timer on each probe — unwrap after probing stops
+      scheduleUnwrap();
     }
 
-    // Expose full extension ID list for export — dispatched on request from bridge
+    // Expose full extension ID list for export
     window.addEventListener("__fpDetector_getExtIds", () => {
       if (extProbeCount.ids.size > 0) {
         window.dispatchEvent(new CustomEvent("__fpDetector_extIds", {
@@ -58,7 +90,7 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
     if (typeof origFetch === "function") {
       window.fetch = function (input) {
         const url = (typeof input === "string") ? input : (input && input.url) || "";
-        if (isExtUrl(url)) recordExtProbe("fetch(extension URL)", url);
+        if (!extProbesDone && isExtUrl(url)) recordExtProbe("fetch(extension URL)", url);
         return origFetch.apply(this, arguments);
       };
     }
@@ -66,13 +98,14 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
     // XMLHttpRequest
     const origXHROpen = XMLHttpRequest.prototype.open;
     XMLHttpRequest.prototype.open = function (method, url) {
-      if (isExtUrl(url)) recordExtProbe("XHR.open(extension URL)", url);
+      if (!extProbesDone && isExtUrl(url)) recordExtProbe("XHR.open(extension URL)", url);
       return origXHROpen.apply(this, arguments);
     };
 
-    // Image.src setter — charCodeAt fast-exit (99='c', 109='m')
+    // Image.src setter — charCodeAt fast-exit, self-unwraps after probing
     const origImageSrc = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, "src");
     if (origImageSrc && origImageSrc.set) {
+      savedOriginals.imageSrc = origImageSrc;
       const origSet = origImageSrc.set;
       Object.defineProperty(HTMLImageElement.prototype, "src", {
         ...origImageSrc,
@@ -86,9 +119,10 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
       });
     }
 
-    // Link.href setter — charCodeAt fast-exit
+    // Link.href setter — self-unwraps after probing
     const origLinkHref = Object.getOwnPropertyDescriptor(HTMLLinkElement.prototype, "href");
     if (origLinkHref && origLinkHref.set) {
+      savedOriginals.linkHref = origLinkHref;
       const origSet = origLinkHref.set;
       Object.defineProperty(HTMLLinkElement.prototype, "href", {
         ...origLinkHref,
@@ -102,20 +136,20 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
       });
     }
 
-    // setAttribute("src"/"href") — covers script, iframe, img, link
-    // Fast path: only check values starting with 'c' (chrome-extension) or 'm' (moz-extension)
+    // setAttribute — self-unwraps after probing
     const origSetAttribute = Element.prototype.setAttribute;
+    savedOriginals.setAttribute = origSetAttribute;
     Element.prototype.setAttribute = function (name, value) {
-      if (typeof value === "string" && (name === "src" || name === "href")) {
+      if (!extProbesDone && typeof value === "string" && (name === "src" || name === "href")) {
         const c = value.charCodeAt(0);
-        if ((c === 99 || c === 109) && isExtUrl(value)) { // 'c' or 'm'
+        if ((c === 99 || c === 109) && isExtUrl(value)) {
           recordExtProbe(this.tagName + ".setAttribute(extension URL)", value);
         }
       }
       return origSetAttribute.call(this, name, value);
     };
 
-    // chrome.runtime.sendMessage to probe extension IDs
+    // chrome.runtime.sendMessage
     if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.sendMessage) {
       const origRSM = chrome.runtime.sendMessage;
       chrome.runtime.sendMessage = function () {
@@ -127,26 +161,19 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
       };
     }
 
-    // 2. Detect getComputedStyle probing for extension-injected CSS
-    // Sites create tripwire elements with known extension-targeted selectors
-    // and check if styles were modified. We detect suspicious patterns:
-    // rapid getComputedStyle calls on freshly created elements.
+    // 2. getComputedStyle burst detection — short-circuits after detection
     const origGetCS = window.getComputedStyle;
     if (typeof origGetCS === "function") {
       let csProbeCount = 0;
       let csProbeStart = 0;
-      const CS_BURST_WINDOW = 500;  // ms
-      const CS_BURST_THRESHOLD = 20; // calls
+      const CS_BURST_WINDOW = 500;
+      const CS_BURST_THRESHOLD = 20;
       let csBurstReported = false;
 
       window.getComputedStyle = function (el, pseudo) {
         const result = origGetCS.call(this, el, pseudo);
-
-        // Short-circuit after detection — no more overhead on subsequent calls
         if (csBurstReported) return result;
 
-        // Detect burst pattern: many getComputedStyle calls in quick succession
-        // on elements appended to body (typical extension detection pattern)
         if (el && el.parentNode && (el.parentNode === document.body || el.parentNode.parentNode === document.body)) {
           const now = Date.now();
           if (now - csProbeStart > CS_BURST_WINDOW) {

@@ -23,7 +23,8 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
     let wsCount = 0;
     let wsBurstStart = 0;
     let wsLocalCount = 0;
-    let wsLocalPorts = new Set();
+    const wsLocalPorts = new Set();
+    const MAX_WS_PORTS = 1000; // cap memory
     const WS_BURST_WINDOW = 2000; // ms
     const WS_BURST_THRESHOLD = 5;
     let wsBurstReported = false;
@@ -53,7 +54,9 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
       const isLocal = LOCAL_RE.test(urlStr);
       if (isLocal) {
         wsLocalCount++;
-        wsLocalPorts.add(extractPort(urlStr));
+        if (wsLocalPorts.size < MAX_WS_PORTS) {
+          wsLocalPorts.add(extractPort(urlStr));
+        }
 
         if (wsLocalCount === 1) {
           // First local probe — log with full detail

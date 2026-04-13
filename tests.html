@@ -163,6 +163,31 @@
     <ul class="ops"></ul>
   </section>
 
+  <section data-test="vendor">
+    <h2>Vendor Detection (Brave/Opera/Vivaldi/CSS prefixes) <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <section data-test="workers">
+    <h2>Workers / SharedArrayBuffer / CacheStorage <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <section data-test="behavior">
+    <h2>Behavior (synthetic event property reads) <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <section data-test="clientRects">
+    <h2>ClientRects / getBoundingClientRect <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <section data-test="misc">
+    <h2>Misc (ApplePay, openDatabase, PrivateClick, SpeechSynthesis) <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
   <!-- ══════════════════════ INTERACTIVE TESTS ══════════════════════ -->
 
   <div class="notice">
@@ -238,14 +263,22 @@
         c.toDataURL();
         ctx.getImageData(0, 0, 1, 1);
         if (typeof OffscreenCanvas !== "undefined") {
-          tryCall(() => new OffscreenCanvas(10, 10).getContext("2d"));
+          const osc = tryCall(() => new OffscreenCanvas(10, 10));
+          tryCall(() => osc && osc.getContext("2d"));
+          if (osc && osc.convertToBlob) osc.convertToBlob().catch(() => {});
+        }
+        // createImageBitmap from a canvas source
+        if (typeof window.createImageBitmap === "function") {
+          createImageBitmap(c).then(b => b.close && b.close()).catch(() => {});
         }
         // getContext with explicit attrs — tests our attrs inspection
         tryCall(() => document.createElement("canvas").getContext("webgl", { powerPreference: "high-performance" }));
         return [
           'getContext("2d")', "fillText", "strokeText", "measureText",
           "isPointInPath", "isPointInStroke", "toDataURL", "getImageData",
-          "OffscreenCanvas.getContext", 'getContext("webgl", {powerPreference})'
+          "new OffscreenCanvas", "OffscreenCanvas.getContext", "OffscreenCanvas.convertToBlob",
+          "createImageBitmap(canvas)",
+          'getContext("webgl", {powerPreference})'
         ];
       },
 
@@ -328,7 +361,21 @@
           "webdriver", "cookieEnabled", "onLine",
         ];
         for (const p of props) void navigator[p];
-        return ["navigator." + props.join(", .")];
+        // Methods
+        if (navigator.getBattery) navigator.getBattery().catch(() => {});
+        if (navigator.getGamepads) tryCall(() => navigator.getGamepads());
+        if (Navigator.prototype.javaEnabled) tryCall(() => navigator.javaEnabled());
+        // ServiceWorker registration (access-based — just reading the method triggers)
+        if (typeof ServiceWorkerContainer !== "undefined") {
+          void ServiceWorkerContainer.prototype.register;
+          void ServiceWorkerContainer.prototype.getRegistrations;
+          void ServiceWorkerContainer.prototype.getRegistration;
+        }
+        return [
+          "navigator." + props.join(", ."),
+          "navigator.getBattery / getGamepads / javaEnabled",
+          "ServiceWorkerContainer.register/getRegistrations/getRegistration (access)",
+        ];
       },
 
       clientHints() {
@@ -337,12 +384,23 @@
           navigator.userAgentData.getHighEntropyValues(["architecture", "model", "platform", "platformVersion", "bitness", "fullVersionList"]).catch(() => {});
           void navigator.userAgentData.mobile;
           void navigator.userAgentData.platform;
+          if (typeof navigator.userAgentData.toJSON === "function") {
+            tryCall(() => navigator.userAgentData.toJSON());
+          }
         }
         void navigator.globalPrivacyControl;
+        // Accept-CH meta tag injection (passive detection — tests
+        // whether client-hints.js picks up a late-added meta tag)
+        const m = document.createElement("meta");
+        m.setAttribute("http-equiv", "Accept-CH");
+        m.setAttribute("content", "sec-ch-ua, device-memory, downlink");
+        document.head.appendChild(m);
+        setTimeout(() => { try { document.head.removeChild(m); } catch (_) {} }, 100);
         return [
           "navigator.userAgentData + getHighEntropyValues",
-          "userAgentData.mobile / .platform",
+          "userAgentData.mobile / .platform / .toJSON",
           "navigator.globalPrivacyControl",
+          '<meta http-equiv="Accept-CH">',
         ];
       },
 
@@ -420,6 +478,7 @@
       },
 
       storage() {
+        void navigator.cookieEnabled;
         tryCall(() => { localStorage.setItem("fp-test", "x"); });
         tryCall(() => localStorage.getItem("fp-test"));
         tryCall(() => localStorage.removeItem("fp-test"));
@@ -435,12 +494,18 @@
         if (typeof BroadcastChannel !== "undefined") {
           tryCall(() => { const bc = new BroadcastChannel("fp-test"); bc.close(); });
         }
+        // Deprecated WebSQL — still present on Chrome < 119
+        if (typeof window.openDatabase === "function") {
+          tryCall(() => openDatabase("fp-test", "1", "fp-test", 1024));
+        }
         return [
+          "navigator.cookieEnabled",
           "localStorage setItem / getItem / removeItem / length",
           "document.cookie",
           "navigator.storage.estimate",
           "indexedDB.databases / open",
           "new BroadcastChannel",
+          "window.openDatabase (if present)",
         ];
       },
 
@@ -617,11 +682,197 @@
         if (window.chrome && chrome.runtime && chrome.runtime.sendMessage) {
           tryCall(() => chrome.runtime.sendMessage("cjpalhdlnbpafiamejdnhcphjbkeiagm", { ping: 1 }, () => { void chrome.runtime.lastError; }));
         }
+        // getComputedStyle burst — CSS-based extension detection pattern.
+        // Threshold is ~20 calls in 500ms on body children.
+        const bait = document.createElement("div");
+        document.body.appendChild(bait);
+        for (let i = 0; i < 25; i++) {
+          void getComputedStyle(bait).display;
+        }
+        document.body.removeChild(bait);
         return [
           "Image.src = chrome-extension://...",
           "Link.href = chrome-extension://...",
           "setAttribute('src', 'chrome-extension://...')",
           "chrome.runtime.sendMessage (known extension ID)",
+          "getComputedStyle burst (25 calls on body child)",
+        ];
+      },
+
+      vendor() {
+        // Brave (only defined on Brave browser)
+        if (navigator.brave && typeof navigator.brave.isBrave === "function") {
+          navigator.brave.isBrave().catch(() => {});
+        }
+        // Opera / Vivaldi / Edge globals — read whatever exists
+        void window.opr;
+        void window.opera;
+        void window.vivaldi;
+        if (window.chrome && window.chrome.app) {
+          void window.chrome.app.isInstalled;
+          void window.chrome.app.getDetails;
+          void window.chrome.app.runningState;
+        }
+        // CSS.supports — vendor-prefix probing pattern
+        if (window.CSS && typeof CSS.supports === "function") {
+          CSS.supports("-webkit-appearance", "none");
+          CSS.supports("-moz-appearance", "none");
+          CSS.supports("-ms-ime-align", "auto");
+        }
+        // Automation globals (will be undefined, but reading them is
+        // part of the detection pattern for anti-bot scripts)
+        void window.cdc_adoQpoasnfa76pfcZLmcfl_Array;
+        void window.__webdriver_evaluate;
+        void window.callSelenium;
+        void window.domAutomation;
+        return [
+          "navigator.brave.isBrave",
+          "window.opr / window.opera / window.vivaldi",
+          "window.chrome.app.* reads",
+          "CSS.supports (-webkit-/-moz-/-ms- prefixes)",
+          "automation globals (cdc_*, __webdriver_*, callSelenium, domAutomation)",
+        ];
+      },
+
+      workers() {
+        // Worker constructor — triggers burst detection
+        if (typeof Worker === "function") {
+          try {
+            const blob = new Blob(["self.close();"], { type: "application/javascript" });
+            const url = URL.createObjectURL(blob);
+            const w = new Worker(url);
+            setTimeout(() => {
+              try { w.terminate(); URL.revokeObjectURL(url); } catch (_) {}
+            }, 100);
+          } catch (_) {}
+        }
+        // SharedWorker (may not exist in all contexts)
+        if (typeof SharedWorker === "function") {
+          try {
+            const blob = new Blob(["// noop"], { type: "application/javascript" });
+            const url = URL.createObjectURL(blob);
+            tryCall(() => new SharedWorker(url));
+            setTimeout(() => { try { URL.revokeObjectURL(url); } catch (_) {} }, 100);
+          } catch (_) {}
+        }
+        // SharedArrayBuffer (requires cross-origin-isolated context)
+        tryCall(() => new SharedArrayBuffer(16));
+        // Atomics — call a method on a shared buffer if possible
+        try {
+          const sab = new SharedArrayBuffer(4);
+          const arr = new Int32Array(sab);
+          Atomics.load(arr, 0);
+          Atomics.store(arr, 0, 1);
+        } catch (_) {}
+        // CacheStorage
+        if (window.caches) {
+          caches.keys().catch(() => {});
+          caches.has("fp-test").catch(() => {});
+          caches.open("fp-test-cache").then(c => void c).catch(() => {});
+          caches.match("/none").catch(() => {});
+        }
+        return [
+          "new Worker (blob URL)",
+          "new SharedWorker (if available)",
+          "new SharedArrayBuffer (if cross-origin isolated)",
+          "Atomics.load / store",
+          "caches.keys / has / open / match",
+        ];
+      },
+
+      behavior() {
+        // MouseEvent property reads — our hooks fire on first read
+        // per property per page
+        try {
+          const me = new MouseEvent("click", {
+            clientX: 10, clientY: 20, screenX: 10, screenY: 20,
+            movementX: 1, movementY: 1,
+          });
+          void me.clientX; void me.clientY;
+          void me.screenX; void me.screenY;
+          void me.pageX; void me.pageY;
+          void me.offsetX; void me.offsetY;
+          void me.movementX; void me.movementY;
+        } catch (_) {}
+        // KeyboardEvent property reads
+        try {
+          const ke = new KeyboardEvent("keydown", { key: "a", code: "KeyA", keyCode: 65 });
+          void ke.key; void ke.code;
+          void ke.keyCode; void ke.which; void ke.charCode;
+        } catch (_) {}
+        // PointerEvent property reads
+        if (typeof PointerEvent === "function") {
+          try {
+            const pe = new PointerEvent("pointermove", {
+              pressure: 0.5, tangentialPressure: 0.1,
+              tiltX: 5, tiltY: -5, twist: 10, pointerType: "pen",
+            });
+            void pe.pressure; void pe.tangentialPressure;
+            void pe.tiltX; void pe.tiltY; void pe.twist;
+            void pe.pointerType; void pe.isPrimary;
+          } catch (_) {}
+        }
+        // Touch properties — Touch constructor requires a target
+        if (typeof Touch === "function") {
+          try {
+            const t = new Touch({
+              identifier: 0, target: document.body,
+              clientX: 10, clientY: 20,
+              radiusX: 5, radiusY: 5, rotationAngle: 0, force: 0.5,
+            });
+            void t.radiusX; void t.radiusY;
+            void t.rotationAngle; void t.force;
+          } catch (_) {}
+        }
+        return [
+          "MouseEvent.clientX/Y, screenX/Y, pageX/Y, offsetX/Y, movementX/Y",
+          "KeyboardEvent.key, code, keyCode, which, charCode",
+          "PointerEvent.pressure, tiltX/Y, twist, pointerType",
+          "Touch.radiusX/Y, rotationAngle, force",
+        ];
+      },
+
+      clientRects() {
+        const el = document.createElement("div");
+        el.textContent = "fp-rects";
+        el.style.position = "absolute";
+        el.style.left = "-9999px";
+        document.body.appendChild(el);
+        void el.getClientRects();
+        void el.getBoundingClientRect();
+        document.body.removeChild(el);
+        return [
+          "Element.getClientRects",
+          "Element.getBoundingClientRect",
+        ];
+      },
+
+      misc() {
+        // Apple Pay capability probe
+        if (typeof window.ApplePaySession !== "undefined" &&
+            typeof ApplePaySession.canMakePayments === "function") {
+          tryCall(() => ApplePaySession.canMakePayments());
+        }
+        // Private Click Measurement (Safari)
+        const a = document.createElement("a");
+        a.href = "https://example.com/";
+        document.body.appendChild(a);
+        void a.attributionSourceId;
+        document.body.removeChild(a);
+        // SpeechSynthesis — getVoices is safe; skip speak to avoid audio
+        if (window.speechSynthesis) {
+          tryCall(() => speechSynthesis.getVoices());
+          tryCall(() => speechSynthesis.cancel());
+          if (typeof SpeechSynthesisUtterance === "function") {
+            const u = new SpeechSynthesisUtterance("");
+            void u.voice; void u.lang;
+          }
+        }
+        return [
+          "ApplePaySession.canMakePayments (if available)",
+          "<a>.attributionSourceId (Safari Private Click)",
+          "speechSynthesis.getVoices / cancel",
+          "SpeechSynthesisUtterance .voice / .lang",
         ];
       },
 

@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fingerprint Detector — Test Harness</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      padding: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    h1 { color: #e94560; margin-bottom: 8px; }
+    p.intro { color: #90a4ae; margin-bottom: 20px; font-size: 14px; line-height: 1.6; }
+    .run-all {
+      background: #e94560; color: white; border: none; padding: 10px 20px;
+      font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 4px;
+      margin-bottom: 20px;
+    }
+    .run-all:hover { background: #c62b47; }
+    section {
+      background: #16213e; border: 1px solid #0f3460; border-radius: 6px;
+      padding: 12px 16px; margin-bottom: 12px;
+    }
+    section.interactive { border-color: #fb8c00; }
+    h2 {
+      font-size: 15px; color: #e94560; margin-bottom: 8px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    section.interactive h2 { color: #fb8c00; }
+    h2 button {
+      background: #0f3460; color: #e0e0e0; border: 1px solid #0f3460;
+      padding: 4px 12px; font-size: 12px; cursor: pointer; border-radius: 4px;
+    }
+    h2 button:hover { background: #1a2a4f; }
+    h2 button.ok { background: #43a047; border-color: #43a047; }
+    h2 button.err { background: #e53935; border-color: #e53935; }
+    ul.ops { list-style: none; font-size: 12px; color: #78909c; margin-top: 6px; }
+    ul.ops li {
+      font-family: Consolas, "Liberation Mono", Menlo, "Courier New", monospace;
+      padding: 2px 0;
+    }
+    ul.ops li::before { content: "→ "; color: #546e7a; }
+    .notice {
+      background: #fb8c0022; border-left: 3px solid #fb8c00;
+      padding: 8px 12px; margin-bottom: 16px; font-size: 13px; color: #ffb74d;
+    }
+    .bait { position: absolute; left: -9999px; }
+  </style>
+</head>
+<body>
+  <h1>Fingerprint Detector — Test Harness</h1>
+  <p class="intro">
+    Each button below triggers a category of fingerprinting APIs. Open the extension popup's
+    <strong>Debug Log</strong> panel before running tests to see which hooks fire.
+    Click <strong>Run All</strong> to execute every non-interactive test. Interactive tests
+    (orange) require a click each — some may show browser prompts for permissions.
+  </p>
+  <button class="run-all" id="run-all">▶ Run All Non-Interactive Tests</button>
+
+  <!-- ══════════════════════ AUTO TESTS ══════════════════════ -->
+
+  <section data-test="canvas">
+    <h2>Canvas <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <section data-test="webgl">
+    <h2>WebGL <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <section data-test="audio">
+    <h2>Audio <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <section data-test="navigator">
+    <h2>Navigator / UA <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <section data-test="clientHints">
+    <h2>Client Hints <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <section data-test="screen">
+    <h2>Screen <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <section data-test="fonts">
+    <h2>Fonts <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <section data-test="webrtc">
+    <h2>WebRTC <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <section data-test="network">
+    <h2>Network <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <section data-test="storage">
+    <h2>Storage <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <section data-test="timing">
+    <h2>Timing <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <section data-test="privacy">
+    <h2>Privacy / HeadlessDetect <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <section data-test="hardware">
+    <h2>Hardware (WebGPU / Sensors) <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <section data-test="adblock">
+    <h2>AdBlock Detection <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <section data-test="intl">
+    <h2>Intl / Timezone <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <section data-test="math">
+    <h2>Math / Architecture <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <section data-test="touch">
+    <h2>Touch <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <section data-test="document">
+    <h2>Document Metadata (referrer, window.name, hasFocus) <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <section data-test="media">
+    <h2>Media (codec detection) <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <section data-test="extensionProbe">
+    <h2>Extension Detection Probes <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <!-- ══════════════════════ INTERACTIVE TESTS ══════════════════════ -->
+
+  <div class="notice">
+    The tests below require a click each. Some trigger browser permission prompts
+    (camera, microphone, clipboard, notifications, geolocation, etc.) — you don't
+    have to accept them; just triggering the API is enough for the hook to fire.
+  </div>
+
+  <section class="interactive" data-test="notification">
+    <h2>Notification API <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <section class="interactive" data-test="permissionsQuery">
+    <h2>Permissions Query <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <section class="interactive" data-test="geolocation">
+    <h2>Geolocation <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <section class="interactive" data-test="clipboard">
+    <h2>Clipboard <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <section class="interactive" data-test="mediaDevices">
+    <h2>Media Devices (camera / mic / screen) <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <section class="interactive" data-test="fileSystem">
+    <h2>File System Access <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <section class="interactive" data-test="webauthn">
+    <h2>WebAuthn <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <section class="interactive" data-test="payment">
+    <h2>Payment Request <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <section class="interactive" data-test="wakeLock">
+    <h2>Wake Lock / Idle / Badging / MIDI <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
+  <script>
+    // Utility: swallow errors so one failing call doesn't halt the whole test
+    const tryCall = (fn) => { try { return fn(); } catch (e) { return undefined; } };
+
+    // Each test returns an array of string descriptions of what it called
+    const tests = {
+      canvas() {
+        const c = document.createElement("canvas");
+        c.width = 50; c.height = 20;
+        const ctx = c.getContext("2d");
+        ctx.fillStyle = "#f60";
+        ctx.fillRect(0, 0, 50, 20);
+        ctx.fillStyle = "#069";
+        ctx.font = "12px Arial";
+        ctx.fillText("fingerprint", 2, 14);
+        ctx.strokeText("x", 40, 14);
+        ctx.measureText("fingerprint");
+        ctx.isPointInPath(1, 1);
+        ctx.isPointInStroke(1, 1);
+        c.toDataURL();
+        ctx.getImageData(0, 0, 1, 1);
+        if (typeof OffscreenCanvas !== "undefined") {
+          tryCall(() => new OffscreenCanvas(10, 10).getContext("2d"));
+        }
+        // getContext with explicit attrs — tests our attrs inspection
+        tryCall(() => document.createElement("canvas").getContext("webgl", { powerPreference: "high-performance" }));
+        return [
+          'getContext("2d")', "fillText", "strokeText", "measureText",
+          "isPointInPath", "isPointInStroke", "toDataURL", "getImageData",
+          "OffscreenCanvas.getContext", 'getContext("webgl", {powerPreference})'
+        ];
+      },
+
+      webgl() {
+        const c = document.createElement("canvas");
+        const gl = c.getContext("webgl") || c.getContext("experimental-webgl");
+        if (!gl) return ["(WebGL unavailable)"];
+        gl.getParameter(gl.VENDOR);
+        gl.getParameter(gl.RENDERER);
+        gl.getParameter(gl.VERSION);
+        gl.getParameter(gl.MAX_TEXTURE_SIZE);
+        gl.getSupportedExtensions();
+        const dbg = gl.getExtension("WEBGL_debug_renderer_info");
+        if (dbg) {
+          gl.getParameter(dbg.UNMASKED_VENDOR_WEBGL);
+          gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL);
+        }
+        gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT);
+        gl.getContextAttributes();
+        const vs = gl.createShader(gl.VERTEX_SHADER);
+        gl.shaderSource(vs, "attribute vec2 a; void main(){gl_Position=vec4(a,0,1);}");
+        gl.compileShader(vs);
+        gl.getShaderParameter(vs, gl.COMPILE_STATUS);
+        gl.getShaderInfoLog(vs);
+        const prog = gl.createProgram();
+        gl.linkProgram(prog);
+        gl.getProgramParameter(prog, gl.LINK_STATUS);
+        gl.getProgramInfoLog(prog);
+        // WebGL2 extras
+        const c2 = document.createElement("canvas");
+        const gl2 = c2.getContext("webgl2");
+        if (gl2) {
+          gl2.getInternalformatParameter(gl2.RENDERBUFFER, gl2.RGBA8, gl2.SAMPLES);
+        }
+        return [
+          "getParameter (VENDOR/RENDERER/VERSION/MAX_TEXTURE_SIZE)",
+          "getSupportedExtensions",
+          'getExtension("WEBGL_debug_renderer_info")',
+          "UNMASKED_VENDOR/RENDERER_WEBGL",
+          "getShaderPrecisionFormat", "getContextAttributes",
+          "createShader / shaderSource / compileShader",
+          "getShaderParameter / getShaderInfoLog",
+          "createProgram / linkProgram / getProgramParameter / getProgramInfoLog",
+          "WebGL2: getInternalformatParameter",
+        ];
+      },
+
+      audio() {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return ["(AudioContext unavailable)"];
+        const ctx = new AC();
+        tryCall(() => ctx.createOscillator());
+        tryCall(() => ctx.createDynamicsCompressor());
+        tryCall(() => ctx.createAnalyser());
+        tryCall(() => ctx.createGain());
+        tryCall(() => ctx.createBiquadFilter());
+        tryCall(() => ctx.createBuffer(1, 1024, ctx.sampleRate));
+        // Read accessor properties
+        void ctx.sampleRate;
+        void ctx.baseLatency;
+        void ctx.state;
+        if (typeof OfflineAudioContext !== "undefined") {
+          tryCall(() => new OfflineAudioContext(1, 1024, 44100));
+        }
+        tryCall(() => ctx.close && ctx.close());
+        return [
+          "new AudioContext",
+          "createOscillator / DynamicsCompressor / Analyser / Gain / BiquadFilter / Buffer",
+          "sampleRate / baseLatency / state getters",
+          "new OfflineAudioContext",
+        ];
+      },
+
+      navigator() {
+        const props = [
+          "userAgent", "appVersion", "appName", "platform", "oscpu",
+          "language", "languages", "hardwareConcurrency", "deviceMemory",
+          "maxTouchPoints", "vendor", "productSub", "buildID", "connection",
+          "plugins", "mimeTypes", "pdfViewerEnabled", "doNotTrack",
+          "webdriver", "cookieEnabled", "onLine",
+        ];
+        for (const p of props) void navigator[p];
+        return ["navigator." + props.join(", .")];
+      },
+
+      clientHints() {
+        if (navigator.userAgentData) {
+          void navigator.userAgentData;
+          navigator.userAgentData.getHighEntropyValues(["architecture", "model", "platform", "platformVersion", "bitness", "fullVersionList"]).catch(() => {});
+          void navigator.userAgentData.mobile;
+          void navigator.userAgentData.platform;
+        }
+        void navigator.globalPrivacyControl;
+        return [
+          "navigator.userAgentData + getHighEntropyValues",
+          "userAgentData.mobile / .platform",
+          "navigator.globalPrivacyControl",
+        ];
+      },
+
+      screen() {
+        for (const p of ["width", "height", "availWidth", "availHeight", "colorDepth", "pixelDepth", "availLeft", "availTop"]) {
+          void screen[p];
+        }
+        void window.devicePixelRatio;
+        return ["screen.* properties + window.devicePixelRatio"];
+      },
+
+      fonts() {
+        // Trip the offsetWidth/offsetHeight font-probe detector
+        const el = document.createElement("span");
+        el.style.fontFamily = "Arial, sans-serif";
+        el.style.fontSize = "72px";
+        el.style.visibility = "hidden";
+        el.textContent = "fingerprint";
+        document.body.appendChild(el);
+        void el.offsetWidth; void el.offsetHeight;
+        void el.scrollWidth; void el.scrollHeight;
+        // system font keyword probe
+        el.style.fontFamily = "system-ui";
+        void el.offsetWidth;
+        document.body.removeChild(el);
+        // FontFaceSet
+        if (document.fonts) {
+          tryCall(() => document.fonts.check("12px Arial"));
+          document.fonts.load("12px Arial").catch(() => {});
+          tryCall(() => document.fonts.forEach(() => {}));
+          void document.fonts.ready;
+        }
+        return [
+          "offsetWidth/offsetHeight font probes",
+          "system-ui keyword probe",
+          "document.fonts.check / load / forEach / ready",
+        ];
+      },
+
+      webrtc() {
+        if (typeof RTCPeerConnection === "undefined") return ["(WebRTC unavailable)"];
+        const pc = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
+        pc.createDataChannel("fingerprint");
+        pc.createOffer().catch(() => {});
+        pc.addEventListener("icecandidate", () => {});
+        if (window.RTCRtpSender && RTCRtpSender.getCapabilities) {
+          RTCRtpSender.getCapabilities("audio");
+          RTCRtpSender.getCapabilities("video");
+        }
+        pc.close();
+        return [
+          "new RTCPeerConnection (with STUN server)",
+          "createDataChannel / createOffer",
+          'addEventListener("icecandidate")',
+          "RTCRtpSender.getCapabilities",
+        ];
+      },
+
+      network() {
+        if (navigator.connection) {
+          void navigator.connection.effectiveType;
+          void navigator.connection.downlink;
+          void navigator.connection.rtt;
+          void navigator.connection.saveData;
+        }
+        // WebSocket probe — construct with a known-unreachable port
+        tryCall(() => {
+          const ws = new WebSocket("ws://127.0.0.1:1/");
+          setTimeout(() => { try { ws.close(); } catch (_) {} }, 10);
+        });
+        return [
+          "navigator.connection.* props",
+          "new WebSocket (local probe)",
+        ];
+      },
+
+      storage() {
+        tryCall(() => { localStorage.setItem("fp-test", "x"); });
+        tryCall(() => localStorage.getItem("fp-test"));
+        tryCall(() => localStorage.removeItem("fp-test"));
+        tryCall(() => { void localStorage.length; });
+        tryCall(() => { void document.cookie; });
+        if (navigator.storage && navigator.storage.estimate) {
+          navigator.storage.estimate().catch(() => {});
+        }
+        if (window.indexedDB) {
+          tryCall(() => indexedDB.databases && indexedDB.databases().catch(() => {}));
+          tryCall(() => indexedDB.open("fp-test-db"));
+        }
+        if (typeof BroadcastChannel !== "undefined") {
+          tryCall(() => { const bc = new BroadcastChannel("fp-test"); bc.close(); });
+        }
+        return [
+          "localStorage setItem / getItem / removeItem / length",
+          "document.cookie",
+          "navigator.storage.estimate",
+          "indexedDB.databases / open",
+          "new BroadcastChannel",
+        ];
+      },
+
+      timing() {
+        performance.now();
+        tryCall(() => performance.getEntries());
+        tryCall(() => performance.getEntriesByType("navigation"));
+        tryCall(() => performance.mark("fp-mark"));
+        tryCall(() => performance.measure("fp-measure", "fp-mark"));
+        void performance.timeOrigin;
+        if (performance.memory) void performance.memory.usedJSHeapSize;
+        tryCall(() => {
+          const obs = new PerformanceObserver(() => {});
+          obs.observe({ entryTypes: ["resource"] });
+          setTimeout(() => obs.disconnect(), 10);
+        });
+        return [
+          "performance.now / getEntries / mark / measure",
+          "performance.timeOrigin / memory",
+          "new PerformanceObserver",
+        ];
+      },
+
+      privacy() {
+        void navigator.doNotTrack;
+        void navigator.webdriver;
+        if (window.visualViewport) {
+          void visualViewport.width;
+          void visualViewport.height;
+        }
+        void window.outerWidth; void window.outerHeight;
+        void window.screenX; void window.screenY;
+        void document.hidden; void document.visibilityState;
+        // Anti-spoofing probe — call toString on a well-known native method
+        tryCall(() => Function.prototype.toString.call(CanvasRenderingContext2D.prototype.getImageData));
+        return [
+          "navigator.doNotTrack / webdriver",
+          "visualViewport.* / window.outer* / screen*",
+          "document.hidden / visibilityState",
+          "Function.prototype.toString (anti-spoofing probe)",
+        ];
+      },
+
+      hardware() {
+        if (navigator.gpu) {
+          navigator.gpu.requestAdapter().catch(() => {});
+        }
+        for (const s of ["Accelerometer", "Gyroscope", "Magnetometer"]) {
+          if (window[s]) tryCall(() => new window[s]());
+        }
+        if (navigator.keyboard && navigator.keyboard.getLayoutMap) {
+          navigator.keyboard.getLayoutMap().catch(() => {});
+        }
+        return [
+          "navigator.gpu.requestAdapter",
+          "new Accelerometer / Gyroscope / Magnetometer",
+          "navigator.keyboard.getLayoutMap",
+        ];
+      },
+
+      adblock() {
+        // Known FingerprintJS bait class
+        const el = document.createElement("div");
+        el.className = "adsbox";
+        el.id = "ad_300X250";
+        el.style.position = "absolute";
+        el.style.left = "-9999px";
+        document.body.appendChild(el);
+        // Trigger offsetParent burst
+        for (let i = 0; i < 20; i++) void el.offsetParent;
+        document.body.removeChild(el);
+        // Create-remove cycle — 25 direct children of body
+        for (let i = 0; i < 25; i++) {
+          const d = document.createElement("div");
+          d.className = "sponsored-text-link";
+          document.body.appendChild(d);
+          document.body.removeChild(d);
+        }
+        return [
+          "known bait element (id=ad_300X250, class=adsbox)",
+          "offsetParent burst (20 reads)",
+          "create-remove cycle (25 body children)",
+        ];
+      },
+
+      intl() {
+        new Intl.DateTimeFormat().resolvedOptions();
+        new Intl.DateTimeFormat().resolvedOptions().timeZone;
+        new Intl.NumberFormat();
+        new Intl.Collator();
+        if (Intl.DisplayNames) new Intl.DisplayNames(["en"], { type: "language" });
+        if (Intl.Locale) new Intl.Locale("en-US");
+        (123.456).toLocaleString();
+        return [
+          "Intl.DateTimeFormat / NumberFormat / Collator",
+          "Intl.DisplayNames / Locale",
+          "Number.toLocaleString",
+        ];
+      },
+
+      math() {
+        Math.acos(0.1); Math.asin(0.1); Math.atan(0.1);
+        Math.cos(1); Math.sin(1); Math.tan(1);
+        Math.cosh(1); Math.sinh(1); Math.tanh(1);
+        Math.exp(1); Math.log1p(1);
+        // Architecture probe (FingerprintJS NaN bit pattern)
+        tryCall(() => { new Float32Array(1); });
+        return [
+          "Math.acos/asin/atan/cos/sin/tan/cosh/sinh/tanh/exp/log1p",
+          "new Float32Array(1) (architecture probe)",
+        ];
+      },
+
+      touch() {
+        void window.ontouchstart;
+        tryCall(() => document.createEvent("TouchEvent"));
+        return [
+          "window.ontouchstart",
+          'document.createEvent("TouchEvent")',
+        ];
+      },
+
+      document() {
+        void document.referrer;
+        void window.name;
+        window.name = "fp-test-" + Date.now();
+        document.hasFocus();
+        return [
+          "document.referrer",
+          "window.name (get + set)",
+          "document.hasFocus",
+        ];
+      },
+
+      media() {
+        const v = document.createElement("video");
+        v.canPlayType('video/mp4; codecs="avc1.42E01E"');
+        v.canPlayType('video/webm; codecs="vp9"');
+        v.canPlayType('audio/mp4; codecs="mp4a.40.2"');
+        if (window.MediaRecorder && MediaRecorder.isTypeSupported) {
+          MediaRecorder.isTypeSupported("video/webm");
+          MediaRecorder.isTypeSupported('video/webm; codecs="vp9"');
+        }
+        if (navigator.mediaDevices) {
+          navigator.mediaDevices.enumerateDevices().catch(() => {});
+          if (navigator.mediaDevices.getSupportedConstraints) {
+            navigator.mediaDevices.getSupportedConstraints();
+          }
+        }
+        return [
+          "HTMLMediaElement.canPlayType (mp4/webm/audio)",
+          "MediaRecorder.isTypeSupported",
+          "mediaDevices.enumerateDevices / getSupportedConstraints",
+        ];
+      },
+
+      extensionProbe() {
+        // Harmless: probe for a non-existent extension. Triggers our
+        // Image.src setter hook without actually loading anything.
+        const img = new Image();
+        img.onerror = () => {};
+        img.src = "chrome-extension://abcdefghijklmnopqrstuvwxyzaaaaaa/icon.png";
+        // Link tag probe
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = "chrome-extension://abcdefghijklmnopqrstuvwxyzbbbbbb/style.css";
+        link.onerror = () => {};
+        document.head.appendChild(link);
+        setTimeout(() => { try { document.head.removeChild(link); } catch (_) {} }, 100);
+        // setAttribute path
+        const img2 = document.createElement("img");
+        img2.setAttribute("src", "chrome-extension://abcdefghijklmnopqrstuvwxyzcccccc/probe.png");
+        // chrome.runtime.sendMessage path (only works in browsers that expose chrome.runtime)
+        if (window.chrome && chrome.runtime && chrome.runtime.sendMessage) {
+          tryCall(() => chrome.runtime.sendMessage("cjpalhdlnbpafiamejdnhcphjbkeiagm", { ping: 1 }, () => { void chrome.runtime.lastError; }));
+        }
+        return [
+          "Image.src = chrome-extension://...",
+          "Link.href = chrome-extension://...",
+          "setAttribute('src', 'chrome-extension://...')",
+          "chrome.runtime.sendMessage (known extension ID)",
+        ];
+      },
+
+      // ── Interactive tests ──
+
+      notification() {
+        if (typeof Notification === "undefined") return ["(Notification unavailable)"];
+        void Notification.permission;
+        void Notification.maxActions;
+        Notification.requestPermission().catch(() => {});
+        tryCall(() => new Notification("Fingerprint Detector test", { body: "Permission test" }));
+        return [
+          "Notification.permission / maxActions",
+          "Notification.requestPermission",
+          "new Notification",
+        ];
+      },
+
+      permissionsQuery() {
+        if (!navigator.permissions) return ["(Permissions API unavailable)"];
+        const names = ["geolocation", "notifications", "camera", "microphone", "clipboard-read", "persistent-storage"];
+        for (const name of names) {
+          navigator.permissions.query({ name }).catch(() => {});
+        }
+        return ["navigator.permissions.query × " + names.length];
+      },
+
+      geolocation() {
+        if (!navigator.geolocation) return ["(Geolocation unavailable)"];
+        navigator.geolocation.getCurrentPosition(() => {}, () => {}, { timeout: 100 });
+        const id = navigator.geolocation.watchPosition(() => {}, () => {});
+        navigator.geolocation.clearWatch(id);
+        return [
+          "getCurrentPosition", "watchPosition", "clearWatch",
+        ];
+      },
+
+      clipboard() {
+        if (!navigator.clipboard) return ["(Clipboard API unavailable)"];
+        navigator.clipboard.readText().catch(() => {});
+        navigator.clipboard.writeText("fp-test").catch(() => {});
+        if (navigator.clipboard.read) navigator.clipboard.read().catch(() => {});
+        return ["readText / writeText / read"];
+      },
+
+      mediaDevices() {
+        if (!navigator.mediaDevices) return ["(MediaDevices unavailable)"];
+        navigator.mediaDevices.getUserMedia({ audio: true }).then(s => s.getTracks().forEach(t => t.stop())).catch(() => {});
+        navigator.mediaDevices.getUserMedia({ video: true }).then(s => s.getTracks().forEach(t => t.stop())).catch(() => {});
+        if (navigator.mediaDevices.getDisplayMedia) {
+          navigator.mediaDevices.getDisplayMedia().then(s => s.getTracks().forEach(t => t.stop())).catch(() => {});
+        }
+        return ["getUserMedia (audio + video)", "getDisplayMedia"];
+      },
+
+      fileSystem() {
+        if (typeof window.showOpenFilePicker === "function") {
+          window.showOpenFilePicker().catch(() => {});
+        }
+        if (typeof window.showSaveFilePicker === "function") {
+          window.showSaveFilePicker().catch(() => {});
+        }
+        if (typeof window.showDirectoryPicker === "function") {
+          window.showDirectoryPicker().catch(() => {});
+        }
+        return ["showOpenFilePicker / showSaveFilePicker / showDirectoryPicker"];
+      },
+
+      webauthn() {
+        if (typeof PublicKeyCredential === "undefined") return ["(WebAuthn unavailable)"];
+        if (PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable) {
+          PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().catch(() => {});
+        }
+        if (PublicKeyCredential.isConditionalMediationAvailable) {
+          PublicKeyCredential.isConditionalMediationAvailable().catch(() => {});
+        }
+        if (navigator.credentials) {
+          navigator.credentials.get({ password: true }).catch(() => {});
+        }
+        return [
+          "isUserVerifyingPlatformAuthenticatorAvailable",
+          "isConditionalMediationAvailable",
+          "navigator.credentials.get",
+        ];
+      },
+
+      payment() {
+        if (typeof PaymentRequest === "undefined") return ["(PaymentRequest unavailable)"];
+        try {
+          const pr = new PaymentRequest(
+            [{ supportedMethods: "basic-card" }],
+            { total: { label: "Test", amount: { currency: "USD", value: "1.00" } } }
+          );
+          if (pr.canMakePayment) pr.canMakePayment().catch(() => {});
+        } catch (_) {}
+        return ["new PaymentRequest + canMakePayment"];
+      },
+
+      wakeLock() {
+        if (navigator.wakeLock && navigator.wakeLock.request) {
+          navigator.wakeLock.request("screen").then(l => l.release()).catch(() => {});
+        }
+        if (typeof IdleDetector === "function") {
+          IdleDetector.requestPermission && IdleDetector.requestPermission().catch(() => {});
+          tryCall(() => new IdleDetector());
+        }
+        if (navigator.setAppBadge) navigator.setAppBadge(1).catch(() => {});
+        if (navigator.clearAppBadge) navigator.clearAppBadge().catch(() => {});
+        if (navigator.requestMIDIAccess) navigator.requestMIDIAccess().catch(() => {});
+        return [
+          "wakeLock.request",
+          "IdleDetector.requestPermission + new IdleDetector",
+          "setAppBadge / clearAppBadge",
+          "requestMIDIAccess",
+        ];
+      },
+    };
+
+    function runTest(section) {
+      const name = section.dataset.test;
+      const fn = tests[name];
+      const btn = section.querySelector(".run-btn");
+      const list = section.querySelector(".ops");
+      list.innerHTML = "";
+      if (typeof fn !== "function") {
+        btn.textContent = "Missing"; btn.classList.add("err");
+        return;
+      }
+      try {
+        const ops = fn() || [];
+        for (const op of ops) {
+          const li = document.createElement("li");
+          li.textContent = op;
+          list.appendChild(li);
+        }
+        btn.textContent = "✓ Done"; btn.classList.remove("err"); btn.classList.add("ok");
+      } catch (e) {
+        const li = document.createElement("li");
+        li.textContent = "error: " + (e && e.message ? e.message : e);
+        list.appendChild(li);
+        btn.textContent = "✗ Error"; btn.classList.remove("ok"); btn.classList.add("err");
+      }
+    }
+
+    document.querySelectorAll("section[data-test] .run-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        runTest(btn.closest("section"));
+      });
+    });
+
+    document.getElementById("run-all").addEventListener("click", () => {
+      document.querySelectorAll("section[data-test]:not(.interactive)").forEach(runTest);
+    });
+  </script>
+</body>
+</html>

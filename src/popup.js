@@ -250,22 +250,18 @@ const logAutoscroll = document.getElementById("log-autoscroll");
 const logClear = document.getElementById("log-clear");
 const logPause = document.getElementById("log-pause");
 const muteBar = document.getElementById("mute-bar");
-const logEntriesByTab = {}; // tabId -> array of entries
-const watchedTabs = new Set(); // tab IDs currently being watched (declared early for getAllLogEntries)
+// Flat list of entries for the single watched tab. Multi-tab watching
+// was removed — the popup always shows the currently active browser
+// tab, and switching tabs closes the popup (MV3 behavior), so each
+// popup session is scoped to one tab.
+const logEntries = [];
 let logCount = 0;
 let paused = false;
 let pausedQueue = [];
-const MAX_LOG_ENTRIES_PER_TAB = 3000;
+const MAX_LOG_ENTRIES = 3000;
 
-// Flat view across all watched tabs (rebuilt on filter/refilter)
 function getAllLogEntries() {
-  const all = [];
-  for (const tabId of watchedTabs) {
-    const entries = logEntriesByTab[tabId];
-    if (entries) all.push(...entries);
-  }
-  all.sort((a, b) => a.ts - b.ts);
-  return all;
+  return logEntries;
 }
 
 const MAX_DOM_NODES = 500;
@@ -398,11 +394,8 @@ logPause.addEventListener("click", () => {
 
 // ── Batch add ─────────────────────────────────────────────────────────
 function storeLogEntry(d) {
-  const tabId = d._tabId || "unknown";
-  if (!logEntriesByTab[tabId]) logEntriesByTab[tabId] = [];
-  const arr = logEntriesByTab[tabId];
-  arr.push(d);
-  if (arr.length > MAX_LOG_ENTRIES_PER_TAB) arr.shift();
+  logEntries.push(d);
+  if (logEntries.length > MAX_LOG_ENTRIES) logEntries.shift();
 }
 
 function addLogBatch(events) {
@@ -492,18 +485,13 @@ function buildLogNode(d, parent) {
   const icon = meta?.icon || "?";
   const iframeTag = d.isIframe ? ` <span class="iframe-tag">IFRAME</span>` : "";
   const mk = muteKey(d);
-  // Show tab tag when watching multiple tabs
-  const multiTab = watchedTabs.size > 1;
-  const tabTag = multiTab && d._tabTitle
-    ? ` <span class="log-tab-tag" title="Tab: ${escapeHtml(d._tabTitle)}">${escapeHtml(shortenTitle(d._tabTitle))}</span>`
-    : "";
 
   const row = document.createElement("div");
   row.className = "log-entry";
   row.innerHTML =
     `<div class="log-row">` +
       `<span class="log-ts">${formatTimePrecise(d.ts)}</span>` +
-      `<span class="log-cat ${riskClass(d.category)}">${icon} ${escapeHtml(d.category)}${iframeTag}${tabTag}</span>` +
+      `<span class="log-cat ${riskClass(d.category)}">${icon} ${escapeHtml(d.category)}${iframeTag}</span>` +
       `<span class="log-method">${escapeHtml(d.method)}</span>` +
       `<span class="log-detail" title="${escapeHtml(d.detail || "")}">${escapeHtml(d.detail || "")}</span>` +
       `<button class="mute-btn" data-mute-method="${escapeHtml(mk)}" title="Click: mute on this site | Right-click: mute on all sites">&#x1F507;</button>` +
@@ -583,7 +571,7 @@ function refilterLog() {
 logFilter.addEventListener("input", refilterLog);
 
 logClear.addEventListener("click", () => {
-  for (const tabId in logEntriesByTab) logEntriesByTab[tabId] = [];
+  logEntries.length = 0;
   logCount = 0;
   domNodeCount = 0;
   pausedQueue = [];
@@ -636,7 +624,7 @@ function timestamp() {
 // "https://www.google.com/search?q=..." → "google.com"
 // Strips protocol, www, path, query, and any filesystem-unsafe characters.
 function siteSlug() {
-  const url = tabInfoMap[activeTabId]?.url || "";
+  const url = activeTabInfo.url || "";
   if (!url) return "";
   try {
     const host = new URL(url).hostname.replace(/^www\./, "");
@@ -681,7 +669,7 @@ function buildDomainSummary(detections) {
   }
 
   // Determine first-party domain from the page URL
-  const pageUrl = tabInfoMap[activeTabId]?.url || "";
+  const pageUrl = activeTabInfo.url || "";
   const pageDomain = extractDomain(pageUrl);
   // Get the registrable domain (last two parts) for comparison
   const pageBase = pageDomain.split(".").slice(-2).join(".");
@@ -715,7 +703,7 @@ function buildSummaryExport(callback) {
 
     const summary = {
       exportedAt: new Date().toISOString(),
-      url: tabInfoMap[activeTabId]?.url || "",
+      url: activeTabInfo.url || "",
       riskLevel: getRiskLevel(categories).label,
       totalTechniques: cats.length,
       totalCalls: detections.length,
@@ -765,20 +753,19 @@ function buildLogExport() {
     frameUrl: d.frameUrl || "",
     frameDomain: extractDomain(d.frameUrl),
     isIframe: d.isIframe || false,
-    tabTitle: d._tabTitle || "",
     stack: d.stack || "",
   }));
   return {
     exportedAt: new Date().toISOString(),
-    url: tabInfoMap[activeTabId]?.url || "",
-    tabTitle: tabInfoMap[activeTabId]?.title || "",
+    url: activeTabInfo.url || "",
+    tabTitle: activeTabInfo.title || "",
     totalEntries: entries.length,
     entries,
   };
 }
 
 function buildLogCSV() {
-  const url = tabInfoMap[activeTabId]?.url || "";
+  const url = activeTabInfo.url || "";
   const exportedAt = new Date().toISOString();
   // Prepend metadata as CSV comments (Excel/Sheets treat # lines as data, so
   // use a header row approach instead — two metadata rows before the data header)
@@ -840,8 +827,8 @@ document.getElementById("export-all-json").addEventListener("click", () => {
   buildSummaryExport((summary) => {
     const report = {
       exportedAt: new Date().toISOString(),
-      url: tabInfoMap[activeTabId]?.url || "",
-      tabTitle: tabInfoMap[activeTabId]?.title || "",
+      url: activeTabInfo.url || "",
+      tabTitle: activeTabInfo.title || "",
       summary: summary || {},
       log: buildLogExport(),
     };
@@ -853,122 +840,13 @@ document.getElementById("export-all-json").addEventListener("click", () => {
   });
 });
 
-// ── Multi-tab watching ─────────────────────────────────────────────────
-const tabSelector = document.getElementById("tab-selector");
-// watchedTabs declared earlier (near logEntriesByTab)
-const tabInfoMap = {};         // tabId -> { title, url, favIconUrl }
+// ── Active tab tracking ────────────────────────────────────────────────
+// The popup is scoped to the currently-active browser tab for its
+// entire lifetime (MV3 popups close when the user switches tabs).
+// No multi-tab watching, no polling, no tab switcher.
 let activeTabId = null;
+const activeTabInfo = { url: "", title: "", favIconUrl: "" };
 let port = null;
-
-function shortenTitle(title) {
-  return title.length > 22 ? title.slice(0, 20) + "..." : title;
-}
-
-function watchTab(tabId) {
-  if (watchedTabs.has(tabId)) return;
-  watchedTabs.add(tabId);
-  port.postMessage({ type: "watch-tab", tabId });
-  renderTabSelector();
-  saveUIState();
-}
-
-function unwatchTab(tabId) {
-  if (!watchedTabs.has(tabId) || tabId === activeTabId) return;
-  watchedTabs.delete(tabId);
-  port.postMessage({ type: "unwatch-tab", tabId });
-  renderTabSelector();
-  saveUIState();
-  refilterLog(); // remove entries from unwatched tab
-}
-
-function renderTabSelector() {
-  // Only show if more than 1 tab has data
-  const allTabs = Object.keys(tabInfoMap).map(Number);
-  tabSelector.classList.toggle("active", allTabs.length > 1);
-  if (allTabs.length <= 1) return;
-
-  // Remove existing chips
-  tabSelector.querySelectorAll(".tab-chip").forEach(c => c.remove());
-
-  for (const id of allTabs) {
-    const info = tabInfoMap[id];
-    if (!info) continue;
-    const isWatching = watchedTabs.has(id);
-
-    const chip = document.createElement("span");
-    chip.className = "tab-chip" + (isWatching ? " watching" : "");
-    chip.title = `${info.url}\n${isWatching ? "Click to unwatch" : "Click to watch"} (${info.detectionCount} events)`;
-
-    let inner = "";
-    if (info.favIconUrl) {
-      inner += `<img class="tab-chip-favicon" src="${escapeHtml(info.favIconUrl)}" onerror="this.style.display='none'">`;
-    }
-    inner += escapeHtml(shortenTitle(info.title));
-    inner += ` <span class="chip-count">${info.detectionCount}</span>`;
-    chip.innerHTML = inner;
-
-    chip.addEventListener("click", () => {
-      if (isWatching) {
-        unwatchTab(id);
-      } else {
-        watchTab(id);
-      }
-    });
-
-    tabSelector.appendChild(chip);
-  }
-}
-
-// Refresh the tab list — only called when the Debug Log panel is active
-// and the popup is visible. Polling paused otherwise.
-let refreshTimer = 0;
-const REFRESH_INTERVAL = 10000; // was 3000 — tab list changes are rare
-
-function refreshTabList() {
-  chrome.runtime.sendMessage({ type: "get-tabs-with-data" }, (tabs) => {
-    if (!tabs) return;
-    let changed = false;
-    for (const t of tabs) {
-      const existing = tabInfoMap[t.tabId];
-      if (!existing || existing.detectionCount !== t.detectionCount || existing.title !== t.title) {
-        tabInfoMap[t.tabId] = t;
-        changed = true;
-      }
-    }
-    // Only re-render when something actually changed
-    if (changed) renderTabSelector();
-  });
-}
-
-function startTabListPolling() {
-  if (refreshTimer) return;
-  refreshTabList(); // immediate refresh
-  refreshTimer = setInterval(refreshTabList, REFRESH_INTERVAL);
-}
-
-function stopTabListPolling() {
-  if (refreshTimer) {
-    clearInterval(refreshTimer);
-    refreshTimer = 0;
-  }
-}
-
-// Only poll when the Debug Log panel is active and the popup is visible
-function updatePollingState() {
-  const logPanelActive = document.getElementById("log-panel").classList.contains("active");
-  const visible = !document.hidden;
-  if (logPanelActive && visible) {
-    startTabListPolling();
-  } else {
-    stopTabListPolling();
-  }
-}
-
-// Re-evaluate polling state when tab panel changes or visibility changes
-document.querySelectorAll(".tab").forEach(tab => {
-  tab.addEventListener("click", updatePollingState);
-});
-document.addEventListener("visibilitychange", updatePollingState);
 
 // ── Persist UI state across popup reopens ──────────────────────────────
 // chrome.storage.session = RAM-only, survives popup close but not browser restart.
@@ -980,7 +858,6 @@ function saveUIState() {
     uiPaused: paused,
     uiFilter: logFilter.value,
     uiAutoscroll: logAutoscroll.checked,
-    uiWatchedTabs: [...watchedTabs],
     uiActivePanel: document.querySelector(".tab.active")?.dataset.panel || "summary-panel",
   });
 }
@@ -998,7 +875,7 @@ chrome.storage.local.get(["mutedGlobal", "mutedByDomain"], (localStored) => {
     mutedByDomain = localStored.mutedByDomain;
   }
 
-  sessionStore.get(["uiPaused", "uiFilter", "uiAutoscroll", "uiWatchedTabs", "uiActivePanel"], (ui) => {
+  sessionStore.get(["uiPaused", "uiFilter", "uiAutoscroll", "uiActivePanel"], (ui) => {
     // Restore UI state
     if (ui.uiPaused) {
       paused = true;
@@ -1020,8 +897,6 @@ chrome.storage.local.get(["mutedGlobal", "mutedByDomain"], (localStored) => {
       });
     }
 
-    const savedWatchedTabs = ui.uiWatchedTabs || [];
-
     updateCounter();
 
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -1037,27 +912,15 @@ chrome.storage.local.get(["mutedGlobal", "mutedByDomain"], (localStored) => {
       rebuildEffectiveMutes();
       renderMuteBar();
 
+      activeTabInfo.url = tabs[0].url || "";
+      activeTabInfo.title = tabs[0].title || "";
+      activeTabInfo.favIconUrl = tabs[0].favIconUrl || "";
+
       port = chrome.runtime.connect({ name: "fp-log" });
-
-      // Always watch the active tab
       port.postMessage({ type: "watch-tab", tabId: activeTabId });
-      watchedTabs.add(activeTabId);
-
-      // Restore previously watched extra tabs
-      for (const tabId of savedWatchedTabs) {
-        if (tabId !== activeTabId) {
-          port.postMessage({ type: "watch-tab", tabId });
-          watchedTabs.add(tabId);
-        }
-      }
 
       port.onMessage.addListener((msg) => {
         if (msg.type === "fp-batch") {
-          const tabId = msg.tabId;
-          for (const d of msg.data) {
-            d._tabId = tabId;
-            d._tabTitle = tabInfoMap[tabId]?.title || "";
-          }
           if (paused) {
             pausedQueue.push(...msg.data);
             updateCounter();
@@ -1068,9 +931,6 @@ chrome.storage.local.get(["mutedGlobal", "mutedByDomain"], (localStored) => {
       });
 
       chrome.runtime.sendMessage({ type: "get-detections", tabId: activeTabId }, renderSummary);
-
-      // Start polling only if the log panel is initially active
-      updatePollingState();
     });
   });
 });

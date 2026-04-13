@@ -382,78 +382,6 @@
     .risk-medium { color: #ffa726; }
     .risk-low    { color: #66bb6a; }
 
-    /* ── Tab selector bar ────────────────────────────── */
-    .tab-selector {
-      display: none;
-      padding: 6px 12px;
-      background: #12122a;
-      border-bottom: 1px solid #0f3460;
-      flex-shrink: 0;
-      gap: 4px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    .tab-selector.active { display: flex; }
-    .tab-selector-label {
-      font-size: 10px;
-      color: #546e7a;
-      margin-right: 4px;
-    }
-    .tab-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 3px 8px;
-      border-radius: 4px;
-      font-size: 10px;
-      background: #0f3460;
-      color: #90a4ae;
-      border: 1px solid #0f3460;
-      cursor: pointer;
-      max-width: 180px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .tab-chip:hover { background: #16213e; color: #e0e0e0; }
-    .tab-chip.watching {
-      background: #e9456022;
-      color: #e94560;
-      border-color: #e9456066;
-    }
-    .tab-chip .chip-count {
-      background: #0f3460;
-      color: #78909c;
-      padding: 0 4px;
-      border-radius: 3px;
-      font-size: 9px;
-    }
-    .tab-chip.watching .chip-count {
-      background: #e9456033;
-      color: #ef5350;
-    }
-    .tab-chip-favicon {
-      width: 12px;
-      height: 12px;
-      border-radius: 2px;
-      flex-shrink: 0;
-    }
-    .log-tab-tag {
-      font-size: 10px;
-      font-weight: 600;
-      padding: 1px 5px;
-      border-radius: 3px;
-      background: #0f346066;
-      color: #78909c;
-      margin-left: 4px;
-      vertical-align: middle;
-      max-width: 100px;
-      display: inline-block;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
     /* ── Export dropdown ─────────────────────────────── */
     .export-wrap {
       position: relative;
@@ -585,9 +513,6 @@
 
   <!-- Debug Log Panel -->
   <div id="log-panel" class="panel">
-    <div class="tab-selector" id="tab-selector">
-      <span class="tab-selector-label">Tabs:</span>
-    </div>
     <div class="log-toolbar">
       <input type="text" id="log-filter" placeholder="Filter by category, method, or detail...">
       <button id="log-pause">Pause</button>

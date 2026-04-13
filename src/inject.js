@@ -294,13 +294,24 @@ import { register as behavior } from './hooks/behavior.js';
     const hotKey = category + "|" + method;
     try {
       obj[prop] = function () {
-        if (!hotMethodFirstSeen[hotKey] &&
-            !mutedCategoriesSet.has(category) &&
-            !mutedMethodsSet.has(method)) {
-          hotMethodFirstSeen[hotKey] = true;
-          const stack = captureStack();
-          const source = extractSource(stack);
-          queueEvent({ category, method, detail: prop, source, ts: Date.now(), stack });
+        if (!hotMethodFirstSeen[hotKey]) {
+          if (!mutedCategoriesSet.has(category) && !mutedMethodsSet.has(method)) {
+            hotMethodFirstSeen[hotKey] = true;
+            const stack = captureStack();
+            const source = extractSource(stack);
+            queueEvent({ category, method, detail: prop, source, ts: Date.now(), stack });
+          }
+        }
+        // Self-unwrap once the key has been fired (either by us just
+        // now, or by a prior recordHot / sibling hookMethodHot call on
+        // the same key). Restores the native method so all subsequent
+        // invocations skip our wrapper entirely — zero overhead for
+        // hot render / layout / animation loops on WebGL, canvas,
+        // getClientRects, localStorage, etc. Muted-but-never-fired
+        // keys keep the wrapper installed so a later unmute still
+        // catches the first call.
+        if (hotMethodFirstSeen[hotKey]) {
+          try { obj[prop] = orig; } catch { /* non-writable */ }
         }
         return orig.apply(this, arguments);
       };

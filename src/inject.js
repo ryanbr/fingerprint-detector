@@ -189,18 +189,23 @@ import { register as behavior } from './hooks/behavior.js';
   function hookGetter(obj, prop, category, method) {
     const desc = Object.getOwnPropertyDescriptor(obj, prop);
     if (!desc || !desc.get) return;
+    // Some browsers (Brave, Tor) mark privacy-sensitive props as
+    // non-configurable to prevent spoofing — skip those silently.
+    if (desc.configurable === false) return;
     const origGet = desc.get;
     // Precompute the rate-limit key once at hook install time
     const key = category + "|" + method;
-    Object.defineProperty(obj, prop, {
-      ...desc,
-      get() {
-        if (!mutedCategoriesSet.has(category) && !mutedMethodsSet.has(method)) {
-          record(category, method, prop, key);
-        }
-        return origGet.call(this);
-      },
-    });
+    try {
+      Object.defineProperty(obj, prop, {
+        ...desc,
+        get() {
+          if (!mutedCategoriesSet.has(category) && !mutedMethodsSet.has(method)) {
+            record(category, method, prop, key);
+          }
+          return origGet.call(this);
+        },
+      });
+    } catch { /* property frozen by another extension or the browser */ }
   }
 
   function hookMethod(obj, prop, category, method) {
@@ -208,29 +213,33 @@ import { register as behavior } from './hooks/behavior.js';
     if (typeof orig !== "function") return;
     // Precompute key once at hook install time
     const key = category + "|" + method;
-    obj[prop] = function () {
-      if (!mutedCategoriesSet.has(category) && !mutedMethodsSet.has(method)) {
-        record(category, method, prop, key);
-      }
-      return orig.apply(this, arguments);
-    };
+    try {
+      obj[prop] = function () {
+        if (!mutedCategoriesSet.has(category) && !mutedMethodsSet.has(method)) {
+          record(category, method, prop, key);
+        }
+        return orig.apply(this, arguments);
+      };
+    } catch { /* property is non-writable — leave it alone */ }
   }
 
   function hookMethodHot(obj, prop, category, method) {
     const orig = obj[prop];
     if (typeof orig !== "function") return;
     const hotKey = category + "|" + method;
-    obj[prop] = function () {
-      if (!hotMethodFirstSeen[hotKey] &&
-          !mutedCategoriesSet.has(category) &&
-          !mutedMethodsSet.has(method)) {
-        hotMethodFirstSeen[hotKey] = true;
-        const stack = captureStack();
-        const source = extractSource(stack);
-        queueEvent({ category, method, detail: prop, source, ts: Date.now(), stack });
-      }
-      return orig.apply(this, arguments);
-    };
+    try {
+      obj[prop] = function () {
+        if (!hotMethodFirstSeen[hotKey] &&
+            !mutedCategoriesSet.has(category) &&
+            !mutedMethodsSet.has(method)) {
+          hotMethodFirstSeen[hotKey] = true;
+          const stack = captureStack();
+          const source = extractSource(stack);
+          queueEvent({ category, method, detail: prop, source, ts: Date.now(), stack });
+        }
+        return orig.apply(this, arguments);
+      };
+    } catch { /* property is non-writable — leave it alone */ }
   }
 
   // ── Register all hook modules ────────────────────────────────────────

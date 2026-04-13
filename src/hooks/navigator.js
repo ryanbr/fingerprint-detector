@@ -1,5 +1,5 @@
 // hooks/navigator.js — Navigator/UA fingerprinting, Workers, SharedArrayBuffer, Atomics
-export function register({ hookMethod, hookMethodHot, hookGetter, record, recordHot, captureStack, extractSource, queueEvent }) {
+export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookGetter, record, recordHot, captureStack, extractSource, queueEvent }) {
   // ── 4. Navigator / UA Fingerprinting ──────────────────────────────────
   const navProps = [
     // Core UA strings
@@ -20,7 +20,9 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
   for (const prop of navProps) {
     hookGetter(Navigator.prototype, prop, "Navigator", "navigator." + prop);
   }
-  hookMethod(Navigator.prototype, "getBattery", "Navigator", "navigator.getBattery");
+  // Access-based: getBattery is commonly destructured; we don't want the
+  // wrapper in the stack when page code calls it with wrong `this`.
+  hookMethodViaAccess(Navigator.prototype, "getBattery", "Navigator", "navigator.getBattery");
   if (Navigator.prototype.getGamepads) {
     hookMethod(Navigator.prototype, "getGamepads", "Navigator", "navigator.getGamepads");
   }

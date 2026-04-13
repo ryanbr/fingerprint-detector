@@ -1,8 +1,10 @@
 // hooks/media.js — MediaDevices, SpeechSynthesis, matchMedia
-export function register({ hookMethod, hookMethodHot, hookGetter, record, recordHot, captureStack, extractSource, queueEvent }) {
+export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookGetter, record, recordHot, captureStack, extractSource, queueEvent }) {
   // ── 12. Media Devices ─────────────────────────────────────────────────
   if (typeof MediaDevices !== "undefined" && MediaDevices.prototype.enumerateDevices) {
-    hookMethod(MediaDevices.prototype, "enumerateDevices", "MediaDevices", "enumerateDevices");
+    // Access-based: avoids "Illegal invocation" stack frames being
+    // attributed to the extension when page code loses `this`.
+    hookMethodViaAccess(MediaDevices.prototype, "enumerateDevices", "MediaDevices", "enumerateDevices");
   }
 
   // ── 13. Speech Synthesis (voice enumeration) ──────────────────────────

@@ -1,10 +1,12 @@
 // hooks/misc.js — Permissions, ClientRects, Plugins, PDF Viewer, Touch, Credentials,
 //                  Notification, Math, Architecture, Apple Pay, Private Click Measurement,
 //                  TouchEvent creation, Color depth matchMedia
-export function register({ hookMethod, hookMethodHot, hookGetter, record, recordHot, captureStack, extractSource, queueEvent }) {
+export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookGetter, record, recordHot, captureStack, extractSource, queueEvent }) {
   // ── 8. Permissions API ────────────────────────────────────────────────
   if (typeof Permissions !== "undefined" && Permissions.prototype.query) {
-    hookMethod(Permissions.prototype, "query", "Permissions", "Permissions.query");
+    // Access-based: Permissions.query returns a promise and frequently
+    // gets destructured — keep our frame out of the rejection stack.
+    hookMethodViaAccess(Permissions.prototype, "query", "Permissions", "Permissions.query");
   }
 
   // ── 9. ClientRects Fingerprinting ─────────────────────────────────────

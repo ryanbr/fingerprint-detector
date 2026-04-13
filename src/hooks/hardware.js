@@ -1,8 +1,11 @@
 // hooks/hardware.js — WebGPU, Bluetooth/USB/Serial/HID, Sensors, Keyboard Layout
-export function register({ hookMethod, hookMethodHot, hookGetter, record, recordHot, captureStack, extractSource, queueEvent }) {
+export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookGetter, record, recordHot, captureStack, extractSource, queueEvent }) {
   // ── 23. WebGPU ────────────────────────────────────────────────────────
   if (typeof GPU !== "undefined") {
-    hookMethod(GPU.prototype, "requestAdapter", "WebGPU", "gpu.requestAdapter");
+    // Access-based hook: page code often destructures or caches
+    // requestAdapter, which throws "Illegal invocation" from the native
+    // call site. Using a getter keeps our frame out of that stack trace.
+    hookMethodViaAccess(GPU.prototype, "requestAdapter", "WebGPU", "gpu.requestAdapter");
   }
   if (typeof GPUAdapter !== "undefined") {
     hookMethod(GPUAdapter.prototype, "requestDevice", "WebGPU", "gpuAdapter.requestDevice");

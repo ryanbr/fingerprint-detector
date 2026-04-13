@@ -1,5 +1,5 @@
 // hooks/canvas.js — Canvas fingerprinting detection
-export function register({ hookMethod, hookMethodHot, hookGetter, record, recordHot, captureStack, extractSource, queueEvent }) {
+export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookGetter, record, recordHot, captureStack, extractSource, queueEvent }) {
   // ── 1. Canvas Fingerprinting ──────────────────────────────────────────
 
   // Data extraction — these are the high-value calls that read the fingerprint
@@ -62,7 +62,10 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
       hookMethod(OffscreenCanvas.prototype, "getContext", "Canvas", "OffscreenCanvas.getContext");
     }
     if (OffscreenCanvas.prototype.convertToBlob) {
-      hookMethod(OffscreenCanvas.prototype, "convertToBlob", "Canvas", "OffscreenCanvas.convertToBlob");
+      // Access-based: convertToBlob returns a promise and is often
+      // called with wrong `this` — keep the extension out of the
+      // "Illegal invocation" stack.
+      hookMethodViaAccess(OffscreenCanvas.prototype, "convertToBlob", "Canvas", "OffscreenCanvas.convertToBlob");
     }
     if (OffscreenCanvas.prototype.transferToImageBitmap) {
       hookMethod(OffscreenCanvas.prototype, "transferToImageBitmap", "Canvas", "OffscreenCanvas.transferToImageBitmap");

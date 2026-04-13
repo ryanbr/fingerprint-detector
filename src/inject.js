@@ -260,6 +260,34 @@ import { register as behavior } from './hooks/behavior.js';
     } catch { /* property is non-writable — leave it alone */ }
   }
 
+  // Access-based hook. Records on property *access* instead of *call*
+  // and returns the native function unchanged, so we don't sit in the
+  // call stack when the native throws. Use this for async/promise-
+  // returning Web IDL methods that page code commonly calls with the
+  // wrong `this` (e.g. destructured refs), which would otherwise blame
+  // the extension for "Illegal invocation" errors in the devtools
+  // Errors panel.
+  function hookMethodViaAccess(obj, prop, category, method) {
+    const desc = Object.getOwnPropertyDescriptor(obj, prop);
+    if (!desc || typeof desc.value !== "function") return;
+    if (desc.configurable === false) return;
+    let orig = desc.value;
+    const key = category + "|" + method;
+    try {
+      Object.defineProperty(obj, prop, {
+        configurable: true,
+        enumerable: desc.enumerable,
+        get() {
+          if (!mutedCategoriesSet.has(category) && !mutedMethodsSet.has(method)) {
+            record(category, method, prop, key);
+          }
+          return orig;
+        },
+        set(v) { orig = v; },
+      });
+    } catch { /* property frozen by another extension or the browser */ }
+  }
+
   function hookMethodHot(obj, prop, category, method) {
     const orig = obj[prop];
     if (typeof orig !== "function") return;
@@ -280,7 +308,7 @@ import { register as behavior } from './hooks/behavior.js';
   }
 
   // ── Register all hook modules ────────────────────────────────────────
-  const helpers = { hookMethod, hookMethodHot, hookGetter, record, recordHot, captureStack, extractSource, queueEvent };
+  const helpers = { hookMethod, hookMethodHot, hookMethodViaAccess, hookGetter, record, recordHot, captureStack, extractSource, queueEvent };
 
   canvas(helpers);
   webgl(helpers);

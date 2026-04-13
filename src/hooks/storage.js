@@ -1,5 +1,5 @@
 // hooks/storage.js — Storage, IndexedDB, Storage Quota, openDatabase, sessionStorage, Cache API
-export function register({ hookMethod, hookMethodHot, hookGetter, record, recordHot, captureStack, extractSource, queueEvent }) {
+export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookGetter, record, recordHot, captureStack, extractSource, queueEvent }) {
   // ── 11. Storage Fingerprinting ────────────────────────────────────────
   hookGetter(Navigator.prototype, "cookieEnabled", "Storage", "navigator.cookieEnabled");
   if (typeof Storage !== "undefined") {
@@ -73,9 +73,12 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
 
   // ── 29d. Storage Quota (disk size leak) ────────────────────────────────
   if (typeof StorageManager !== "undefined") {
-    hookMethod(StorageManager.prototype, "estimate", "Storage", "navigator.storage.estimate");
-    hookMethod(StorageManager.prototype, "persist", "Storage", "navigator.storage.persist");
-    hookMethod(StorageManager.prototype, "persisted", "Storage", "navigator.storage.persisted");
+    // Access-based: all three return promises and are commonly
+    // destructured; keeps the extension out of "Illegal invocation"
+    // stacks attributed to dist/inject.js.
+    hookMethodViaAccess(StorageManager.prototype, "estimate", "Storage", "navigator.storage.estimate");
+    hookMethodViaAccess(StorageManager.prototype, "persist", "Storage", "navigator.storage.persist");
+    hookMethodViaAccess(StorageManager.prototype, "persisted", "Storage", "navigator.storage.persisted");
   }
 
   // ── 38. openDatabase (Web SQL) ────────────────────────────────────────

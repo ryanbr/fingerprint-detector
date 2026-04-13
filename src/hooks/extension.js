@@ -28,6 +28,14 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
     // Self-unwrap timer: if no probes for 2s after first probe, restore hooks
     let unwrapTimer = 0;
     const UNWRAP_DELAY = 2000;
+    // Hard deadline for unwrapping fetch/XHR, independent of probe
+    // activity. Sites like amazon.com keep firing non-probe fetches
+    // continuously, and sites that probe repeatedly could keep the idle
+    // timer resetting forever — both scenarios kept our wrapper in the
+    // stack and caused fetch rejections to be blamed on dist/inject.js.
+    // 3s is enough to catch load-time extension probing but short enough
+    // that user-interaction fetches land on unwrapped native.
+    const FETCH_XHR_HARD_DEADLINE = 3000;
 
     // Saved originals for unwrapping
     const savedOriginals = {};
@@ -47,16 +55,6 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
         if (savedOriginals.linkHref) {
           Object.defineProperty(HTMLLinkElement.prototype, "href", savedOriginals.linkHref);
         }
-        // Restore fetch and XHR.open — these are the most visible
-        // stack-attribution surfaces because page fetch rejections
-        // (network errors, ad-blocked requests) would otherwise point
-        // at dist/inject.js via our wrapper frame.
-        if (savedOriginals.fetch) {
-          window.fetch = savedOriginals.fetch;
-        }
-        if (savedOriginals.xhrOpen) {
-          XMLHttpRequest.prototype.open = savedOriginals.xhrOpen;
-        }
         if (extProbeCount.total > 0) {
           record("ExtensionDetect", "hooks unwrapped",
             "probing complete — " + extProbeCount.total + " probes, " +
@@ -64,6 +62,21 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
         }
       }, UNWRAP_DELAY);
     }
+
+    // fetch/XHR get a separate hard-deadline unwrap: fires exactly once,
+    // FETCH_XHR_HARD_DEADLINE ms after install. Does NOT reset on probe
+    // activity — we accept missing late fetch-based probes in exchange
+    // for never being in the call stack when the page's own fetch fails.
+    setTimeout(() => {
+      if (savedOriginals.fetch) {
+        window.fetch = savedOriginals.fetch;
+        savedOriginals.fetch = null;
+      }
+      if (savedOriginals.xhrOpen) {
+        XMLHttpRequest.prototype.open = savedOriginals.xhrOpen;
+        savedOriginals.xhrOpen = null;
+      }
+    }, FETCH_XHR_HARD_DEADLINE);
 
     function recordExtProbe(method, url) {
       extProbeCount.total++;

@@ -1,5 +1,5 @@
 // hooks/fonts.js — Font enumeration, FontFace API, queryLocalFonts, font preferences
-export function register({ hookMethod, hookMethodHot, hookGetter, record, recordHot, captureStack, extractSource, queueEvent }) {
+export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookGetter, record, recordHot, captureStack, extractSource, queueEvent }) {
   // ── 6. Font Enumeration via dimension probing ─────────────────────────
   // Sites create elements with specific fontFamily values and measure their
   // dimensions to determine which fonts are installed.
@@ -105,12 +105,15 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
   }
 
   // ── 6b. FontFace API ───────────────────────────────────────────────────
+  // Access-based hooks: load returns a promise and is commonly
+  // destructured; check/forEach/add are hot synchronous methods
+  // where we don't want to sit in the call stack of every call.
   if (typeof window.FontFaceSet !== "undefined") {
-    hookMethodHot(window.FontFaceSet.prototype, "check", "Fonts", "document.fonts.check");
-    hookMethodHot(window.FontFaceSet.prototype, "load", "Fonts", "document.fonts.load");
-    hookMethodHot(window.FontFaceSet.prototype, "forEach", "Fonts", "document.fonts.forEach");
+    hookMethodViaAccess(window.FontFaceSet.prototype, "check", "Fonts", "document.fonts.check");
+    hookMethodViaAccess(window.FontFaceSet.prototype, "load", "Fonts", "document.fonts.load");
+    hookMethodViaAccess(window.FontFaceSet.prototype, "forEach", "Fonts", "document.fonts.forEach");
     if (window.FontFaceSet.prototype.add) {
-      hookMethodHot(window.FontFaceSet.prototype, "add", "Fonts", "document.fonts.add");
+      hookMethodViaAccess(window.FontFaceSet.prototype, "add", "Fonts", "document.fonts.add");
     }
   }
 
@@ -131,19 +134,24 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
     }
   }
 
-  // FontFace constructor
-  if (typeof window.FontFace !== "undefined") {
-    const OrigFF = window.FontFace;
-    window.FontFace = function (family, source, descriptors) {
-      record("Fonts", "new FontFace", family || "");
-      return descriptors ? new OrigFF(family, source, descriptors) : new OrigFF(family, source);
-    };
-    window.FontFace.prototype = OrigFF.prototype;
-  }
+  // NOTE: we used to wrap the FontFace constructor to log every
+  // `new FontFace(family, ...)` call. That wrap was removed because:
+  //
+  // 1. It put our frame in the call stack of the constructor, so
+  //    if the original threw (invalid descriptors, bad source URL)
+  //    the error was attributed to dist/inject.js.
+  // 2. It was noisy — sites with many custom fonts triggered
+  //    hundreds of log entries.
+  // 3. `new FontFace(...)` that is never added to document.fonts
+  //    is just an orphan object; the real installation signal is
+  //    document.fonts.add(fontFace), which is already hooked above.
 
   // ── 17. Font Access API (direct font enumeration) ─────────────────────
-  if (typeof window.queryLocalFonts === "function") {
-    hookMethod(window, "queryLocalFonts", "Fonts", "queryLocalFonts");
+  // queryLocalFonts returns a promise and is commonly destructured —
+  // use access-based hook on Window.prototype so we don't sit in the
+  // rejection stack if the user denies permission.
+  if (typeof window.queryLocalFonts === "function" && typeof Window !== "undefined") {
+    hookMethodViaAccess(Window.prototype, "queryLocalFonts", "Fonts", "queryLocalFonts");
   }
 
   // NOTE: we used to wrap document.createElement to detect iframe

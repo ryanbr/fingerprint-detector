@@ -22,6 +22,7 @@ import { register as extension } from './hooks/extension.js';
 import { register as intl } from './hooks/intl.js';
 import { register as misc } from './hooks/misc.js';
 import { register as behavior } from './hooks/behavior.js';
+import { register as permissions } from './hooks/permissions.js';
 
 (function () {
   "use strict";
@@ -347,5 +348,6 @@ import { register as behavior } from './hooks/behavior.js';
   intl(helpers);
   misc(helpers);
   behavior(helpers);
+  permissions(helpers);
 
 })();

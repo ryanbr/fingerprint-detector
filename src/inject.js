@@ -293,7 +293,7 @@ import { register as behavior } from './hooks/behavior.js';
     if (typeof orig !== "function") return;
     const hotKey = category + "|" + method;
     try {
-      obj[prop] = function () {
+      const wrapper = function () {
         if (!hotMethodFirstSeen[hotKey]) {
           if (!mutedCategoriesSet.has(category) && !mutedMethodsSet.has(method)) {
             hotMethodFirstSeen[hotKey] = true;
@@ -310,11 +310,17 @@ import { register as behavior } from './hooks/behavior.js';
         // getClientRects, localStorage, etc. Muted-but-never-fired
         // keys keep the wrapper installed so a later unmute still
         // catches the first call.
-        if (hotMethodFirstSeen[hotKey]) {
+        //
+        // Identity check: only unwrap if our wrapper is still the
+        // property value. If some other code has installed a manual
+        // wrap on top of ours (capturing us as `orig`), we must not
+        // clobber their wrapper by replacing it with our `orig`.
+        if (hotMethodFirstSeen[hotKey] && obj[prop] === wrapper) {
           try { obj[prop] = orig; } catch { /* non-writable */ }
         }
         return orig.apply(this, arguments);
       };
+      obj[prop] = wrapper;
     } catch { /* property is non-writable — leave it alone */ }
   }
 

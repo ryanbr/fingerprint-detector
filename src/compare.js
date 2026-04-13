@@ -161,14 +161,21 @@ function maybeRenderDiff() {
       <label>
         <input type="checkbox" id="diffs-only"> Show only differences
       </label>
+      <label>
+        <input type="checkbox" id="show-methods"> Show methods
+      </label>
       <button id="export-diffs">Export differences</button>
     </div>
   `;
 
-  // Wire up the toggle and export button
+  // Wire up toggles and export button
   const diffsOnlyCb = document.getElementById("diffs-only");
   diffsOnlyCb.addEventListener("change", () => {
     document.querySelector(".container").classList.toggle("diffs-only", diffsOnlyCb.checked);
+  });
+  const showMethodsCb = document.getElementById("show-methods");
+  showMethodsCb.addEventListener("change", () => {
+    document.querySelector(".container").classList.toggle("show-methods", showMethodsCb.checked);
   });
   document.getElementById("export-diffs").addEventListener("click", exportDifferences);
 
@@ -187,16 +194,44 @@ function renderCategoriesStandalone(side, data) {
   let html = "";
   for (const cat of cats) {
     const meta = CATEGORY_META[cat] || { icon: "?", color: "#78909c", risk: "low" };
-    const calls = data.categories[cat].totalCalls || 0;
+    const catData = data.categories[cat];
+    const calls = catData.totalCalls || 0;
+
+    let methodsHtml = "";
+    if (catData.uniqueMethods && catData.uniqueMethods.length > 0) {
+      methodsHtml = `<div class="methods-list">`;
+      for (const m of catData.uniqueMethods) {
+        const detail = m.detail ? escapeHtml(m.detail.length > 60 ? m.detail.slice(0, 57) + "..." : m.detail) : "";
+        methodsHtml += `<div class="method-row method-both" title="${escapeHtml(m.method)}${m.detail ? ' — ' + escapeHtml(m.detail) : ''}">
+          <span class="method-name">${escapeHtml(m.method)}</span>
+          ${detail ? `<span class="method-detail">${detail}</span>` : ""}
+        </div>`;
+      }
+      methodsHtml += `</div>`;
+    }
+
     html += `<div class="category-row both">
-      <span class="name">
-        <span class="icon" style="background:${meta.color}22;color:${meta.color}">${meta.icon}</span>
-        ${escapeHtml(cat)}
-      </span>
-      <span class="count">${calls} calls</span>
+      <div class="category-main">
+        <span class="name">
+          <span class="icon" style="background:${meta.color}22;color:${meta.color}">${meta.icon}</span>
+          ${escapeHtml(cat)}
+        </span>
+        <span class="count">${calls} calls</span>
+      </div>
+      ${methodsHtml}
     </div>`;
   }
   container.innerHTML = html || `<div class="placeholder">No detections</div>`;
+}
+
+// Build a Set of method signatures from a category's uniqueMethods array
+function methodSet(catData) {
+  const s = new Set();
+  if (!catData || !catData.uniqueMethods) return s;
+  for (const m of catData.uniqueMethods) {
+    s.add(m.method);
+  }
+  return s;
 }
 
 function renderCategoriesDiff(side, data, allCats, onlyLeft, onlyRight, sideLabel) {
@@ -206,17 +241,17 @@ function renderCategoriesDiff(side, data, allCats, onlyLeft, onlyRight, sideLabe
   const onlyLeftSet = new Set(onlyLeft);
   const onlyRightSet = new Set(onlyRight);
 
-  // Only iterate over categories present on THIS side — no placeholders.
-  // This eliminates blank/dim rows that don't belong to this side.
   const thisSideCats = Object.keys(data.categories || {});
   const sorted = thisSideCats.sort((a, b) => {
-    // Unique to this side first, then shared
     const aUnique = (sideLabel === "left" ? onlyLeftSet : onlyRightSet).has(a);
     const bUnique = (sideLabel === "left" ? onlyLeftSet : onlyRightSet).has(b);
     if (aUnique && !bUnique) return -1;
     if (!aUnique && bUnique) return 1;
     return a.localeCompare(b);
   });
+
+  // Get other side's data for method-level diff on shared categories
+  const otherData = sideLabel === "left" ? rightData : leftData;
 
   let html = "";
   for (const cat of sorted) {
@@ -238,12 +273,50 @@ function renderCategoriesDiff(side, data, allCats, onlyLeft, onlyRight, sideLabe
       label = `<span class="diff-label shared">shared</span>`;
     }
 
+    // Build method sub-list with diff labels
+    const thisMethods = inThisSide.uniqueMethods || [];
+    const otherCatData = otherData && otherData.categories ? otherData.categories[cat] : null;
+    const otherMethodNames = methodSet(otherCatData);
+
+    let methodsHtml = "";
+    if (thisMethods.length > 0) {
+      methodsHtml = `<div class="methods-list">`;
+      // Sort: unique to this side first, then shared
+      const sortedMethods = thisMethods.slice().sort((a, b) => {
+        const aInOther = otherMethodNames.has(a.method);
+        const bInOther = otherMethodNames.has(b.method);
+        if (!aInOther && bInOther) return -1;
+        if (aInOther && !bInOther) return 1;
+        return a.method.localeCompare(b.method);
+      });
+      for (const m of sortedMethods) {
+        const inOther = otherMethodNames.has(m.method);
+        // If category is unique, all methods inherit the category's uniqueness
+        // If category is shared, methods can be individually unique or shared
+        let methodClass;
+        if (isUniqueLeft || isUniqueRight) {
+          methodClass = diffClass;
+        } else {
+          methodClass = inOther ? "method-both" : (sideLabel === "left" ? "method-only-left" : "method-only-right");
+        }
+        const detail = m.detail ? escapeHtml(m.detail.length > 60 ? m.detail.slice(0, 57) + "..." : m.detail) : "";
+        methodsHtml += `<div class="method-row ${methodClass}" title="${escapeHtml(m.method)}${m.detail ? ' — ' + escapeHtml(m.detail) : ''}">
+          <span class="method-name">${escapeHtml(m.method)}</span>
+          ${detail ? `<span class="method-detail">${detail}</span>` : ""}
+        </div>`;
+      }
+      methodsHtml += `</div>`;
+    }
+
     html += `<div class="category-row ${diffClass}">
-      <span class="name">
-        <span class="icon" style="background:${meta.color}22;color:${meta.color}">${meta.icon}</span>
-        ${escapeHtml(cat)}${label}
-      </span>
-      <span class="count">${calls} calls</span>
+      <div class="category-main">
+        <span class="name">
+          <span class="icon" style="background:${meta.color}22;color:${meta.color}">${meta.icon}</span>
+          ${escapeHtml(cat)}${label}
+        </span>
+        <span class="count">${calls} calls</span>
+      </div>
+      ${methodsHtml}
     </div>`;
   }
   container.innerHTML = html;
@@ -309,10 +382,23 @@ function exportDifferences() {
 
   for (const cat of leftKeys) {
     if (rightKeys.has(cat)) {
+      // Shared category — diff the methods within it
+      const aMethods = leftCats[cat].uniqueMethods || [];
+      const bMethods = rightCats[cat].uniqueMethods || [];
+      const aMethodNames = new Set(aMethods.map(m => m.method));
+      const bMethodNames = new Set(bMethods.map(m => m.method));
+
+      const methodsOnlyA = aMethods.filter(m => !bMethodNames.has(m.method));
+      const methodsOnlyB = bMethods.filter(m => !aMethodNames.has(m.method));
+      const sharedMethodNames = [...aMethodNames].filter(n => bMethodNames.has(n));
+
       shared.push({
         category: cat,
         callsA: leftCats[cat].totalCalls || 0,
         callsB: rightCats[cat].totalCalls || 0,
+        methodsOnlyA,
+        methodsOnlyB,
+        sharedMethods: sharedMethodNames,
       });
     } else {
       onlyA.push({

@@ -127,8 +127,11 @@
          Prevents blank space when one side has fewer rows than the other. */
     }
     .category-row {
-      padding: 10px 16px;
+      padding: 0;
       border-bottom: 1px solid #0f346030;
+    }
+    .category-row .category-main {
+      padding: 10px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -154,6 +157,53 @@
       padding: 2px 8px;
       border-radius: 10px;
       font-size: 11px;
+    }
+
+    /* Method sub-rows (hidden by default, shown via .show-methods toggle) */
+    .methods-list {
+      display: none;
+      padding: 0 16px 8px 48px;
+      background: #0a0a1a66;
+    }
+    .container.show-methods .methods-list { display: block; }
+    .method-row {
+      padding: 3px 6px 3px 8px;
+      display: flex;
+      gap: 8px;
+      align-items: baseline;
+      font-size: 11px;
+      border-left: 2px solid transparent;
+      margin: 1px 0;
+    }
+    .method-row .method-name {
+      font-family: Consolas, "Liberation Mono", Menlo, monospace;
+      color: #e94560;
+      white-space: nowrap;
+    }
+    .method-row .method-detail {
+      color: #78909c;
+      font-size: 10px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .method-row.method-only-left {
+      background: #e9456022;
+      border-left-color: #e94560;
+    }
+    .method-row.method-only-right {
+      background: #43a04722;
+      border-left-color: #43a047;
+    }
+    .method-row.method-both {
+      opacity: 0.55;
+    }
+    .method-row.only-left { background: #e9456022; border-left-color: #e94560; }
+    .method-row.only-right { background: #43a04722; border-left-color: #43a047; }
+
+    /* Hide shared method rows in diffs-only mode */
+    .container.diffs-only .method-row.method-both {
+      display: none;
     }
 
     /* Diff highlights */

@@ -47,9 +47,21 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
         if (savedOriginals.linkHref) {
           Object.defineProperty(HTMLLinkElement.prototype, "href", savedOriginals.linkHref);
         }
-        record("ExtensionDetect", "hooks unwrapped",
-          "probing complete — " + extProbeCount.total + " probes, " +
-          extProbeCount.ids.size + " unique IDs. Restoring native setters");
+        // Restore fetch and XHR.open — these are the most visible
+        // stack-attribution surfaces because page fetch rejections
+        // (network errors, ad-blocked requests) would otherwise point
+        // at dist/inject.js via our wrapper frame.
+        if (savedOriginals.fetch) {
+          window.fetch = savedOriginals.fetch;
+        }
+        if (savedOriginals.xhrOpen) {
+          XMLHttpRequest.prototype.open = savedOriginals.xhrOpen;
+        }
+        if (extProbeCount.total > 0) {
+          record("ExtensionDetect", "hooks unwrapped",
+            "probing complete — " + extProbeCount.total + " probes, " +
+            extProbeCount.ids.size + " unique IDs. Restoring native setters");
+        }
       }, UNWRAP_DELAY);
     }
 
@@ -88,6 +100,7 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
     // fetch()
     const origFetch = window.fetch;
     if (typeof origFetch === "function") {
+      savedOriginals.fetch = origFetch;
       window.fetch = function (input) {
         const url = (typeof input === "string") ? input : (input && input.url) || "";
         if (!extProbesDone && isExtUrl(url)) recordExtProbe("fetch(extension URL)", url);
@@ -97,6 +110,7 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
 
     // XMLHttpRequest
     const origXHROpen = XMLHttpRequest.prototype.open;
+    savedOriginals.xhrOpen = origXHROpen;
     XMLHttpRequest.prototype.open = function (method, url) {
       if (!extProbesDone && isExtUrl(url)) recordExtProbe("XHR.open(extension URL)", url);
       return origXHROpen.apply(this, arguments);
@@ -191,5 +205,13 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
         return result;
       };
     }
+
+    // Kick off the unwrap timer unconditionally at install time. Pages
+    // that never probe for extensions should still have their fetch /
+    // XHR / setAttribute wrappers restored so we don't sit in the stack
+    // forever — otherwise any unrelated fetch rejection or DOM-attribute
+    // write error gets blamed on dist/inject.js (seen on nzherald.co.nz).
+    // Real probing will keep resetting the timer via recordExtProbe.
+    scheduleUnwrap();
   }
 }

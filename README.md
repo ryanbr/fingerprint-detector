@@ -2,6 +2,8 @@
 
 A Chrome and Firefox extension that detects and displays browser fingerprinting techniques used by websites in real-time.
 
+<img width="988" height="534" alt="bbUntitled2" src="https://github.com/user-attachments/assets/53e4dc71-95c3-466c-aa62-9258b6f28c47" />
+
 ## What it does
 
 Websites use fingerprinting to identify and track users without cookies. This extension hooks into 60+ browser APIs commonly used for fingerprinting and reports exactly which techniques a site is using, which scripts are responsible, and whether they originate from iframes or third-party code.

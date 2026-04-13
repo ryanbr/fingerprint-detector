@@ -255,7 +255,7 @@ const watchedTabs = new Set(); // tab IDs currently being watched (declared earl
 let logCount = 0;
 let paused = false;
 let pausedQueue = [];
-const MAX_LOG_ENTRIES_PER_TAB = 10000;
+const MAX_LOG_ENTRIES_PER_TAB = 3000;
 
 // Flat view across all watched tabs (rebuilt on filter/refilter)
 function getAllLogEntries() {

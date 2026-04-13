@@ -1,46 +1,99 @@
 // Background service worker — stores per-tab fingerprinting detections
 // and streams new events to connected popup ports.
-// Handles batched events from bridge.js and caps stored detections per tab.
-// Supports multi-tab watching from the popup.
 //
-// IMPORTANT: Chrome kills service workers after ~30s of inactivity.
-// All tabData is persisted to chrome.storage.session so it survives restarts.
+// Performance notes:
+// - Per-tab storage keys (`fp_tab_<id>`) instead of one giant tabData object,
+//   so only changed tabs are serialized on save.
+// - Only dirty tabs get written — tracked in a dirtyTabs Set.
+// - Lower per-tab caps to keep total memory bounded across many tabs.
+// - SW can be killed after 30s idle; data is restored from session storage.
 
-let tabData = {};
+const tabData = {};
 const popupPorts = new Map();
 const portWatchedTabs = new Map();
-const MAX_DETECTIONS_PER_TAB = 5000;
-const MAX_PER_CATEGORY = 500;
 
-// ── Persistence layer ─────────────────────────────────────────────────
-// chrome.storage.session is RAM-only (cleared on browser close) but
-// survives service worker restarts. Perfect for detection data.
+const MAX_DETECTIONS_PER_TAB = 2000;  // was 5000 — reduces per-tab memory
+const MAX_PER_CATEGORY = 300;         // was 500
+const MAX_TOTAL_TABS_STORED = 50;     // cap on tabs kept in memory
+const SAVE_DEBOUNCE = 1000;           // was 500 — less aggressive
+const TAB_KEY_PREFIX = "fp_tab_";     // per-tab session storage keys
+
+// ── Per-tab dirty tracking ────────────────────────────────────────────
+// Only write the tabs whose data has changed since the last save.
+const dirtyTabs = new Set();
 let saveTimer = 0;
-const SAVE_DEBOUNCE = 500; // ms — batch writes to avoid thrashing storage
 
-function scheduleSave() {
-  if (saveTimer) return;
-  saveTimer = setTimeout(() => {
-    saveTimer = 0;
-    chrome.storage.session.set({ tabData });
-  }, SAVE_DEBOUNCE);
+function markDirty(tabId) {
+  dirtyTabs.add(tabId);
+  if (!saveTimer) {
+    saveTimer = setTimeout(flushDirty, SAVE_DEBOUNCE);
+  }
 }
 
-// Restore tabData from session storage on service worker startup
-chrome.storage.session.get(["tabData"], (stored) => {
-  if (stored.tabData) {
-    tabData = stored.tabData;
-    // Restore badges for all tabs with data
-    for (const tabId of Object.keys(tabData)) {
-      const id = Number(tabId);
-      if (tabData[id] && tabData[id].categories) {
-        updateBadge(id, tabData[id]);
+function flushDirty() {
+  saveTimer = 0;
+  if (dirtyTabs.size === 0) return;
+  const writes = {};
+  const removes = [];
+  for (const tabId of dirtyTabs) {
+    const key = TAB_KEY_PREFIX + tabId;
+    if (tabData[tabId]) {
+      writes[key] = tabData[tabId];
+    } else {
+      removes.push(key);
+    }
+  }
+  dirtyTabs.clear();
+
+  // Batch write + remove
+  if (Object.keys(writes).length > 0) {
+    chrome.storage.session.set(writes).catch(() => {
+      // Storage quota exceeded — drop the oldest tab and retry
+      evictOldestTab();
+    });
+  }
+  if (removes.length > 0) {
+    chrome.storage.session.remove(removes).catch(() => {});
+  }
+}
+
+function evictOldestTab() {
+  // Find the tab with the fewest recent detections and drop it
+  const ids = Object.keys(tabData);
+  if (ids.length === 0) return;
+  let oldestId = ids[0];
+  let oldestTs = Infinity;
+  for (const id of ids) {
+    const detections = tabData[id] && tabData[id].detections;
+    if (!detections || detections.length === 0) { oldestId = id; break; }
+    const lastTs = detections[detections.length - 1].ts || 0;
+    if (lastTs < oldestTs) {
+      oldestTs = lastTs;
+      oldestId = id;
+    }
+  }
+  delete tabData[oldestId];
+  chrome.storage.session.remove(TAB_KEY_PREFIX + oldestId).catch(() => {});
+  chrome.action.setBadgeText({ text: "", tabId: Number(oldestId) }).catch(() => {});
+}
+
+// ── Restore on service worker startup ─────────────────────────────────
+// Read all fp_tab_* keys at once.
+chrome.storage.session.get(null, (stored) => {
+  if (!stored) return;
+  for (const key of Object.keys(stored)) {
+    if (key.indexOf(TAB_KEY_PREFIX) !== 0) continue;
+    const tabId = Number(key.slice(TAB_KEY_PREFIX.length));
+    if (!isNaN(tabId)) {
+      tabData[tabId] = stored[key];
+      if (tabData[tabId] && tabData[tabId].categories) {
+        updateBadge(tabId, tabData[tabId]);
       }
     }
   }
 });
 
-// Increase session storage quota (default is 1MB, max 10MB)
+// Grant cross-context access so popup/compare can read session storage
 chrome.storage.session.setAccessLevel?.({
   accessLevel: "TRUSTED_AND_UNTRUSTED_CONTEXTS",
 });
@@ -69,7 +122,6 @@ chrome.runtime.onConnect.addListener((port) => {
       popupPorts.get(tabId).add(port);
       portWatchedTabs.get(port)?.add(tabId);
 
-      // Send existing detections as backlog
       const existing = tabData[tabId];
       if (existing && existing.detections.length > 0) {
         port.postMessage({ type: "fp-batch", tabId, data: existing.detections });
@@ -88,6 +140,11 @@ chrome.runtime.onConnect.addListener((port) => {
 // ── Detection storage ─────────────────────────────────────────────────
 function storeDetection(tabId, d) {
   if (!tabData[tabId]) {
+    // Enforce global tab cap
+    const tabCount = Object.keys(tabData).length;
+    if (tabCount >= MAX_TOTAL_TABS_STORED) {
+      evictOldestTab();
+    }
     tabData[tabId] = { detections: [], categories: {} };
   }
   const tab = tabData[tabId];
@@ -121,7 +178,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     }
     updateBadge(tabId, tabData[tabId]);
     broadcastToWatchers(tabId, msg.data);
-    scheduleSave();
+    markDirty(tabId);
   }
 
   if (msg.type === "fp-detection" && sender.tab) {
@@ -129,7 +186,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     storeDetection(tabId, msg.data);
     updateBadge(tabId, tabData[tabId]);
     broadcastToWatchers(tabId, [msg.data]);
-    scheduleSave();
+    markDirty(tabId);
   }
 
   if (msg.type === "get-detections") {
@@ -149,8 +206,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     const tabId = msg.tabId;
     if (tabId) {
       chrome.tabs.sendMessage(tabId, { type: "get-ext-ids" }, (response) => {
-        // Consume lastError to avoid "Unchecked runtime.lastError" console noise
-        // when the tab has no content script (chrome://, about:, extension pages)
         if (chrome.runtime.lastError) {
           sendResponse(null);
           return;
@@ -183,26 +238,27 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
 // ── Badge ─────────────────────────────────────────────────────────────
 function updateBadge(tabId, data) {
-  const count = Object.keys(data.categories).length;
+  if (!data) return;
+  const count = Object.keys(data.categories || {}).length;
   const text = count > 0 ? String(count) : "";
-  chrome.action.setBadgeText({ text, tabId });
+  chrome.action.setBadgeText({ text, tabId }).catch(() => {});
   chrome.action.setBadgeBackgroundColor({
     color: count >= 5 ? "#e53935" : count >= 3 ? "#fb8c00" : "#43a047",
     tabId,
-  });
+  }).catch(() => {});
 }
 
 // ── Cleanup ───────────────────────────────────────────────────────────
 chrome.webNavigation?.onCommitted.addListener((details) => {
   if (details.frameId === 0) {
     delete tabData[details.tabId];
-    chrome.action.setBadgeText({ text: "", tabId: details.tabId });
-    scheduleSave();
+    chrome.action.setBadgeText({ text: "", tabId: details.tabId }).catch(() => {});
+    markDirty(details.tabId);
   }
 });
 
 chrome.tabs.onRemoved.addListener((tabId) => {
   delete tabData[tabId];
   popupPorts.delete(tabId);
-  scheduleSave();
+  markDirty(tabId);
 });

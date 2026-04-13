@@ -205,11 +205,12 @@ Run the "Build and Release CRX" workflow from the Actions tab:
 | WebSocket local port Set | 1,000 ports | Per tab |
 | Font probe counter unwrap | 1,000 probes → restore native getters | Per tab |
 | Extension probe idle unwrap | 2 seconds of no probes → restore setters | Per tab |
-| Background detections | 5,000 | Per tab |
-| Background categories | 500 | Per category per tab |
-| Popup log entries | 10,000 | Per tab |
+| Background detections | 2,000 | Per tab |
+| Background categories | 300 | Per category per tab |
+| Background tabs stored | 50 | Global (oldest evicted) |
+| Popup log entries | 3,000 | Per tab |
 | Popup DOM nodes | 500 visible | Across all tabs |
-| Session storage save | 500ms debounce | Global |
+| Session storage save | 1000ms debounce, per-tab keys | Global |
 
 ## Security posture
 

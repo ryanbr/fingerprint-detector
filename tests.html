@@ -356,23 +356,49 @@
         const ctx = new AC();
         tryCall(() => ctx.createOscillator());
         tryCall(() => ctx.createDynamicsCompressor());
-        tryCall(() => ctx.createAnalyser());
         tryCall(() => ctx.createGain());
         tryCall(() => ctx.createBiquadFilter());
-        tryCall(() => ctx.createBuffer(1, 1024, ctx.sampleRate));
-        // Read accessor properties
+        tryCall(() => ctx.createBufferSource());
+        tryCall(() => ctx.createScriptProcessor(256, 1, 1));
+        const buffer = tryCall(() => ctx.createBuffer(1, 1024, ctx.sampleRate));
+        // AudioBuffer reads
+        if (buffer) {
+          tryCall(() => buffer.getChannelData(0));
+          if (buffer.copyFromChannel) {
+            tryCall(() => buffer.copyFromChannel(new Float32Array(1024), 0));
+          }
+        }
+        // Analyser methods — the heart of AudioContext fingerprinting
+        const analyser = tryCall(() => ctx.createAnalyser());
+        if (analyser) {
+          tryCall(() => analyser.getFloatFrequencyData(new Float32Array(analyser.frequencyBinCount)));
+          tryCall(() => analyser.getByteFrequencyData(new Uint8Array(analyser.frequencyBinCount)));
+          tryCall(() => analyser.getFloatTimeDomainData(new Float32Array(analyser.fftSize)));
+          tryCall(() => analyser.getByteTimeDomainData(new Uint8Array(analyser.fftSize)));
+          // AudioNode.connect — connect analyser to destination
+          tryCall(() => analyser.connect(ctx.destination));
+        }
+        // All the AudioContext getters
         void ctx.sampleRate;
         void ctx.baseLatency;
+        void ctx.outputLatency;
         void ctx.state;
+        void ctx.destination;
+        // OfflineAudioContext + startRendering
         if (typeof OfflineAudioContext !== "undefined") {
-          tryCall(() => new OfflineAudioContext(1, 1024, 44100));
+          const oac = tryCall(() => new OfflineAudioContext(1, 1024, 44100));
+          if (oac) tryCall(() => oac.startRendering && oac.startRendering().catch(() => {}));
         }
         tryCall(() => ctx.close && ctx.close());
         return [
           "new AudioContext",
-          "createOscillator / DynamicsCompressor / Analyser / Gain / BiquadFilter / Buffer",
-          "sampleRate / baseLatency / state getters",
-          "new OfflineAudioContext",
+          "createOscillator / DynamicsCompressor / Gain / BiquadFilter",
+          "createBufferSource / createScriptProcessor / createBuffer",
+          "AudioBuffer.getChannelData / copyFromChannel",
+          "AnalyserNode.getFloat/ByteFrequencyData, getFloat/ByteTimeDomainData",
+          "AudioNode.connect",
+          "sampleRate / baseLatency / outputLatency / state / destination getters",
+          "new OfflineAudioContext + startRendering",
         ];
       },
 
@@ -605,18 +631,28 @@
       privacy() {
         void navigator.doNotTrack;
         void navigator.webdriver;
+        // share / canShare are access-based — just reading the property
+        // fires the hook, no need to actually invoke
+        void navigator.share;
+        void navigator.canShare;
         if (window.visualViewport) {
           void visualViewport.width;
           void visualViewport.height;
+          void visualViewport.scale;
+          void visualViewport.offsetTop;
+          void visualViewport.offsetLeft;
         }
         void window.outerWidth; void window.outerHeight;
+        void window.innerWidth; void window.innerHeight;
         void window.screenX; void window.screenY;
         void document.hidden; void document.visibilityState;
         // Anti-spoofing probe — call toString on a well-known native method
         tryCall(() => Function.prototype.toString.call(CanvasRenderingContext2D.prototype.getImageData));
         return [
           "navigator.doNotTrack / webdriver",
-          "visualViewport.* / window.outer* / screen*",
+          "navigator.share / canShare (access-based)",
+          "visualViewport.width / height / scale / offsetTop / offsetLeft",
+          "window.outer* / inner* / screen*",
           "document.hidden / visibilityState",
           "Function.prototype.toString (anti-spoofing probe)",
         ];

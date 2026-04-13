@@ -241,6 +241,11 @@
     <ul class="ops"></ul>
   </section>
 
+  <section class="interactive" data-test="deviceRequest">
+    <h2>Hardware Device Chooser (Bluetooth / USB / Serial / HID) <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
   <script>
     // Utility: swallow errors so one failing call doesn't halt the whole test
     const tryCall = (fn) => { try { return fn(); } catch (e) { return undefined; } };
@@ -484,12 +489,42 @@
         tryCall(() => localStorage.removeItem("fp-test"));
         tryCall(() => { void localStorage.length; });
         tryCall(() => { void document.cookie; });
-        if (navigator.storage && navigator.storage.estimate) {
-          navigator.storage.estimate().catch(() => {});
+        tryCall(() => { document.cookie = "fp-test=1; path=/; max-age=1"; });
+        // StorageManager — all three
+        if (navigator.storage) {
+          if (navigator.storage.estimate) navigator.storage.estimate().catch(() => {});
+          if (navigator.storage.persisted) navigator.storage.persisted().catch(() => {});
+          // persist() actually requests persistent storage — noisy on some
+          // browsers but the hook fires regardless
+          if (navigator.storage.persist) navigator.storage.persist().catch(() => {});
         }
+        // Full IndexedDB read pipeline: open → createObjectStore →
+        // transaction → get/getAll/count/getAllKeys → close
         if (window.indexedDB) {
           tryCall(() => indexedDB.databases && indexedDB.databases().catch(() => {}));
-          tryCall(() => indexedDB.open("fp-test-db"));
+          try {
+            const req = indexedDB.open("fp-test-db", 1);
+            req.onupgradeneeded = (e) => {
+              const db = e.target.result;
+              if (!db.objectStoreNames.contains("store1")) {
+                db.createObjectStore("store1");
+              }
+              void db.objectStoreNames; // getter read
+            };
+            req.onsuccess = (e) => {
+              const db = e.target.result;
+              try {
+                const tx = db.transaction("store1", "readonly");
+                const store = tx.objectStore("store1");
+                store.get("x");
+                store.getAll();
+                store.count();
+                store.getAllKeys();
+              } catch (_) {}
+              setTimeout(() => { try { db.close(); } catch (_) {} }, 50);
+            };
+            req.onerror = () => {};
+          } catch (_) {}
         }
         if (typeof BroadcastChannel !== "undefined") {
           tryCall(() => { const bc = new BroadcastChannel("fp-test"); bc.close(); });
@@ -501,9 +536,11 @@
         return [
           "navigator.cookieEnabled",
           "localStorage setItem / getItem / removeItem / length",
-          "document.cookie",
-          "navigator.storage.estimate",
+          "document.cookie (get + set)",
+          "navigator.storage.estimate / persisted / persist",
           "indexedDB.databases / open",
+          "IDBDatabase.createObjectStore / transaction / close / objectStoreNames",
+          "IDBObjectStore.get / getAll / count / getAllKeys",
           "new BroadcastChannel",
           "window.openDatabase (if present)",
         ];
@@ -592,29 +629,75 @@
       },
 
       intl() {
-        new Intl.DateTimeFormat().resolvedOptions();
-        new Intl.DateTimeFormat().resolvedOptions().timeZone;
-        new Intl.NumberFormat();
-        new Intl.Collator();
-        if (Intl.DisplayNames) new Intl.DisplayNames(["en"], { type: "language" });
-        if (Intl.Locale) new Intl.Locale("en-US");
+        // Timezone
+        new Date().getTimezoneOffset();
+        // Intl.DateTimeFormat
+        const dtf = new Intl.DateTimeFormat();
+        dtf.resolvedOptions();
+        // Intl.NumberFormat — resolvedOptions + .format getter + call
+        const nf = new Intl.NumberFormat();
+        nf.resolvedOptions();
+        void nf.format;           // getter read
+        nf.format(123.456);        // implicit getter read + invoke
+        // Intl.Collator — resolvedOptions + .compare getter + call
+        const col = new Intl.Collator();
+        col.resolvedOptions();
+        void col.compare;
+        col.compare("a", "b");
+        // Intl.DisplayNames — of + resolvedOptions
+        if (Intl.DisplayNames) {
+          const dn = new Intl.DisplayNames(["en"], { type: "language" });
+          dn.of("fr");
+          dn.resolvedOptions();
+        }
+        // Intl.Locale property getters
+        if (Intl.Locale) {
+          const loc = new Intl.Locale("en-US");
+          for (const prop of ["language", "region", "script", "calendar", "numberingSystem", "hourCycle", "baseName"]) {
+            void loc[prop];
+          }
+        }
+        // Intl.ListFormat / PluralRules / RelativeTimeFormat / Segmenter
+        for (const cls of ["ListFormat", "PluralRules", "RelativeTimeFormat", "Segmenter"]) {
+          if (Intl[cls]) {
+            tryCall(() => new Intl[cls]("en").resolvedOptions());
+          }
+        }
+        // Intl.supportedValuesOf
+        if (typeof Intl.supportedValuesOf === "function") {
+          Intl.supportedValuesOf("calendar");
+        }
+        // Locale-dependent formatting
         (123.456).toLocaleString();
+        new Date().toLocaleString();
+        new Date().toLocaleDateString();
+        new Date().toLocaleTimeString();
+        [1, 2, 3].toLocaleString();
         return [
-          "Intl.DateTimeFormat / NumberFormat / Collator",
-          "Intl.DisplayNames / Locale",
-          "Number.toLocaleString",
+          "Date.getTimezoneOffset",
+          "Intl.DateTimeFormat.resolvedOptions",
+          "Intl.NumberFormat.resolvedOptions / .format getter + call",
+          "Intl.Collator.resolvedOptions / .compare getter + call",
+          "Intl.DisplayNames.of + resolvedOptions",
+          "Intl.Locale.language/region/script/calendar/numberingSystem/hourCycle/baseName",
+          "Intl.ListFormat / PluralRules / RelativeTimeFormat / Segmenter .resolvedOptions",
+          "Intl.supportedValuesOf",
+          "Number / Date / Array .toLocaleString",
         ];
       },
 
       math() {
         Math.acos(0.1); Math.asin(0.1); Math.atan(0.1);
+        Math.acosh(2); Math.asinh(1); Math.atanh(0.5);
         Math.cos(1); Math.sin(1); Math.tan(1);
         Math.cosh(1); Math.sinh(1); Math.tanh(1);
-        Math.exp(1); Math.log1p(1);
+        Math.exp(1); Math.expm1(1); Math.log1p(1);
         // Architecture probe (FingerprintJS NaN bit pattern)
         tryCall(() => { new Float32Array(1); });
         return [
-          "Math.acos/asin/atan/cos/sin/tan/cosh/sinh/tanh/exp/log1p",
+          "Math.acos/asin/atan + acosh/asinh/atanh",
+          "Math.cos/sin/tan + cosh/sinh/tanh",
+          "Math.exp/expm1/log1p",
           "new Float32Array(1) (architecture probe)",
         ];
       },
@@ -859,19 +942,26 @@
         document.body.appendChild(a);
         void a.attributionSourceId;
         document.body.removeChild(a);
-        // SpeechSynthesis — getVoices is safe; skip speak to avoid audio
+        // SpeechSynthesis — silent speak (empty text + volume 0) +
+        // immediate cancel. Triggers all three hookMethodHot hooks
+        // (speak / cancel / getVoices) without producing audio.
         if (window.speechSynthesis) {
           tryCall(() => speechSynthesis.getVoices());
-          tryCall(() => speechSynthesis.cancel());
           if (typeof SpeechSynthesisUtterance === "function") {
-            const u = new SpeechSynthesisUtterance("");
-            void u.voice; void u.lang;
+            try {
+              const u = new SpeechSynthesisUtterance("");
+              u.volume = 0;
+              u.rate = 10;
+              void u.voice; void u.lang;
+              speechSynthesis.speak(u);
+            } catch (_) {}
           }
+          tryCall(() => speechSynthesis.cancel());
         }
         return [
           "ApplePaySession.canMakePayments (if available)",
           "<a>.attributionSourceId (Safari Private Click)",
-          "speechSynthesis.getVoices / cancel",
+          "speechSynthesis.getVoices / speak (silent) / cancel",
           "SpeechSynthesisUtterance .voice / .lang",
         ];
       },
@@ -988,6 +1078,36 @@
           "setAppBadge / clearAppBadge",
           "requestMIDIAccess",
         ];
+      },
+
+      deviceRequest() {
+        // All four show a native chooser dialog. The chooser opens
+        // synchronously on the user-gesture frame (clicking Run), and
+        // our hooks fire as the method is called regardless of whether
+        // the user ultimately picks a device or cancels.
+        const ops = [];
+        if (navigator.bluetooth && navigator.bluetooth.requestDevice) {
+          navigator.bluetooth.requestDevice({ acceptAllDevices: true }).catch(() => {});
+          if (navigator.bluetooth.getDevices) navigator.bluetooth.getDevices().catch(() => {});
+          ops.push("bluetooth.requestDevice / getDevices");
+        }
+        if (navigator.usb && navigator.usb.requestDevice) {
+          navigator.usb.requestDevice({ filters: [] }).catch(() => {});
+          if (navigator.usb.getDevices) navigator.usb.getDevices().catch(() => {});
+          ops.push("usb.requestDevice / getDevices");
+        }
+        if (navigator.serial && navigator.serial.requestPort) {
+          navigator.serial.requestPort().catch(() => {});
+          if (navigator.serial.getPorts) navigator.serial.getPorts().catch(() => {});
+          ops.push("serial.requestPort / getPorts");
+        }
+        if (navigator.hid && navigator.hid.requestDevice) {
+          navigator.hid.requestDevice({ filters: [] }).catch(() => {});
+          if (navigator.hid.getDevices) navigator.hid.getDevices().catch(() => {});
+          ops.push("hid.requestDevice / getDevices");
+        }
+        if (ops.length === 0) ops.push("(no Web Bluetooth/USB/Serial/HID support in this browser)");
+        return ops;
       },
     };
 

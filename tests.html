@@ -271,6 +271,7 @@
           const osc = tryCall(() => new OffscreenCanvas(10, 10));
           tryCall(() => osc && osc.getContext("2d"));
           if (osc && osc.convertToBlob) osc.convertToBlob().catch(() => {});
+          if (osc && osc.transferToImageBitmap) tryCall(() => osc.transferToImageBitmap());
         }
         // createImageBitmap from a canvas source
         if (typeof window.createImageBitmap === "function") {
@@ -282,6 +283,7 @@
           'getContext("2d")', "fillText", "strokeText", "measureText",
           "isPointInPath", "isPointInStroke", "toDataURL", "getImageData",
           "new OffscreenCanvas", "OffscreenCanvas.getContext", "OffscreenCanvas.convertToBlob",
+          "OffscreenCanvas.transferToImageBitmap",
           "createImageBitmap(canvas)",
           'getContext("webgl", {powerPreference})'
         ];
@@ -303,6 +305,7 @@
         }
         gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT);
         gl.getContextAttributes();
+        // Shader pipeline
         const vs = gl.createShader(gl.VERTEX_SHADER);
         gl.shaderSource(vs, "attribute vec2 a; void main(){gl_Position=vec4(a,0,1);}");
         gl.compileShader(vs);
@@ -312,11 +315,24 @@
         gl.linkProgram(prog);
         gl.getProgramParameter(prog, gl.LINK_STATUS);
         gl.getProgramInfoLog(prog);
+        // Draw calls + buffer/framebuffer queries — wrapped in tryCall
+        // because they throw without a bound program/buffer; our hooks
+        // still fire before the native call throws.
+        tryCall(() => gl.drawArrays(gl.TRIANGLES, 0, 0));
+        tryCall(() => gl.drawElements(gl.TRIANGLES, 0, gl.UNSIGNED_SHORT, 0));
+        tryCall(() => gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(4)));
+        tryCall(() => gl.getBufferParameter(gl.ARRAY_BUFFER, gl.BUFFER_SIZE));
+        tryCall(() => gl.getRenderbufferParameter(gl.RENDERBUFFER, gl.RENDERBUFFER_WIDTH));
+        tryCall(() => gl.getFramebufferAttachmentParameter(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE));
         // WebGL2 extras
         const c2 = document.createElement("canvas");
         const gl2 = c2.getContext("webgl2");
         if (gl2) {
-          gl2.getInternalformatParameter(gl2.RENDERBUFFER, gl2.RGBA8, gl2.SAMPLES);
+          tryCall(() => gl2.getInternalformatParameter(gl2.RENDERBUFFER, gl2.RGBA8, gl2.SAMPLES));
+          tryCall(() => gl2.getIndexedParameter(gl2.TRANSFORM_FEEDBACK_BUFFER_BINDING, 0));
+          tryCall(() => gl2.drawArraysInstanced(gl2.TRIANGLES, 0, 0, 1));
+          tryCall(() => gl2.drawElementsInstanced(gl2.TRIANGLES, 0, gl2.UNSIGNED_SHORT, 0, 1));
+          tryCall(() => gl2.drawRangeElements(gl2.TRIANGLES, 0, 0, 0, gl2.UNSIGNED_SHORT, 0));
         }
         return [
           "getParameter (VENDOR/RENDERER/VERSION/MAX_TEXTURE_SIZE)",
@@ -327,7 +343,10 @@
           "createShader / shaderSource / compileShader",
           "getShaderParameter / getShaderInfoLog",
           "createProgram / linkProgram / getProgramParameter / getProgramInfoLog",
-          "WebGL2: getInternalformatParameter",
+          "drawArrays / drawElements / readPixels",
+          "getBufferParameter / getRenderbufferParameter / getFramebufferAttachmentParameter",
+          "WebGL2: getInternalformatParameter / getIndexedParameter",
+          "WebGL2: drawArraysInstanced / drawElementsInstanced / drawRangeElements",
         ];
       },
 
@@ -376,10 +395,15 @@
           void ServiceWorkerContainer.prototype.getRegistrations;
           void ServiceWorkerContainer.prototype.getRegistration;
         }
+        // serviceWorker.ready / .controller getters (hooked via hookGetter
+        // on ServiceWorkerContainer.prototype)
+        tryCall(() => { void navigator.serviceWorker && navigator.serviceWorker.ready; });
+        tryCall(() => { void navigator.serviceWorker && navigator.serviceWorker.controller; });
         return [
           "navigator." + props.join(", ."),
           "navigator.getBattery / getGamepads / javaEnabled",
           "ServiceWorkerContainer.register/getRegistrations/getRegistration (access)",
+          "navigator.serviceWorker.ready / .controller (getters)",
         ];
       },
 
@@ -450,17 +474,26 @@
         const pc = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
         pc.createDataChannel("fingerprint");
         pc.createOffer().catch(() => {});
+        pc.createAnswer().catch(() => {});
+        // setLocalDescription / setRemoteDescription need a valid
+        // description; these will reject, but our hook fires first.
+        tryCall(() => pc.setLocalDescription({ type: "offer", sdp: "" }).catch(() => {}));
+        tryCall(() => pc.setRemoteDescription({ type: "answer", sdp: "" }).catch(() => {}));
         pc.addEventListener("icecandidate", () => {});
         if (window.RTCRtpSender && RTCRtpSender.getCapabilities) {
           RTCRtpSender.getCapabilities("audio");
           RTCRtpSender.getCapabilities("video");
         }
+        if (window.RTCRtpReceiver && RTCRtpReceiver.getCapabilities) {
+          RTCRtpReceiver.getCapabilities("audio");
+        }
         pc.close();
         return [
           "new RTCPeerConnection (with STUN server)",
-          "createDataChannel / createOffer",
+          "createDataChannel / createOffer / createAnswer",
+          "setLocalDescription / setRemoteDescription",
           'addEventListener("icecandidate")',
-          "RTCRtpSender.getCapabilities",
+          "RTCRtpSender.getCapabilities / RTCRtpReceiver.getCapabilities",
         ];
       },
 
@@ -550,6 +583,7 @@
         performance.now();
         tryCall(() => performance.getEntries());
         tryCall(() => performance.getEntriesByType("navigation"));
+        tryCall(() => performance.getEntriesByName("fp-mark"));
         tryCall(() => performance.mark("fp-mark"));
         tryCall(() => performance.measure("fp-measure", "fp-mark"));
         void performance.timeOrigin;
@@ -560,7 +594,9 @@
           setTimeout(() => obs.disconnect(), 10);
         });
         return [
-          "performance.now / getEntries / mark / measure",
+          "performance.now",
+          "performance.getEntries / getEntriesByType / getEntriesByName",
+          "performance.mark / measure",
           "performance.timeOrigin / memory",
           "new PerformanceObserver",
         ];
@@ -738,10 +774,24 @@
             navigator.mediaDevices.getSupportedConstraints();
           }
         }
+        // onvoiceschanged setter hook
+        if (window.speechSynthesis) {
+          tryCall(() => { speechSynthesis.onvoiceschanged = null; });
+        }
+        // SpeechSynthesisUtterance .voice / .lang setter hooks
+        if (typeof SpeechSynthesisUtterance === "function") {
+          try {
+            const u = new SpeechSynthesisUtterance("");
+            u.lang = "en-US";     // setter hook
+            u.voice = null;        // setter hook
+          } catch (_) {}
+        }
         return [
           "HTMLMediaElement.canPlayType (mp4/webm/audio)",
           "MediaRecorder.isTypeSupported",
           "mediaDevices.enumerateDevices / getSupportedConstraints",
+          "speechSynthesis.onvoiceschanged setter",
+          "SpeechSynthesisUtterance.voice / .lang setters",
         ];
       },
 

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Fingerprint Detector",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Detects and displays browser fingerprinting techniques used by websites",
   "permissions": [
     "activeTab",

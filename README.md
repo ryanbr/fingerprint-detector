@@ -2,7 +2,7 @@
 
 A Chrome and Firefox extension that detects and displays browser fingerprinting techniques used by websites in real-time.
 
-<img width="988" height="534" alt="bbUntitled2" src="https://github.com/user-attachments/assets/53e4dc71-95c3-466c-aa62-9258b6f28c47" />
+<img width="964" height="510" alt="bbUntitled2" src="https://github.com/user-attachments/assets/dab173bb-ce9b-4ebc-b19d-a5697d9cf23e" />
 
 ## What it does
 

@@ -29,10 +29,18 @@ import { register as behavior } from './hooks/behavior.js';
   const LOG_KEY = "__fpDetector";
 
   // ── Batched event dispatch ────────────────────────────────────────────
+  // Visible tabs flush every 250ms; hidden tabs flush every 2s to cut
+  // IPC traffic from background tabs that are still running fingerprinting
+  // loops (ad networks, analytics). Chrome already clamps setTimeout to
+  // ~1s in hidden tabs after 5 min, so this layers further on top of that.
   let eventBatch = [];
   let flushTimer = 0;
-  const FLUSH_INTERVAL = 250;
+  const FLUSH_INTERVAL_VISIBLE = 250;
+  const FLUSH_INTERVAL_HIDDEN = 2000;
   const MAX_BATCH_SIZE = 50;
+  let flushInterval = (typeof document !== "undefined" && document.hidden)
+    ? FLUSH_INTERVAL_HIDDEN
+    : FLUSH_INTERVAL_VISIBLE;
 
   function flushBatch() {
     flushTimer = 0;
@@ -51,8 +59,25 @@ import { register as behavior } from './hooks/behavior.js';
       flushTimer = 0;
       flushBatch();
     } else if (!flushTimer) {
-      flushTimer = setTimeout(flushBatch, FLUSH_INTERVAL);
+      flushTimer = setTimeout(flushBatch, flushInterval);
     }
+  }
+
+  // Adjust flush cadence based on tab visibility. Flush immediately on
+  // becoming visible so any pending hidden-tab events show up right away.
+  if (typeof document !== "undefined") {
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        flushInterval = FLUSH_INTERVAL_HIDDEN;
+      } else {
+        flushInterval = FLUSH_INTERVAL_VISIBLE;
+        if (eventBatch.length > 0) {
+          clearTimeout(flushTimer);
+          flushTimer = 0;
+          flushBatch();
+        }
+      }
+    });
   }
 
   // ── Mute state (synced from extension storage via bridge) ─────────────

@@ -1,12 +1,36 @@
 // compare.js — Compare two fingerprint summaries side-by-side
 
+// ── Cached DOM references (queried once at init) ──────────────────────
+const $container = document.querySelector(".container");
+const $diffSummary = document.getElementById("diff-summary");
+const $themeIconDark = document.getElementById("theme-icon-dark");
+const $themeIconLight = document.getElementById("theme-icon-light");
+const $themeLabel = document.getElementById("theme-label");
+const $domainsSection = document.getElementById("domains-section");
+
+// Side element cache — built once per load, reused on every render
+const $sides = {
+  left: {
+    url: document.getElementById("left-url"),
+    body: document.getElementById("left-body"),
+    file: document.getElementById("left-file"),
+    load: document.getElementById("left-load"),
+  },
+  right: {
+    url: document.getElementById("right-url"),
+    body: document.getElementById("right-body"),
+    file: document.getElementById("right-file"),
+    load: document.getElementById("right-load"),
+  },
+};
+
 // ── Theme toggle ──────────────────────────────────────────────────────
 function applyTheme(theme) {
   const isLight = theme === "light";
   document.body.classList.toggle("light", isLight);
-  document.getElementById("theme-icon-dark").style.display = isLight ? "none" : "";
-  document.getElementById("theme-icon-light").style.display = isLight ? "" : "none";
-  document.getElementById("theme-label").textContent = isLight ? "Dark" : "Light";
+  $themeIconDark.style.display = isLight ? "none" : "";
+  $themeIconLight.style.display = isLight ? "" : "none";
+  $themeLabel.textContent = isLight ? "Dark" : "Light";
 }
 
 chrome.storage.local.get(["compareTheme"], (stored) => {
@@ -102,8 +126,9 @@ function loadFromFile(file, side) {
 
 // ── Rendering ─────────────────────────────────────────────────────────
 function renderSide(side, data, filename) {
-  const urlEl = document.getElementById(side + "-url");
-  const bodyEl = document.getElementById(side + "-body");
+  const refs = $sides[side];
+  const urlEl = refs.url;
+  const bodyEl = refs.body;
 
   // Show URL + filename in brackets (if loaded from a file)
   const url = data.url || "(unknown URL)";
@@ -176,9 +201,8 @@ function maybeRenderDiff() {
   const shared = [...leftCats].filter(c => rightCats.has(c));
 
   // Diff summary bar
-  const diffSummary = document.getElementById("diff-summary");
-  diffSummary.style.display = "flex";
-  diffSummary.innerHTML = `
+  $diffSummary.style.display = "flex";
+  $diffSummary.innerHTML = `
     <div class="stat">
       <div class="stat-label">Shared Techniques</div>
       <div class="stat-value">${shared.length}</div>
@@ -213,11 +237,11 @@ function maybeRenderDiff() {
   // Wire up toggles and export button
   const diffsOnlyCb = document.getElementById("diffs-only");
   diffsOnlyCb.addEventListener("change", () => {
-    document.querySelector(".container").classList.toggle("diffs-only", diffsOnlyCb.checked);
+    $container.classList.toggle("diffs-only", diffsOnlyCb.checked);
   });
   const showMethodsCb = document.getElementById("show-methods");
   showMethodsCb.addEventListener("change", () => {
-    document.querySelector(".container").classList.toggle("show-methods", showMethodsCb.checked);
+    $container.classList.toggle("show-methods", showMethodsCb.checked);
     // Lazy render: only build method sub-rows on first activation
     if (showMethodsCb.checked && !methodsRendered) {
       methodsRendered = true;
@@ -353,9 +377,11 @@ function renderCategoriesDiff(side, data, allCats, onlyLeft, onlyRight, sideLabe
   container.innerHTML = html;
 }
 
+const $domainsTbody = $domainsSection.querySelector("tbody");
+
 function renderDomainDiff() {
-  const section = document.getElementById("domains-section");
-  const tbody = section.querySelector("tbody");
+  const section = $domainsSection;
+  const tbody = $domainsTbody;
   const leftDomains = leftData.domains || {};
   const rightDomains = rightData.domains || {};
   const allDomains = new Set([...Object.keys(leftDomains), ...Object.keys(rightDomains)]);
@@ -533,17 +559,13 @@ function exportDifferences() {
 }
 
 // ── File loading — button + drag/drop ─────────────────────────────────
-document.getElementById("left-load").addEventListener("click", () => {
-  document.getElementById("left-file").click();
-});
-document.getElementById("right-load").addEventListener("click", () => {
-  document.getElementById("right-file").click();
-});
+$sides.left.load.addEventListener("click", () => $sides.left.file.click());
+$sides.right.load.addEventListener("click", () => $sides.right.file.click());
 
-document.getElementById("left-file").addEventListener("change", (e) => {
+$sides.left.file.addEventListener("change", (e) => {
   if (e.target.files[0]) loadFromFile(e.target.files[0], "left");
 });
-document.getElementById("right-file").addEventListener("change", (e) => {
+$sides.right.file.addEventListener("change", (e) => {
   if (e.target.files[0]) loadFromFile(e.target.files[0], "right");
 });
 
@@ -570,7 +592,7 @@ function wireDropzone(dropzoneEl, side) {
   });
   // Click anywhere on the dropzone to open the file picker
   dropzoneEl.addEventListener("click", () => {
-    document.getElementById(side + "-file").click();
+    $sides[side].file.click();
   });
 }
 

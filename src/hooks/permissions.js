@@ -140,4 +140,117 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       hookMethodViaAccess(Navigator.prototype, "clearAppBadge", "Permissions", "navigator.clearAppBadge");
     }
   }
+
+  // ── MediaDevices: camera / mic / screen capture ───────────────────────
+  // Complements MediaDevices.enumerateDevices (hooked in media.js).
+  // All four return promises and are commonly destructured; using
+  // access-based keeps our frame out of rejection stacks if the user
+  // denies the permission prompt or the device is unavailable.
+  if (typeof MediaDevices !== "undefined") {
+    if (typeof MediaDevices.prototype.getUserMedia === "function") {
+      hookMethodViaAccess(MediaDevices.prototype, "getUserMedia", "Permissions", "mediaDevices.getUserMedia");
+    }
+    if (typeof MediaDevices.prototype.getDisplayMedia === "function") {
+      hookMethodViaAccess(MediaDevices.prototype, "getDisplayMedia", "Permissions", "mediaDevices.getDisplayMedia");
+    }
+    if (typeof MediaDevices.prototype.selectAudioOutput === "function") {
+      hookMethodViaAccess(MediaDevices.prototype, "selectAudioOutput", "Permissions", "mediaDevices.selectAudioOutput");
+    }
+    if (typeof MediaDevices.prototype.getSupportedConstraints === "function") {
+      hookMethodViaAccess(MediaDevices.prototype, "getSupportedConstraints", "Permissions", "mediaDevices.getSupportedConstraints");
+    }
+  }
+
+  // ── File System Access API ────────────────────────────────────────────
+  // showOpenFilePicker / showSaveFilePicker / showDirectoryPicker —
+  // all prompt the user for local file/directory access. Very high
+  // privacy signal. Defined on Window.prototype in Chromium.
+  if (typeof Window !== "undefined") {
+    if (typeof Window.prototype.showOpenFilePicker === "function") {
+      hookMethodViaAccess(Window.prototype, "showOpenFilePicker", "Permissions", "window.showOpenFilePicker");
+    }
+    if (typeof Window.prototype.showSaveFilePicker === "function") {
+      hookMethodViaAccess(Window.prototype, "showSaveFilePicker", "Permissions", "window.showSaveFilePicker");
+    }
+    if (typeof Window.prototype.showDirectoryPicker === "function") {
+      hookMethodViaAccess(Window.prototype, "showDirectoryPicker", "Permissions", "window.showDirectoryPicker");
+    }
+  }
+  // FileSystemHandle.requestPermission / queryPermission — called on
+  // individual handles after the picker resolves. Both return promises.
+  if (typeof FileSystemHandle !== "undefined") {
+    if (typeof FileSystemHandle.prototype.requestPermission === "function") {
+      hookMethodViaAccess(FileSystemHandle.prototype, "requestPermission", "Permissions", "FileSystemHandle.requestPermission");
+    }
+    if (typeof FileSystemHandle.prototype.queryPermission === "function") {
+      hookMethodViaAccess(FileSystemHandle.prototype, "queryPermission", "Permissions", "FileSystemHandle.queryPermission");
+    }
+  }
+
+  // ── WebAuthn capability detection ─────────────────────────────────────
+  // PublicKeyCredential static methods that reveal biometric hardware
+  // and passkey support. Both return promises.
+  if (typeof PublicKeyCredential !== "undefined") {
+    if (typeof PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable === "function") {
+      hookMethodViaAccess(PublicKeyCredential, "isUserVerifyingPlatformAuthenticatorAvailable", "Permissions", "PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable");
+    }
+    if (typeof PublicKeyCredential.isConditionalMediationAvailable === "function") {
+      hookMethodViaAccess(PublicKeyCredential, "isConditionalMediationAvailable", "Permissions", "PublicKeyCredential.isConditionalMediationAvailable");
+    }
+  }
+
+  // ── Payment Request API ───────────────────────────────────────────────
+  // new PaymentRequest(methods, details) — initiates a payment flow.
+  // show() opens the native payment sheet; canMakePayment() is a pure
+  // capability probe that doesn't prompt the user.
+  if (typeof PaymentRequest !== "undefined") {
+    // Instance methods (access-based: show returns a promise)
+    if (typeof PaymentRequest.prototype.show === "function") {
+      hookMethodViaAccess(PaymentRequest.prototype, "show", "Permissions", "PaymentRequest.show");
+    }
+    if (typeof PaymentRequest.prototype.canMakePayment === "function") {
+      hookMethodViaAccess(PaymentRequest.prototype, "canMakePayment", "Permissions", "PaymentRequest.canMakePayment");
+    }
+    // Constructor wrap — fire-once recording, since the constructor
+    // itself is a strong signal that a payment flow is starting.
+    const OrigPR = PaymentRequest;
+    try {
+      window.PaymentRequest = function (methods, details, options) {
+        recordHot("Permissions", "new PaymentRequest", "");
+        return options ? new OrigPR(methods, details, options) : new OrigPR(methods, details);
+      };
+      window.PaymentRequest.prototype = OrigPR.prototype;
+      for (const k of Object.getOwnPropertyNames(OrigPR)) {
+        if (k === "length" || k === "name" || k === "prototype") continue;
+        try {
+          const d = Object.getOwnPropertyDescriptor(OrigPR, k);
+          if (d) Object.defineProperty(window.PaymentRequest, k, d);
+        } catch { /* skip */ }
+      }
+    } catch { /* non-writable */ }
+  }
+
+  // ── iOS Sensor permissions (iOS 13+) ──────────────────────────────────
+  // DeviceOrientationEvent.requestPermission() and DeviceMotionEvent
+  // .requestPermission() are static methods that Safari requires for
+  // accelerometer/gyroscope access. Calling either is also a strong
+  // "site detects iOS Safari" signal — these methods are undefined
+  // on desktop Chrome, so sites use feature detection as a UA probe.
+  if (typeof DeviceOrientationEvent !== "undefined" &&
+      typeof DeviceOrientationEvent.requestPermission === "function") {
+    hookMethodViaAccess(DeviceOrientationEvent, "requestPermission", "Permissions", "DeviceOrientationEvent.requestPermission");
+  }
+  if (typeof DeviceMotionEvent !== "undefined" &&
+      typeof DeviceMotionEvent.requestPermission === "function") {
+    hookMethodViaAccess(DeviceMotionEvent, "requestPermission", "Permissions", "DeviceMotionEvent.requestPermission");
+  }
+
+  // ── Web MIDI ──────────────────────────────────────────────────────────
+  // navigator.requestMIDIAccess() returns a promise that resolves with
+  // a MIDIAccess object if the user grants the permission. Reveals
+  // MIDI hardware (attached synths, controllers).
+  if (typeof Navigator !== "undefined" &&
+      typeof Navigator.prototype.requestMIDIAccess === "function") {
+    hookMethodViaAccess(Navigator.prototype, "requestMIDIAccess", "Permissions", "navigator.requestMIDIAccess");
+  }
 }

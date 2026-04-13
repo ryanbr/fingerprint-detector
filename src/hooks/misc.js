@@ -44,9 +44,18 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
   }
 
   // ── 28. Credential Management ─────────────────────────────────────────
+  // All four return promises and are commonly destructured — use
+  // access-based to keep the extension out of rejection stacks when
+  // a credential prompt is dismissed or a WebAuthn assertion fails.
   if (typeof CredentialsContainer !== "undefined") {
-    hookMethod(CredentialsContainer.prototype, "get", "Credentials", "credentials.get");
-    hookMethod(CredentialsContainer.prototype, "create", "Credentials", "credentials.create");
+    hookMethodViaAccess(CredentialsContainer.prototype, "get", "Credentials", "credentials.get");
+    hookMethodViaAccess(CredentialsContainer.prototype, "create", "Credentials", "credentials.create");
+    if (typeof CredentialsContainer.prototype.store === "function") {
+      hookMethodViaAccess(CredentialsContainer.prototype, "store", "Credentials", "credentials.store");
+    }
+    if (typeof CredentialsContainer.prototype.preventSilentAccess === "function") {
+      hookMethodViaAccess(CredentialsContainer.prototype, "preventSilentAccess", "Credentials", "credentials.preventSilentAccess");
+    }
   }
 
   // ── 29. Notification permission probe ─────────────────────────────────

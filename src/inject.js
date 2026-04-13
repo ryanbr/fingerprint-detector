@@ -90,43 +90,47 @@ import { register as misc } from './hooks/misc.js';
   function extractSource(stack) {
     if (!stack) return "";
     const lines = stack.split("\n");
+    let fallback = ""; // first non-URL context found (eval/blob/data/anon)
 
-    // First pass: look for a real http(s) URL
+    // Single pass — check all patterns at once, return URL as soon as found
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i];
       if (line.length < 10) continue;
+      if (line.indexOf("inject.js") !== -1) continue;
+
+      // Try URL first (most common case)
       let idx = line.indexOf("https://");
       if (idx === -1) idx = line.indexOf("http://");
-      if (idx === -1) continue;
-      let end = idx;
-      while (end < line.length && line.charCodeAt(end) !== 32 && line.charCodeAt(end) !== 41) end++;
-      const url = line.substring(idx, end);
-      if (url.indexOf("inject.js") !== -1) continue;
-      if (url.charCodeAt(0) === 99 && url.indexOf("chrome-extension://") === 0) continue;
-      return url;
+      if (idx !== -1) {
+        let end = idx;
+        while (end < line.length && line.charCodeAt(end) !== 32 && line.charCodeAt(end) !== 41) end++;
+        const url = line.substring(idx, end);
+        if (url.charCodeAt(0) === 99 && url.indexOf("chrome-extension://") === 0) continue;
+        return url;
+      }
+
+      // Record alternative context — keep looking for a URL but save this
+      if (!fallback) {
+        if (line.indexOf("<anonymous>") !== -1) fallback = "<anonymous> (inline script or eval)";
+        else if (line.indexOf("blob:") !== -1) fallback = "blob: (dynamic script)";
+        else if (line.indexOf("data:") !== -1) fallback = "data: (data URL script)";
+        else if (line.indexOf("eval") !== -1) fallback = "eval() (runtime-generated code)";
+        else if (line.indexOf("Function") !== -1) fallback = "new Function() (runtime-generated)";
+      }
     }
 
-    // Second pass: look for alternative source contexts (eval, blob:, data:, etc.)
-    for (let i = 1; i < lines.length; i++) {
-      const line = lines[i];
-      if (line.indexOf("inject.js") !== -1) continue;
-      if (line.indexOf("<anonymous>") !== -1) return "<anonymous> (inline script or eval)";
-      if (line.indexOf("blob:") !== -1) return "blob: (dynamic script)";
-      if (line.indexOf("data:") !== -1) return "data: (data URL script)";
-      if (line.indexOf("eval") !== -1) return "eval() (runtime-generated code)";
-      if (line.indexOf("Function") !== -1) return "new Function() (runtime-generated)";
-    }
-
-    // Third pass: use page URL as fallback context
+    if (fallback) return fallback;
     return location.href ? "inline on " + location.href : "";
   }
 
-  // Main record function
-  function record(category, method, detail) {
-    if (mutedCategoriesSet.size > 0 && mutedCategoriesSet.has(category)) return;
-    if (mutedMethodsSet.size > 0 && mutedMethodsSet.has(method)) return;
+  // Main record function.
+  // Optional `precomputedKey` skips the string concat when the caller
+  // already has the rate-limit key cached (hookMethod/hookGetter do this).
+  function record(category, method, detail, precomputedKey) {
+    if (mutedCategoriesSet.has(category)) return;
+    if (mutedMethodsSet.has(method)) return;
 
-    const key = category + "|" + method;
+    const key = precomputedKey || (category + "|" + method);
     let id = methodIdMap[key];
     if (id === undefined) {
       id = nextMethodId++;
@@ -151,8 +155,8 @@ import { register as misc } from './hooks/misc.js';
   const hotMethodFirstSeen = {};
 
   function recordHot(category, method, detail) {
-    if (mutedCategoriesSet.size > 0 && mutedCategoriesSet.has(category)) return;
-    if (mutedMethodsSet.size > 0 && mutedMethodsSet.has(method)) return;
+    if (mutedCategoriesSet.has(category)) return;
+    if (mutedMethodsSet.has(method)) return;
 
     const key = category + "|" + method;
     if (hotMethodFirstSeen[key]) return;
@@ -171,12 +175,13 @@ import { register as misc } from './hooks/misc.js';
     const desc = Object.getOwnPropertyDescriptor(obj, prop);
     if (!desc || !desc.get) return;
     const origGet = desc.get;
+    // Precompute the rate-limit key once at hook install time
+    const key = category + "|" + method;
     Object.defineProperty(obj, prop, {
       ...desc,
       get() {
-        if (!(mutedCategoriesSet.size > 0 && mutedCategoriesSet.has(category)) &&
-            !(mutedMethodsSet.size > 0 && mutedMethodsSet.has(method))) {
-          record(category, method, prop);
+        if (!mutedCategoriesSet.has(category) && !mutedMethodsSet.has(method)) {
+          record(category, method, prop, key);
         }
         return origGet.call(this);
       },
@@ -186,10 +191,11 @@ import { register as misc } from './hooks/misc.js';
   function hookMethod(obj, prop, category, method) {
     const orig = obj[prop];
     if (typeof orig !== "function") return;
+    // Precompute key once at hook install time
+    const key = category + "|" + method;
     obj[prop] = function () {
-      if (!(mutedCategoriesSet.size > 0 && mutedCategoriesSet.has(category)) &&
-          !(mutedMethodsSet.size > 0 && mutedMethodsSet.has(method))) {
-        record(category, method, prop);
+      if (!mutedCategoriesSet.has(category) && !mutedMethodsSet.has(method)) {
+        record(category, method, prop, key);
       }
       return orig.apply(this, arguments);
     };
@@ -201,8 +207,8 @@ import { register as misc } from './hooks/misc.js';
     const hotKey = category + "|" + method;
     obj[prop] = function () {
       if (!hotMethodFirstSeen[hotKey] &&
-          !(mutedCategoriesSet.size > 0 && mutedCategoriesSet.has(category)) &&
-          !(mutedMethodsSet.size > 0 && mutedMethodsSet.has(method))) {
+          !mutedCategoriesSet.has(category) &&
+          !mutedMethodsSet.has(method)) {
         hotMethodFirstSeen[hotKey] = true;
         const stack = captureStack();
         const source = extractSource(stack);

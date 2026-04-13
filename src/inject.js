@@ -21,6 +21,7 @@ import { register as adblock } from './hooks/adblock.js';
 import { register as extension } from './hooks/extension.js';
 import { register as intl } from './hooks/intl.js';
 import { register as misc } from './hooks/misc.js';
+import { register as behavior } from './hooks/behavior.js';
 
 (function () {
   "use strict";
@@ -240,5 +241,6 @@ import { register as misc } from './hooks/misc.js';
   extension(helpers);
   intl(helpers);
   misc(helpers);
+  behavior(helpers);
 
 })();

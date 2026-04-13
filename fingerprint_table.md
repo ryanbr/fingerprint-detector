@@ -316,6 +316,35 @@ Common fingerprinting queries caught:
 | `window.ontouchstart` (get/set) | 🟢 Low | Touch support probing |
 | `document.createEvent('TouchEvent')` | 🟢 Low | Touch event creation probe |
 
+## Behavior (Behavioral Biometrics)
+
+Behavioral fingerprinting captures user interaction patterns — mouse movement, keystroke timing, touch gestures. These are detected at the `addEventListener` level (fire-once per unique event type).
+
+| Hook | Risk | What it reveals |
+|---|---|---|
+| `addEventListener("mousemove")` | 🔴 High | Mouse movement tracking — velocity/trajectory is a biometric signature |
+| `addEventListener("mousedown/mouseup/click")` | 🟠 Medium | Click pattern tracking |
+| `addEventListener("dblclick")` | 🟠 Medium | Double-click timing |
+| `addEventListener("contextmenu")` | 🟢 Low | Right-click listener |
+| `addEventListener("wheel")` | 🟠 Medium | Scroll wheel tracking |
+| `addEventListener("keydown/keyup")` | 🔴 High | Keystroke dynamics — typing rhythm is biometric |
+| `addEventListener("keypress")` | 🔴 High | Deprecated but still used for keystroke tracking |
+| `addEventListener("input/beforeinput")` | 🟠 Medium | Text input tracking |
+| `addEventListener("compositionstart/update")` | 🟠 Medium | IME composition tracking (language keyboards) |
+| `addEventListener("pointermove")` | 🔴 High | Unified mouse/touch/pen tracking |
+| `addEventListener("pointerdown/up")` | 🟠 Medium | Pointer interaction tracking |
+| `addEventListener("touchmove")` | 🔴 High | Touch gesture tracking |
+| `addEventListener("touchstart/end")` | 🟠 Medium | Touch interaction tracking |
+| `addEventListener("scroll")` | 🟠 Medium | Scroll pattern tracking |
+| `addEventListener("focus/blur")` | 🟢 Low | Focus pattern tracking |
+| `addEventListener("visibilitychange")` | 🟢 Low | Tab visibility tracking |
+| `addEventListener("drag/dragstart")` | 🟠 Medium | Drag behavior |
+| `addEventListener("devicemotion/deviceorientation")` | 🔴 High | Accelerometer/gyro event tracking |
+| `MouseEvent.clientX / clientY / screenX / screenY / pageX / pageY / offsetX / offsetY / movementX / movementY` | 🔴 High | Exact cursor coordinate reads |
+| `KeyboardEvent.key / code / keyCode / which / charCode` | 🔴 High | Keystroke detail reads |
+| `PointerEvent.pressure / tangentialPressure / tiltX / tiltY / twist / pointerType / isPrimary` | 🔴 High | Stylus/pen hardware characteristics |
+| `Touch.radiusX / radiusY / rotationAngle / force` | 🔴 High | Touch hardware characteristics (finger size, pressure) |
+
 ## Network Information
 
 | Hook | Risk | What it reveals |

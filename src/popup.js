@@ -35,6 +35,7 @@ const CATEGORY_META = {
   Intl:           { icon: "🌍", color: "#fb8c00", risk: "medium", desc: "Intl locale/formatting APIs reveal language and region settings" },
   HeadlessDetect: { icon: "🤖", color: "#e94560", risk: "high",   desc: "Headless/automation detection — navigator.webdriver, visualViewport, share API" },
   ExtensionDetect:{ icon: "🧩", color: "#e94560", risk: "high",   desc: "Extension detection — probing chrome-extension:// URLs, injected CSS, or DOM changes" },
+  Behavior:       { icon: "🖱️", color: "#e94560", risk: "high",   desc: "Behavioral biometrics — mouse movement, keystroke dynamics, touch, pointer, scroll tracking" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────

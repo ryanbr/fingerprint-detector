@@ -45,7 +45,7 @@ jobs:
             WebRTC Network MediaDevices SpeechSynthesis Storage Timing DNT Keyboard \
             WebGPU Hardware Sensors Touch Credentials Permissions AdBlockDetect \
             ExtensionDetect HeadlessDetect Math Architecture Plugins MediaQuery \
-            WebSocket GPC Intl; do
+            WebSocket GPC Intl Behavior; do
             if ! grep -q "\"$cat\"" dist/inject.js; then
               MISSING="$MISSING $cat"
             fi

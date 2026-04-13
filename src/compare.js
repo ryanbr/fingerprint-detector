@@ -81,6 +81,7 @@ const CATEGORY_META = {
   Intl:           { icon: "\u{1F30D}", color: "#fb8c00", risk: "medium" },
   HeadlessDetect: { icon: "\u{1F916}", color: "#e94560", risk: "high" },
   ExtensionDetect:{ icon: "\u{1F9E9}", color: "#e94560", risk: "high" },
+  Behavior:       { icon: "\u{1F5B1}", color: "#e94560", risk: "high" },
 };
 
 function escapeHtml(str) {
@@ -150,7 +151,7 @@ function convertLogToSummary(logData) {
   const catNames = Object.keys(categories);
   const highRiskCats = ["Canvas", "WebGL", "Audio", "Fonts", "WebRTC", "ClientHints",
     "MediaDevices", "Math", "Architecture", "WebGPU", "Hardware", "Sensors",
-    "Keyboard", "AdBlockDetect", "ExtensionDetect", "HeadlessDetect"];
+    "Keyboard", "AdBlockDetect", "ExtensionDetect", "HeadlessDetect", "Behavior"];
   const hasHigh = catNames.some(c => highRiskCats.includes(c));
   let riskLevel = "No Risk";
   if (hasHigh && catNames.length >= 4) riskLevel = "High Risk";

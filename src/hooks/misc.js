@@ -140,4 +140,45 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
   // generically (section 20), so those calls will appear in the log.
   // But we also want to flag the high-value fingerprint queries specifically.
   // (Already handled — matchMedia hook captures the query string.)
+
+  // ── 44. document.referrer ─────────────────────────────────────────────
+  // Reveals the referring page. Commonly read by analytics, ad
+  // networks, and fingerprint scripts for attribution + tracking.
+  hookGetter(Document.prototype, "referrer", "Navigator", "document.referrer");
+
+  // ── 45. window.name ───────────────────────────────────────────────────
+  // A writable string that persists across same-origin navigations
+  // within the same tab. Fingerprint scripts use it as a tracking
+  // channel that survives page transitions. Hook both get and set.
+  {
+    // name is defined on Window.prototype in Chromium
+    const proto = typeof Window !== "undefined" ? Window.prototype : null;
+    const desc = proto && Object.getOwnPropertyDescriptor(proto, "name");
+    if (desc && desc.get && desc.configurable !== false) {
+      const origGet = desc.get;
+      const origSet = desc.set;
+      try {
+        Object.defineProperty(proto, "name", {
+          configurable: true,
+          enumerable: desc.enumerable,
+          get() {
+            recordHot("Navigator", "window.name", "get (cross-navigation tracking channel)");
+            return origGet.call(this);
+          },
+          set(v) {
+            recordHot("Navigator", "window.name", "set");
+            if (origSet) origSet.call(this, v);
+          },
+        });
+      } catch { /* non-configurable */ }
+    }
+  }
+
+  // ── 46. document.hasFocus ─────────────────────────────────────────────
+  // Page focus state probing — used for interaction tracking and bot
+  // detection. hookMethodHot self-unwraps after first fire so animation
+  // loops that poll focus state pay no ongoing overhead.
+  if (Document.prototype.hasFocus) {
+    hookMethodHot(Document.prototype, "hasFocus", "HeadlessDetect", "document.hasFocus");
+  }
 }

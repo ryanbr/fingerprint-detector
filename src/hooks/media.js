@@ -84,4 +84,21 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       };
     }
   }
+
+  // ── Codec detection ───────────────────────────────────────────────────
+  // canPlayType reveals which audio/video codecs the browser can decode,
+  // which varies by OS, hardware license, and browser vendor. Used by
+  // FingerprintJS and similar libraries to probe codec support without
+  // actually playing anything. hookMethodHot self-unwraps after first
+  // fire so legitimate media players pay no ongoing cost.
+  if (typeof HTMLMediaElement !== "undefined" && HTMLMediaElement.prototype.canPlayType) {
+    hookMethodHot(HTMLMediaElement.prototype, "canPlayType", "MediaDevices", "HTMLMediaElement.canPlayType");
+  }
+
+  // MediaRecorder.isTypeSupported — static method that probes codec
+  // support specifically for MediaRecorder. Different set of codecs
+  // than canPlayType, so tracked separately.
+  if (typeof MediaRecorder !== "undefined" && typeof MediaRecorder.isTypeSupported === "function") {
+    hookMethodHot(MediaRecorder, "isTypeSupported", "MediaDevices", "MediaRecorder.isTypeSupported");
+  }
 }

@@ -66,6 +66,8 @@ export default [
         Atomics: "readonly",
         XMLHttpRequest: "readonly",
         MediaDevices: "readonly",
+        MediaRecorder: "readonly",
+        HTMLMediaElement: "readonly",
         Permissions: "readonly",
         Notification: "readonly",
         NetworkInformation: "readonly",

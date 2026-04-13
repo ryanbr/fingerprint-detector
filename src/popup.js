@@ -899,15 +899,56 @@ function renderTabSelector() {
   }
 }
 
+// Refresh the tab list — only called when the Debug Log panel is active
+// and the popup is visible. Polling paused otherwise.
+let refreshTimer = 0;
+const REFRESH_INTERVAL = 10000; // was 3000 — tab list changes are rare
+
 function refreshTabList() {
   chrome.runtime.sendMessage({ type: "get-tabs-with-data" }, (tabs) => {
     if (!tabs) return;
+    let changed = false;
     for (const t of tabs) {
-      tabInfoMap[t.tabId] = t;
+      const existing = tabInfoMap[t.tabId];
+      if (!existing || existing.detectionCount !== t.detectionCount || existing.title !== t.title) {
+        tabInfoMap[t.tabId] = t;
+        changed = true;
+      }
     }
-    renderTabSelector();
+    // Only re-render when something actually changed
+    if (changed) renderTabSelector();
   });
 }
+
+function startTabListPolling() {
+  if (refreshTimer) return;
+  refreshTabList(); // immediate refresh
+  refreshTimer = setInterval(refreshTabList, REFRESH_INTERVAL);
+}
+
+function stopTabListPolling() {
+  if (refreshTimer) {
+    clearInterval(refreshTimer);
+    refreshTimer = 0;
+  }
+}
+
+// Only poll when the Debug Log panel is active and the popup is visible
+function updatePollingState() {
+  const logPanelActive = document.getElementById("log-panel").classList.contains("active");
+  const visible = !document.hidden;
+  if (logPanelActive && visible) {
+    startTabListPolling();
+  } else {
+    stopTabListPolling();
+  }
+}
+
+// Re-evaluate polling state when tab panel changes or visibility changes
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.addEventListener("click", updatePollingState);
+});
+document.addEventListener("visibilitychange", updatePollingState);
 
 // ── Persist UI state across popup reopens ──────────────────────────────
 // chrome.storage.session = RAM-only, survives popup close but not browser restart.
@@ -1008,8 +1049,8 @@ chrome.storage.local.get(["mutedGlobal", "mutedByDomain"], (localStored) => {
 
       chrome.runtime.sendMessage({ type: "get-detections", tabId: activeTabId }, renderSummary);
 
-      refreshTabList();
-      setInterval(refreshTabList, 3000);
+      // Start polling only if the log panel is initially active
+      updatePollingState();
     });
   });
 });

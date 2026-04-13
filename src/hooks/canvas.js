@@ -2,12 +2,15 @@
 export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookGetter, record, recordHot, captureStack, extractSource, queueEvent }) {
   // ── 1. Canvas Fingerprinting ──────────────────────────────────────────
 
-  // Data extraction — these are the high-value calls that read the fingerprint
-  hookMethod(CanvasRenderingContext2D.prototype, "toDataURL", "Canvas", "toDataURL");
-  hookMethod(CanvasRenderingContext2D.prototype, "toBlob", "Canvas", "toBlob");
-  hookMethod(CanvasRenderingContext2D.prototype, "getImageData", "Canvas", "getImageData");
-  hookMethod(HTMLCanvasElement.prototype, "toDataURL", "Canvas", "HTMLCanvasElement.toDataURL");
-  hookMethod(HTMLCanvasElement.prototype, "toBlob", "Canvas", "HTMLCanvasElement.toBlob");
+  // Data extraction — these are the high-value calls that read the fingerprint.
+  // Access-based hooks: keeps our frame out of the call stack when native
+  // code emits console warnings/errors (e.g. Chrome's Canvas2D
+  // willReadFrequently warning from getImageData, seen on facebook.com).
+  // Without this the extension gets blamed for page perf issues in the
+  // Errors panel. toDataURL / toBlob use the same pattern defensively.
+  hookMethodViaAccess(CanvasRenderingContext2D.prototype, "getImageData", "Canvas", "getImageData");
+  hookMethodViaAccess(HTMLCanvasElement.prototype, "toDataURL", "Canvas", "HTMLCanvasElement.toDataURL");
+  hookMethodViaAccess(HTMLCanvasElement.prototype, "toBlob", "Canvas", "HTMLCanvasElement.toBlob");
 
   // Text rendering — the most common canvas fingerprint technique draws text
   // with specific fonts/styles and then extracts the pixel data

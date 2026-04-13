@@ -350,11 +350,11 @@ function renderCategoriesDiff(side, data, allCats, onlyLeft, onlyRight, sideLabe
             methodClass = inOther ? "method-both" : (sideLabel === "left" ? "method-only-left" : "method-only-right");
           }
           const detailStr = m.detail || "";
-          const detail = detailStr ? escapeHtml(detailStr.length > 60 ? detailStr.slice(0, 57) + "..." : detailStr) : "";
+          const detailHtml = detailStr ? escapeHtml(detailStr) : "";
           parts.push(
             `<div class="method-row ${methodClass}" title="${escapeHtml(m.method)}${detailStr ? ' — ' + escapeHtml(detailStr) : ''}">` +
             `<span class="method-name">${escapeHtml(m.method)}</span>` +
-            (detail ? `<span class="method-detail">${detail}</span>` : "") +
+            (detailHtml ? `<span class="method-detail">${detailHtml}</span>` : "") +
             `</div>`
           );
         }

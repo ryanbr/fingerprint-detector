@@ -316,6 +316,25 @@ chrome.tabs.onCreated.addListener((tab) => {
 // Evict cache entry when a tab is removed
 chrome.tabs.onRemoved.addListener((tabId) => tabInfoCache.delete(tabId));
 
+// Chrome fires onReplaced when a prerendered/prefetched tab swaps into
+// the visible tab slot — no onRemoved/onCreated pair is emitted. Without
+// this handler the cache would hold a stale entry for the dead tabId
+// and miss the new one. Detection data for the dead tabId is dropped
+// because the content script instance died with it.
+chrome.tabs.onReplaced.addListener((addedTabId, removedTabId) => {
+  tabInfoCache.delete(removedTabId);
+  delete tabData[removedTabId];
+  dirtyTabs.add(removedTabId);
+  if (!saveTimer) saveTimer = setTimeout(flushDirty, SAVE_DEBOUNCE);
+  chrome.tabs.get(addedTabId).then((tab) => {
+    tabInfoCache.set(addedTabId, {
+      title: tab.title || "Unknown",
+      url: tab.url || "",
+      favIconUrl: tab.favIconUrl || "",
+    });
+  }).catch(() => {});
+});
+
 async function getTabsWithData() {
   const tabIds = Object.keys(tabData).map(Number).filter(id => {
     return tabData[id] && tabData[id].detections.length > 0;

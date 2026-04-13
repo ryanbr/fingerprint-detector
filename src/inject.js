@@ -80,6 +80,18 @@ import { register as behavior } from './hooks/behavior.js';
     });
   }
 
+  // Drain the buffer on page teardown so events queued during the 2s
+  // hidden-tab window (or a 250ms foreground window) don't get lost on
+  // navigation or tab close. pagehide fires before unload, is bfcache-
+  // compatible, and works in both main and iframe contexts.
+  window.addEventListener("pagehide", () => {
+    if (eventBatch.length > 0) {
+      clearTimeout(flushTimer);
+      flushTimer = 0;
+      flushBatch();
+    }
+  });
+
   // ── Mute state (synced from extension storage via bridge) ─────────────
   const mutedMethodsSet = new Set();
   const mutedCategoriesSet = new Set();

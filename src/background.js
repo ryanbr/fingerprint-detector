@@ -295,129 +295,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       return true;
     }
   }
-
-  if (msg.type === "get-tabs-with-data") {
-    getTabsWithData().then(sendResponse);
-    return true;
-  }
 });
-
-// ── Tab info cache (event-driven, no polling) ────────────────────────
-// We maintain a cache of tab info that's kept fresh via chrome.tabs events
-// instead of re-fetching on every popup poll. This means getTabsWithData()
-// is an O(N) in-memory iteration with zero IPC calls in the steady state.
-const tabInfoCache = new Map(); // tabId -> { title, url, favIconUrl }
-
-// Seed the cache from a single chrome.tabs.query() — a single IPC that
-// returns info for all tabs at once. Much cheaper than N individual
-// chrome.tabs.get() calls.
-function seedTabInfoCache() {
-  chrome.tabs.query({}, (tabs) => {
-    if (chrome.runtime.lastError) return;
-    for (const tab of tabs) {
-      tabInfoCache.set(tab.id, {
-        title: tab.title || "Unknown",
-        url: tab.url || "",
-        favIconUrl: tab.favIconUrl || "",
-      });
-    }
-  });
-}
-seedTabInfoCache();
-
-// Keep cache fresh via tab events — fires when title/URL/favicon changes
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (!changeInfo.title && !changeInfo.url && !changeInfo.favIconUrl) return;
-  const existing = tabInfoCache.get(tabId) || {};
-  tabInfoCache.set(tabId, {
-    title: tab.title || existing.title || "Unknown",
-    url: tab.url || existing.url || "",
-    favIconUrl: tab.favIconUrl || existing.favIconUrl || "",
-  });
-});
-
-// New tab created — add to cache
-chrome.tabs.onCreated.addListener((tab) => {
-  tabInfoCache.set(tab.id, {
-    title: tab.title || "Unknown",
-    url: tab.url || "",
-    favIconUrl: tab.favIconUrl || "",
-  });
-});
-
-// Evict cache entry when a tab is removed
-chrome.tabs.onRemoved.addListener((tabId) => tabInfoCache.delete(tabId));
-
-// Chrome fires onReplaced when a prerendered/prefetched tab swaps into
-// the visible tab slot — no onRemoved/onCreated pair is emitted. Without
-// this handler the cache would hold a stale entry for the dead tabId
-// and miss the new one. Detection data for the dead tabId is dropped
-// because the content script instance died with it.
-chrome.tabs.onReplaced.addListener((addedTabId, removedTabId) => {
-  tabInfoCache.delete(removedTabId);
-  delete tabData[removedTabId];
-  dirtyTabs.add(removedTabId);
-  if (!saveTimer) saveTimer = setTimeout(flushDirty, SAVE_DEBOUNCE);
-  chrome.tabs.get(addedTabId).then((tab) => {
-    tabInfoCache.set(addedTabId, {
-      title: tab.title || "Unknown",
-      url: tab.url || "",
-      favIconUrl: tab.favIconUrl || "",
-    });
-  }).catch(() => {});
-});
-
-async function getTabsWithData() {
-  const tabIds = Object.keys(tabData).map(Number).filter(id => {
-    return tabData[id] && tabData[id].detections.length > 0;
-  });
-
-  const results = [];
-  const missingIds = [];
-
-  for (const id of tabIds) {
-    const info = tabInfoCache.get(id);
-    if (info) {
-      results.push({
-        tabId: id,
-        title: info.title,
-        url: info.url,
-        favIconUrl: info.favIconUrl,
-        detectionCount: tabData[id].detections.length,
-        categoryCount: Object.keys(tabData[id].categories).length,
-      });
-    } else {
-      missingIds.push(id);
-    }
-  }
-
-  // Fetch any tabs we don't have cached yet (rare — only new tabs)
-  if (missingIds.length > 0) {
-    await Promise.all(missingIds.map(async (id) => {
-      try {
-        const tab = await chrome.tabs.get(id);
-        const info = {
-          title: tab.title || "Unknown",
-          url: tab.url || "",
-          favIconUrl: tab.favIconUrl || "",
-        };
-        tabInfoCache.set(id, info);
-        results.push({
-          tabId: id,
-          title: info.title,
-          url: info.url,
-          favIconUrl: info.favIconUrl,
-          detectionCount: tabData[id].detections.length,
-          categoryCount: Object.keys(tabData[id].categories).length,
-        });
-      } catch {
-        // Tab no longer exists
-      }
-    }));
-  }
-
-  return results;
-}
 
 // ── Badge ─────────────────────────────────────────────────────────────
 function updateBadge(tabId, data) {
@@ -444,4 +322,14 @@ chrome.tabs.onRemoved.addListener((tabId) => {
   delete tabData[tabId];
   popupPorts.delete(tabId);
   markDirty(tabId);
+});
+
+// Chrome fires onReplaced when a prerendered/prefetched tab swaps into
+// the visible tab slot — no onRemoved/onCreated pair is emitted.
+// Clear tabData for the dead tabId so we don't leak state; detection
+// data for the old tab's content script instance is gone with it.
+chrome.tabs.onReplaced.addListener((_addedTabId, removedTabId) => {
+  delete tabData[removedTabId];
+  popupPorts.delete(removedTabId);
+  markDirty(removedTabId);
 });

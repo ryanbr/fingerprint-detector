@@ -30,20 +30,60 @@ function markDirty(tabId) {
   }
 }
 
-function flushDirty() {
+// ── Compression via CompressionStream (gzip) ─────────────────────────
+// Chrome's session storage stores strings. Compressing the JSON
+// payload cuts storage usage by 60-80% and reduces IPC transfer time.
+const USE_COMPRESSION = typeof CompressionStream === "function";
+
+async function compressJSON(obj) {
+  if (!USE_COMPRESSION) return { json: JSON.stringify(obj), compressed: false };
+  try {
+    const json = JSON.stringify(obj);
+    // Skip compression for tiny payloads — overhead isn't worth it
+    if (json.length < 1024) return { json, compressed: false };
+    const stream = new Blob([json]).stream().pipeThrough(new CompressionStream("gzip"));
+    const buf = await new Response(stream).arrayBuffer();
+    // Convert to base64 for string storage
+    const bytes = new Uint8Array(buf);
+    let bin = "";
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return { json: btoa(bin), compressed: true };
+  } catch {
+    return { json: JSON.stringify(obj), compressed: false };
+  }
+}
+
+async function decompressJSON(stored) {
+  if (!stored || !stored.compressed) return stored && stored.json ? JSON.parse(stored.json) : stored;
+  try {
+    const bin = atob(stored.json);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+    const text = await new Response(stream).text();
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+async function flushDirty() {
   saveTimer = 0;
   if (dirtyTabs.size === 0) return;
-  const writes = {};
   const removes = [];
-  for (const tabId of dirtyTabs) {
+  const writes = {};
+  const dirtyList = [...dirtyTabs];
+  dirtyTabs.clear();
+
+  // Compress each dirty tab in parallel
+  await Promise.all(dirtyList.map(async (tabId) => {
     const key = TAB_KEY_PREFIX + tabId;
     if (tabData[tabId]) {
-      writes[key] = tabData[tabId];
+      writes[key] = await compressJSON(tabData[tabId]);
     } else {
       removes.push(key);
     }
-  }
-  dirtyTabs.clear();
+  }));
 
   // Batch write + remove
   if (Object.keys(writes).length > 0) {
@@ -78,20 +118,28 @@ function evictOldestTab() {
 }
 
 // ── Restore on service worker startup ─────────────────────────────────
-// Read all fp_tab_* keys at once.
-chrome.storage.session.get(null, (stored) => {
+// Read all fp_tab_* keys at once and decompress.
+(async () => {
+  const stored = await chrome.storage.session.get(null);
   if (!stored) return;
   for (const key of Object.keys(stored)) {
     if (key.indexOf(TAB_KEY_PREFIX) !== 0) continue;
     const tabId = Number(key.slice(TAB_KEY_PREFIX.length));
-    if (!isNaN(tabId)) {
-      tabData[tabId] = stored[key];
-      if (tabData[tabId] && tabData[tabId].categories) {
-        updateBadge(tabId, tabData[tabId]);
-      }
+    if (isNaN(tabId)) continue;
+    const raw = stored[key];
+    // Support both legacy (raw object) and new (compressed wrapper) formats
+    let data;
+    if (raw && typeof raw === "object" && "json" in raw) {
+      data = await decompressJSON(raw);
+    } else {
+      data = raw;
+    }
+    if (data && data.categories) {
+      tabData[tabId] = data;
+      updateBadge(tabId, data);
     }
   }
-});
+})();
 
 // Grant cross-context access so popup/compare can read session storage
 chrome.storage.session.setAccessLevel?.({

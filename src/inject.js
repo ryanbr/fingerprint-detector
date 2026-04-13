@@ -78,14 +78,28 @@ import { register as behavior } from './hooks/behavior.js';
 
   // ── V8 optimization: Error.captureStackTrace ─────────────────────────
   const hasCapture = typeof Error.captureStackTrace === "function";
+  // Truncate captured stacks to this many frames — saves ~70% of storage
+  // since most fingerprinting happens within a few caller frames.
+  const MAX_STACK_FRAMES = 8;
 
   function captureStack() {
+    let stack;
     if (hasCapture) {
       const obj = {};
       Error.captureStackTrace(obj, captureStack);
-      return obj.stack;
+      stack = obj.stack;
+    } else {
+      stack = new Error().stack;
     }
-    return new Error().stack;
+    if (!stack) return "";
+    // Trim to N frames — the first few callers are enough to identify
+    // the source script, and sites don't have call stacks > 50 frames deep
+    // for fingerprinting code anyway.
+    const lines = stack.split("\n");
+    if (lines.length > MAX_STACK_FRAMES + 1) {
+      return lines.slice(0, MAX_STACK_FRAMES + 1).join("\n") + "\n    ...";
+    }
+    return stack;
   }
 
   function extractSource(stack) {

@@ -290,7 +290,9 @@ function muteKey(d) {
 }
 
 function isMuted(d) {
-  return mutedCategories.has(d.category) || mutedMethods.has(muteKey(d));
+  if (mutedCategories.has(d.category)) return true;
+  // _muteKey is precomputed in storeLogEntry; fall back for safety.
+  return mutedMethods.has(d._muteKey || muteKey(d));
 }
 
 function rebuildEffectiveMutes() {
@@ -394,6 +396,20 @@ logPause.addEventListener("click", () => {
 
 // ── Batch add ─────────────────────────────────────────────────────────
 function storeLogEntry(d) {
+  // Precompute derived fields once at store time so the filter loop
+  // and buildLogNode don't have to recompute them on every render /
+  // refilter keystroke:
+  //   _hay     — lowercased haystack used by matchesFilter
+  //   _muteKey — string used by isMuted and the mute button
+  // On a 3000-entry buffer, refilter-on-keystroke would otherwise
+  // rebuild these strings 3000 times per keystroke.
+  if (!d._hay) {
+    d._hay = (d.category + " " + d.method + " " + (d.detail || "") + " " +
+              (d.source || "") + " " + (d.frameUrl || "")).toLowerCase();
+  }
+  if (!d._muteKey) {
+    d._muteKey = muteKey(d);
+  }
   logEntries.push(d);
   if (logEntries.length > MAX_LOG_ENTRIES) logEntries.shift();
 }
@@ -476,7 +492,10 @@ function updateCounter() {
 }
 
 function matchesFilter(d, filter) {
-  const hay = `${d.category} ${d.method} ${d.detail || ""} ${d.source || ""} ${d.frameUrl || ""}`.toLowerCase();
+  // _hay is precomputed in storeLogEntry; fall back for any entry
+  // that hasn't gone through storeLogEntry yet (shouldn't happen).
+  const hay = d._hay || (d._hay = (d.category + " " + d.method + " " +
+    (d.detail || "") + " " + (d.source || "") + " " + (d.frameUrl || "")).toLowerCase());
   return hay.includes(filter);
 }
 
@@ -484,7 +503,7 @@ function buildLogNode(d, parent) {
   const meta = CATEGORY_META[d.category];
   const icon = meta?.icon || "?";
   const iframeTag = d.isIframe ? ` <span class="iframe-tag">IFRAME</span>` : "";
-  const mk = muteKey(d);
+  const mk = d._muteKey || muteKey(d);
 
   const row = document.createElement("div");
   row.className = "log-entry";

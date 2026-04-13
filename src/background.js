@@ -140,6 +140,11 @@ function evictOldestTab() {
     }
     if (!data || !data.categories) continue;
 
+    // Backfill categoryCount for legacy snapshots that predate the field
+    if (typeof data.categoryCount !== "number") {
+      data.categoryCount = Object.keys(data.categories).length;
+    }
+
     const live = tabData[tabId];
     if (!live) {
       // Common case: no detections arrived during restore — just adopt.
@@ -164,7 +169,11 @@ function evictOldestTab() {
         }
         mergedCategories[cat] = combined;
       }
-      tabData[tabId] = { detections: mergedDetections, categories: mergedCategories };
+      tabData[tabId] = {
+        detections: mergedDetections,
+        categories: mergedCategories,
+        categoryCount: catKeys.size,
+      };
       // The merged state differs from the stored snapshot — mark dirty
       // so the next flush persists it.
       markDirty(tabId);
@@ -225,7 +234,9 @@ function storeDetection(tabId, d) {
     if (tabCount >= MAX_TOTAL_TABS_STORED) {
       evictOldestTab();
     }
-    tabData[tabId] = { detections: [], categories: {} };
+    // categoryCount is tracked incrementally so updateBadge doesn't
+    // have to Object.keys(categories).length on every detection.
+    tabData[tabId] = { detections: [], categories: {}, categoryCount: 0 };
   }
   const tab = tabData[tabId];
   if (tab.detections.length < MAX_DETECTIONS_PER_TAB) {
@@ -233,6 +244,7 @@ function storeDetection(tabId, d) {
   }
   if (!tab.categories[d.category]) {
     tab.categories[d.category] = [];
+    tab.categoryCount++;
   }
   const catArr = tab.categories[d.category];
   if (catArr.length < MAX_PER_CATEGORY) {
@@ -300,7 +312,14 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 // ── Badge ─────────────────────────────────────────────────────────────
 function updateBadge(tabId, data) {
   if (!data) return;
-  const count = Object.keys(data.categories || {}).length;
+  // Use the incrementally-tracked categoryCount instead of
+  // Object.keys(categories).length — this runs on every detection
+  // message, so avoiding the O(N) count matters on busy sites.
+  // Fall back to Object.keys for legacy data restored from session
+  // storage that predates the categoryCount field.
+  const count = (typeof data.categoryCount === "number")
+    ? data.categoryCount
+    : Object.keys(data.categories || {}).length;
   const text = count > 0 ? String(count) : "";
   chrome.action.setBadgeText({ text, tabId }).catch(() => {});
   chrome.action.setBadgeBackgroundColor({

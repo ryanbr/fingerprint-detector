@@ -121,43 +121,49 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
       });
     }
 
-    // Hook element removal to detect create-check-remove cycle
-    const origRemoveChild = Node.prototype.removeChild;
-    Node.prototype.removeChild = function (child) {
-      const result = origRemoveChild.call(this, child);
-      if (child && child.nodeType === 1) {
+    // Track create-check-remove cycles via MutationObserver instead of
+    // wrapping Element.prototype.appendChild / Node.prototype.removeChild.
+    // The wraps put us in the call stack of every DOM mutation on the
+    // page, which caused Chrome console warnings from unrelated page
+    // code (insecure iframe sandbox attributes on engadget.com, etc.)
+    // to be attributed to dist/inject.js. MutationObserver callbacks
+    // run asynchronously after the native mutation completes, so our
+    // frame isn't on the stack when Chrome emits those warnings.
+    if (typeof MutationObserver !== "undefined") {
+      const observer = new MutationObserver((mutations) => {
+        if (burstReported) return;
         const now = Date.now();
         if (now - creationWindow > CREATION_WINDOW_MS) {
-          recentRemovals = 0;
           recentCreations = 0;
+          recentRemovals = 0;
           creationWindow = now;
         }
-        recentRemovals++;
-        // Detect create-check-remove pattern: many elements created and removed quickly
-        if (recentCreations >= CREATION_BURST_THRESHOLD && recentRemovals >= CREATION_BURST_THRESHOLD && !burstReported) {
+        for (let i = 0; i < mutations.length; i++) {
+          recentCreations += mutations[i].addedNodes.length;
+          recentRemovals += mutations[i].removedNodes.length;
+        }
+        if (recentCreations >= CREATION_BURST_THRESHOLD &&
+            recentRemovals >= CREATION_BURST_THRESHOLD &&
+            !burstReported) {
           burstReported = true;
           record("AdBlockDetect", "create-check-remove cycle",
             recentCreations + " elements created and " + recentRemovals +
             " removed in " + CREATION_WINDOW_MS + "ms (ad blocker fingerprinting)");
+          observer.disconnect();
         }
-      }
-      return result;
-    };
+      });
 
-    // Track element creation bursts (piggyback on existing createElement hook)
-    const origBodyAppend = Element.prototype.appendChild;
-    Element.prototype.appendChild = function (child) {
-      const result = origBodyAppend.call(this, child);
-      if (child && child.nodeType === 1 && (this === document.body || this.parentNode === document.body)) {
-        const now = Date.now();
-        if (now - creationWindow > CREATION_WINDOW_MS) {
-          recentCreations = 0;
-          recentRemovals = 0;
-          creationWindow = now;
+      // body may not exist at document_start — defer observation until it does
+      function startObserving() {
+        if (document.body) {
+          observer.observe(document.body, { childList: true, subtree: false });
         }
-        recentCreations++;
       }
-      return result;
-    };
+      if (document.body) {
+        startObserving();
+      } else {
+        document.addEventListener("DOMContentLoaded", startObserving, { once: true });
+      }
+    }
   }
 }

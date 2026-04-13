@@ -5,11 +5,86 @@
   <title>Fingerprint Detector — Compare</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* ── Theme: dark (default) ──────────────────────────── */
+    :root {
+      --bg: #1a1a2e;
+      --panel: #16213e;
+      --panel-2: #1a1a2e;
+      --border: #0f3460;
+      --border-soft: #0f346030;
+      --text: #e0e0e0;
+      --text-dim: #78909c;
+      --text-faint: #546e7a;
+      --accent: #e94560;
+      --accent-bright: #ef5350;
+      --link: #5c6bc0;
+      --chip-bg: #0f3460;
+      --chip-bg-soft: #78909c33;
+      --chip-text: #90a4ae;
+      --danger-bg: #e9456033;
+      --danger-bg-soft: #e9456022;
+      --danger-bg-strong: #e94560;
+      --danger-border: #e9456066;
+      --danger-text: #ffffff;
+      --danger-glow: #ff6b82;
+      --success: #43a047;
+      --success-bg: #43a04733;
+      --success-bg-soft: #43a04722;
+      --success-border: #43a04766;
+      --success-text: #ffffff;
+      --success-glow: #66bb6a;
+      --success-accent: #66bb6a;
+      --warning: #fb8c00;
+      --warning-bg: #fb8c0033;
+      --warning-text: #ffa726;
+      --shared-badge-bg: #37474f;
+      --drop-bg: #0a0a1a66;
+      --error-bg: #e5393533;
+    }
+
+    /* ── Theme: light ───────────────────────────────────── */
+    body.light {
+      --bg: #f5f5f8;
+      --panel: #ffffff;
+      --panel-2: #f0f2f7;
+      --border: #d0d4dc;
+      --border-soft: #d0d4dc60;
+      --text: #1a1a2e;
+      --text-dim: #5a6270;
+      --text-faint: #8a9099;
+      --accent: #c62147;
+      --accent-bright: #b71c3a;
+      --link: #3949ab;
+      --chip-bg: #e4e7ee;
+      --chip-bg-soft: #d0d4dc66;
+      --chip-text: #5a6270;
+      --danger-bg: #c6214722;
+      --danger-bg-soft: #c6214715;
+      --danger-bg-strong: #c62147;
+      --danger-border: #c6214766;
+      --danger-text: #ffffff;
+      --danger-glow: #e65577;
+      --success: #2e7d32;
+      --success-bg: #2e7d3222;
+      --success-bg-soft: #2e7d3215;
+      --success-border: #2e7d3266;
+      --success-text: #ffffff;
+      --success-glow: #4caf50;
+      --success-accent: #2e7d32;
+      --warning: #ed6c02;
+      --warning-bg: #ed6c0222;
+      --warning-text: #c05a00;
+      --shared-badge-bg: #d0d4dc;
+      --drop-bg: #f0f2f744;
+      --error-bg: #d32f2f22;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 13px;
-      color: #e0e0e0;
-      background: #1a1a2e;
+      color: var(--text);
+      background: var(--bg);
       min-height: 100vh;
     }
     code, .mono {
@@ -19,14 +94,28 @@
     /* Header */
     header {
       padding: 16px 24px;
-      background: #16213e;
-      border-bottom: 1px solid #0f3460;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       gap: 12px;
     }
-    header h1 { font-size: 18px; font-weight: 600; color: #e94560; }
-    header .subtitle { color: #78909c; font-size: 12px; margin-left: auto; }
+    header h1 { font-size: 18px; font-weight: 600; color: var(--accent); }
+    header .subtitle { color: var(--text-dim); font-size: 12px; margin-left: auto; margin-right: 12px; }
+    .theme-toggle {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .theme-toggle:hover { background: var(--panel-2); color: var(--text); }
+    .theme-toggle svg { width: 14px; height: 14px; }
 
     /* Two-column layout */
     .container {
@@ -40,8 +129,8 @@
     }
 
     .side {
-      background: #16213e;
-      border: 1px solid #0f3460;
+      background: var(--panel);
+      border: 1px solid var(--border);
       border-radius: 6px;
       overflow: hidden;
       display: flex;
@@ -50,20 +139,20 @@
     }
     .side-header {
       padding: 12px 16px;
-      background: #1a1a2e;
-      border-bottom: 1px solid #0f3460;
+      background: var(--panel-2);
+      border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       gap: 8px;
     }
     .side-header .label {
       font-size: 11px;
-      color: #78909c;
+      color: var(--text-dim);
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
     .side-header .site-url {
-      color: #e94560;
+      color: var(--accent);
       font-family: Consolas, "Liberation Mono", Menlo, monospace;
       font-size: 12px;
       flex: 1;
@@ -73,34 +162,34 @@
     }
     .side-header button {
       background: none;
-      border: 1px solid #0f3460;
-      color: #90a4ae;
+      border: 1px solid var(--border);
+      color: var(--chip-text);
       padding: 4px 10px;
       border-radius: 4px;
       font-size: 11px;
       cursor: pointer;
     }
-    .side-header button:hover { background: #0f3460; color: #e0e0e0; }
+    .side-header button:hover { background: var(--border); color: var(--text); }
 
     /* Drop zone */
     .dropzone {
       padding: 60px 20px;
       text-align: center;
-      color: #78909c;
-      border: 2px dashed #0f3460;
+      color: var(--text-dim);
+      border: 2px dashed var(--border);
       border-radius: 6px;
       margin: 16px;
       cursor: pointer;
       transition: all 0.2s;
     }
     .dropzone:hover, .dropzone.dragover {
-      border-color: #e94560;
-      background: #e9456011;
-      color: #e0e0e0;
+      border-color: var(--accent);
+      background: var(--accent)11;
+      color: var(--text);
     }
     .dropzone svg { margin-bottom: 12px; opacity: 0.5; }
     .dropzone p { margin: 4px 0; }
-    .dropzone .hint { font-size: 11px; color: #546e7a; }
+    .dropzone .hint { font-size: 11px; color: var(--text-faint); }
 
     /* Summary content */
     .summary-stats {
@@ -108,7 +197,7 @@
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
-      border-bottom: 1px solid #0f3460;
+      border-bottom: 1px solid var(--border);
     }
     .badge {
       padding: 4px 10px;
@@ -116,10 +205,10 @@
       font-size: 11px;
       font-weight: 600;
     }
-    .badge.high   { background: #e5393533; color: #ef5350; }
-    .badge.medium { background: #fb8c0033; color: #ffa726; }
-    .badge.low    { background: #43a04733; color: #66bb6a; }
-    .badge.none   { background: #78909c33; color: #90a4ae; }
+    .badge.high   { background: var(--error-bg); color: var(--accent-bright); }
+    .badge.medium { background: var(--warning-bg); color: var(--warning-text); }
+    .badge.low    { background: var(--success-bg); color: var(--success-accent); }
+    .badge.none   { background: var(--chip-bg-soft); color: var(--chip-text); }
 
     .categories {
       padding: 0;
@@ -128,7 +217,7 @@
     }
     .category-row {
       padding: 0;
-      border-bottom: 1px solid #0f346030;
+      border-bottom: 1px solid var(--border-soft);
     }
     .category-row .category-main {
       padding: 10px 16px;
@@ -152,8 +241,8 @@
       font-size: 12px;
     }
     .category-row .count {
-      background: #0f3460;
-      color: #90a4ae;
+      background: var(--border);
+      color: var(--chip-text);
       padding: 2px 8px;
       border-radius: 10px;
       font-size: 11px;
@@ -163,7 +252,7 @@
     .methods-list {
       display: none;
       padding: 0 16px 8px 48px;
-      background: #0a0a1a66;
+      background: var(--drop-bg);
     }
     .container.show-methods .methods-list { display: block; }
     .method-row {
@@ -177,29 +266,29 @@
     }
     .method-row .method-name {
       font-family: Consolas, "Liberation Mono", Menlo, monospace;
-      color: #e94560;
+      color: var(--accent);
       white-space: nowrap;
     }
     .method-row .method-detail {
-      color: #78909c;
+      color: var(--text-dim);
       font-size: 10px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
     .method-row.method-only-left {
-      background: #e9456022;
-      border-left-color: #e94560;
+      background: var(--danger-bg-soft);
+      border-left-color: var(--accent);
     }
     .method-row.method-only-right {
-      background: #43a04722;
-      border-left-color: #43a047;
+      background: var(--success-bg-soft);
+      border-left-color: var(--success);
     }
     .method-row.method-both {
       opacity: 0.55;
     }
-    .method-row.only-left { background: #e9456022; border-left-color: #e94560; }
-    .method-row.only-right { background: #43a04722; border-left-color: #43a047; }
+    .method-row.only-left { background: var(--danger-bg-soft); border-left-color: var(--accent); }
+    .method-row.only-right { background: var(--success-bg-soft); border-left-color: var(--success); }
 
     /* Hide shared method rows in diffs-only mode */
     .container.diffs-only .method-row.method-both {
@@ -208,19 +297,19 @@
 
     /* Diff highlights */
     .category-row.only-left {
-      background: #e9456033;
-      border-left: 4px solid #e94560;
+      background: var(--danger-bg);
+      border-left: 4px solid var(--accent);
     }
     .category-row.only-right {
-      background: #43a04733;
-      border-left: 4px solid #43a047;
+      background: var(--success-bg);
+      border-left: 4px solid var(--success);
     }
     .category-row.both {
       background: transparent;
       border-left: 4px solid transparent;
       opacity: 0.55;
     }
-    .category-row.both .name { color: #90a4ae; }
+    .category-row.both .name { color: var(--chip-text); }
     .diff-label {
       font-size: 9px;
       font-weight: 700;
@@ -230,25 +319,25 @@
       text-transform: uppercase;
     }
     .diff-label.unique-left {
-      background: #e94560;
-      color: #ffffff;
-      box-shadow: 0 0 0 1px #ff6b82;
+      background: var(--accent);
+      color: var(--danger-text);
+      box-shadow: 0 0 0 1px var(--danger-glow);
     }
     .diff-label.unique-right {
-      background: #43a047;
-      color: #ffffff;
-      box-shadow: 0 0 0 1px #66bb6a;
+      background: var(--success);
+      color: var(--danger-text);
+      box-shadow: 0 0 0 1px var(--success-accent);
     }
     .diff-label.shared {
-      background: #37474f;
-      color: #78909c;
+      background: var(--shared-badge-bg);
+      color: var(--text-dim);
     }
 
     /* Summary / diff bar */
     .diff-summary {
       grid-column: 1 / -1;
-      background: #16213e;
-      border: 1px solid #0f3460;
+      background: var(--panel);
+      border: 1px solid var(--border);
       border-radius: 6px;
       padding: 16px;
       display: flex;
@@ -264,16 +353,16 @@
     .diff-summary .stat-label {
       font-size: 10px;
       text-transform: uppercase;
-      color: #78909c;
+      color: var(--text-dim);
       letter-spacing: 0.5px;
     }
     .diff-summary .stat-value {
       font-size: 20px;
       font-weight: 600;
-      color: #e0e0e0;
+      color: var(--text);
     }
-    .diff-summary .stat-value.high { color: #ef5350; }
-    .diff-summary .stat-value.low { color: #66bb6a; }
+    .diff-summary .stat-value.high { color: var(--accent-bright); }
+    .diff-summary .stat-value.low { color: var(--success-accent); }
     .diff-summary .actions {
       margin-left: auto;
       display: flex;
@@ -285,14 +374,14 @@
       align-items: center;
       gap: 6px;
       font-size: 12px;
-      color: #90a4ae;
+      color: var(--chip-text);
       cursor: pointer;
       user-select: none;
     }
     .diff-summary .actions button {
-      background: #e9456022;
-      border: 1px solid #e9456066;
-      color: #e94560;
+      background: var(--danger-bg-soft);
+      border: 1px solid var(--danger-border);
+      color: var(--accent);
       padding: 6px 14px;
       border-radius: 4px;
       font-size: 12px;
@@ -300,8 +389,8 @@
       cursor: pointer;
     }
     .diff-summary .actions button:hover {
-      background: #e9456033;
-      color: #ef5350;
+      background: var(--danger-bg);
+      color: var(--accent-bright);
     }
 
     /* Hide shared rows when diffs-only is enabled */
@@ -313,17 +402,17 @@
     /* Domain table */
     .domains-section {
       grid-column: 1 / -1;
-      background: #16213e;
-      border: 1px solid #0f3460;
+      background: var(--panel);
+      border: 1px solid var(--border);
       border-radius: 6px;
       overflow: hidden;
     }
     .domains-section h2 {
       padding: 12px 16px;
       font-size: 13px;
-      color: #e94560;
-      background: #1a1a2e;
-      border-bottom: 1px solid #0f3460;
+      color: var(--accent);
+      background: var(--panel-2);
+      border-bottom: 1px solid var(--border);
     }
     .domains-table {
       width: 100%;
@@ -333,35 +422,35 @@
     .domains-table th {
       text-align: left;
       padding: 8px 12px;
-      color: #78909c;
+      color: var(--text-dim);
       font-weight: 600;
       font-size: 10px;
       text-transform: uppercase;
-      border-bottom: 1px solid #0f3460;
+      border-bottom: 1px solid var(--border);
     }
     .domains-table td {
       padding: 8px 12px;
-      border-bottom: 1px solid #0f346030;
+      border-bottom: 1px solid var(--border-soft);
     }
     .domains-table tr.only-left td {
-      background: #e9456022;
-      border-left: 3px solid #e94560;
+      background: var(--danger-bg-soft);
+      border-left: 3px solid var(--accent);
     }
-    .domains-table tr.only-left td:first-child { border-left: 3px solid #e94560; }
+    .domains-table tr.only-left td:first-child { border-left: 3px solid var(--accent); }
     .domains-table tr.only-right td {
-      background: #43a04722;
-      border-left: 3px solid #43a047;
+      background: var(--success-bg-soft);
+      border-left: 3px solid var(--success);
     }
-    .domains-table tr.only-right td:first-child { border-left: 3px solid #43a047; }
+    .domains-table tr.only-right td:first-child { border-left: 3px solid var(--success); }
     .domains-table tr.both td { opacity: 0.55; }
     .domains-table .domain-name {
       font-family: Consolas, "Liberation Mono", Menlo, monospace;
-      color: #5c6bc0;
+      color: var(--link);
     }
     .domains-table .third-party {
       font-size: 9px;
-      background: #e9456033;
-      color: #ef5350;
+      background: var(--danger-bg);
+      color: var(--accent-bright);
       padding: 1px 6px;
       border-radius: 3px;
       margin-left: 6px;
@@ -370,28 +459,45 @@
     .placeholder {
       padding: 60px 20px;
       text-align: center;
-      color: #546e7a;
+      color: var(--text-faint);
     }
 
     footer {
       padding: 12px 24px;
       text-align: center;
       font-size: 11px;
-      color: #546e7a;
-      border-top: 1px solid #0f3460;
+      color: var(--text-faint);
+      border-top: 1px solid var(--border);
       margin-top: 24px;
     }
-    footer a { color: #78909c; text-decoration: none; }
-    footer a:hover { color: #e94560; }
+    footer a { color: var(--text-dim); text-decoration: none; }
+    footer a:hover { color: var(--accent); }
   </style>
 </head>
 <body>
   <header>
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e94560" stroke-width="2">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2">
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
     </svg>
     <h1>Fingerprint Detector — Compare</h1>
     <span class="subtitle">Compare fingerprinting between two sites</span>
+    <button class="theme-toggle" id="theme-toggle" title="Toggle light/dark mode">
+      <svg id="theme-icon-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+      <svg id="theme-icon-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+        <circle cx="12" cy="12" r="5"/>
+        <line x1="12" y1="1" x2="12" y2="3"/>
+        <line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="3" y2="12"/>
+        <line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+      <span id="theme-label">Light</span>
+    </button>
   </header>
 
   <div class="container">

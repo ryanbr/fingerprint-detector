@@ -1,5 +1,25 @@
 // compare.js — Compare two fingerprint summaries side-by-side
 
+// ── Theme toggle ──────────────────────────────────────────────────────
+function applyTheme(theme) {
+  const isLight = theme === "light";
+  document.body.classList.toggle("light", isLight);
+  document.getElementById("theme-icon-dark").style.display = isLight ? "none" : "";
+  document.getElementById("theme-icon-light").style.display = isLight ? "" : "none";
+  document.getElementById("theme-label").textContent = isLight ? "Dark" : "Light";
+}
+
+chrome.storage.local.get(["compareTheme"], (stored) => {
+  applyTheme(stored.compareTheme || "dark");
+});
+
+document.getElementById("theme-toggle").addEventListener("click", () => {
+  const isLight = document.body.classList.contains("light");
+  const next = isLight ? "dark" : "light";
+  applyTheme(next);
+  chrome.storage.local.set({ compareTheme: next });
+});
+
 const CATEGORY_META = {
   Canvas:         { icon: "\u{1F3A8}", color: "#e94560", risk: "high" },
   WebGL:          { icon: "\u{1F53A}", color: "#e94560", risk: "high" },

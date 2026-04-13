@@ -118,7 +118,11 @@ function evictOldestTab() {
 }
 
 // ── Restore on service worker startup ─────────────────────────────────
-// Read all fp_tab_* keys at once and decompress.
+// Read all fp_tab_* keys at once and decompress. Message handlers are
+// registered synchronously below and will start receiving detections
+// the instant the SW wakes — before this async restore finishes. If a
+// detection arrives during the restore window it creates a fresh
+// tabData entry; we must merge (not overwrite) so those events survive.
 (async () => {
   const stored = await chrome.storage.session.get(null);
   if (!stored) return;
@@ -134,10 +138,38 @@ function evictOldestTab() {
     } else {
       data = raw;
     }
-    if (data && data.categories) {
+    if (!data || !data.categories) continue;
+
+    const live = tabData[tabId];
+    if (!live) {
+      // Common case: no detections arrived during restore — just adopt.
       tabData[tabId] = data;
-      updateBadge(tabId, data);
+    } else {
+      // A detection arrived during the restore await. Merge: restored
+      // data is older, so prepend it to the live detections. Cap at
+      // MAX_DETECTIONS_PER_TAB / MAX_PER_CATEGORY.
+      const mergedDetections = data.detections.concat(live.detections);
+      if (mergedDetections.length > MAX_DETECTIONS_PER_TAB) {
+        mergedDetections.splice(0, mergedDetections.length - MAX_DETECTIONS_PER_TAB);
+      }
+      const mergedCategories = {};
+      const catKeys = new Set(Object.keys(data.categories));
+      for (const k of Object.keys(live.categories)) catKeys.add(k);
+      for (const cat of catKeys) {
+        const a = data.categories[cat] || [];
+        const b = live.categories[cat] || [];
+        const combined = a.concat(b);
+        if (combined.length > MAX_PER_CATEGORY) {
+          combined.splice(0, combined.length - MAX_PER_CATEGORY);
+        }
+        mergedCategories[cat] = combined;
+      }
+      tabData[tabId] = { detections: mergedDetections, categories: mergedCategories };
+      // The merged state differs from the stored snapshot — mark dirty
+      // so the next flush persists it.
+      markDirty(tabId);
     }
+    updateBadge(tabId, tabData[tabId]);
   }
 })();
 

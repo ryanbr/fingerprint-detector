@@ -422,28 +422,30 @@ Behavioral fingerprinting captures user interaction patterns — mouse movement,
 | Canvas | 🔴 High | 16 |
 | WebGL / WebGL2 | 🔴 High | 15 |
 | Audio | 🔴 High | 19 |
-| Navigator | 🟠 Medium | 30+ |
+| Navigator / User-Agent | 🟠 Medium | 30+ |
 | Client Hints (Sec-CH-UA) | 🔴 High | 7 |
-| Privacy / Headless | 🔴 High | 13 |
+| Privacy / Headless / DNT / GPC | 🔴 High | 15+ |
 | Screen | 🟢 Low | 6 |
 | Fonts | 🔴 High | 12 |
 | WebRTC | 🔴 High | 8 |
 | WebSocket | 🟠 Medium | 4 |
-| Storage / IndexedDB / Cache | 🟢 Low | 18 |
+| Storage / IndexedDB / Cache / Cookies | 🟢 Low | 20+ |
 | Timezone / Intl | 🟠 Medium | 13 |
-| Media Devices / Speech | 🟠 Medium | 9 |
-| Media Queries | 🟠 Medium | 1 |
+| Media Devices / Speech Synthesis | 🟠 Medium | 9 |
+| Media Queries (matchMedia) | 🟠 Medium | 1 |
 | Keyboard | 🔴 High | 1 |
-| Hardware APIs | 🔴 High | 8 |
+| Hardware APIs (Bluetooth/USB/Serial/HID) | 🔴 High | 8 |
 | Sensors | 🔴 High | 8 |
 | WebGPU | 🔴 High | 3 |
 | Math / Architecture | 🔴 High | 16 |
 | Timing | 🟠 Medium | 9 |
-| Touch / Network | 🟢 Low | 6 |
+| Touch | 🟢 Low | 2 |
+| Network Information | 🟢 Low | 4 |
 | Vendor Detection | 🟠 Medium | 17 |
 | Ad Block Detection | 🔴 High | 4 |
 | Extension Detection | 🔴 High | 7 |
-| Permissions / Credentials | 🟠 Medium | 6 |
+| Permissions / Credentials / Apple Pay | 🟠 Medium | 6 |
 | Client Rects | 🟠 Medium | 2 |
+| **Behavior (mouse/keyboard/touch/pointer)** | 🔴 High | 40+ |
 
-**Total: 260+ individual fingerprinting hooks** across 36 categories.
+**Total: 300+ individual fingerprinting hooks** across 37 categories.

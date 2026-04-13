@@ -41,12 +41,31 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
   // Hook getContext to detect canvas context creation
   {
     const origGetContext = HTMLCanvasElement.prototype.getContext;
-    HTMLCanvasElement.prototype.getContext = function (type) {
+    // Separate fire-once flag so the attrs log isn't blocked by the
+    // plain "getContext('webgl')" recordHot
+    let webglAttrsLogged = false;
+    HTMLCanvasElement.prototype.getContext = function (type, attrs) {
       if (typeof type === "string") {
         if (type === "2d") {
           recordHot("Canvas", "getContext('2d')", "2d");
         } else if (type === "webgl" || type === "webgl2" || type === "experimental-webgl") {
           recordHot("WebGL", "getContext('" + type + "')", type);
+          // Explicit context attributes reveal GPU-profile probing:
+          // { powerPreference: "high-performance" } asks the browser
+          // to hand back the discrete GPU and is a strong fingerprint
+          // signal. Log once per page with whatever attrs were passed.
+          if (!webglAttrsLogged && attrs && typeof attrs === "object") {
+            webglAttrsLogged = true;
+            const parts = [];
+            if (attrs.powerPreference) parts.push("powerPreference=" + attrs.powerPreference);
+            if (attrs.antialias !== undefined) parts.push("antialias=" + attrs.antialias);
+            if (attrs.preserveDrawingBuffer) parts.push("preserveDrawingBuffer=true");
+            if (attrs.failIfMajorPerformanceCaveat) parts.push("failIfMajorPerformanceCaveat=true");
+            if (attrs.desynchronized) parts.push("desynchronized=true");
+            if (parts.length > 0) {
+              record("WebGL", "getContext attrs", parts.join(", "));
+            }
+          }
         }
       }
       return origGetContext.apply(this, arguments);

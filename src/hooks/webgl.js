@@ -10,6 +10,10 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
     hookMethod(proto, "getExtension", "WebGL", label + ".getExtension");
     hookMethod(proto, "getShaderPrecisionFormat", "WebGL", label + ".getShaderPrecisionFormat");
 
+    // Context attributes — reveal antialias support, powerPreference,
+    // preserveDrawingBuffer, etc. High-value GPU profile signal.
+    hookMethod(proto, "getContextAttributes", "WebGL", label + ".getContextAttributes");
+
     // Pixel readback — used for WebGL canvas fingerprint (GPU-rendered image)
     hookMethod(proto, "readPixels", "WebGL", label + ".readPixels");
 
@@ -18,9 +22,11 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
     hookMethodHot(proto, "shaderSource", "WebGL", label + ".shaderSource");
     hookMethodHot(proto, "compileShader", "WebGL", label + ".compileShader");
     hookMethodHot(proto, "getShaderInfoLog", "WebGL", label + ".getShaderInfoLog");
+    hookMethodHot(proto, "getShaderParameter", "WebGL", label + ".getShaderParameter");
     hookMethodHot(proto, "createProgram", "WebGL", label + ".createProgram");
     hookMethodHot(proto, "linkProgram", "WebGL", label + ".linkProgram");
     hookMethodHot(proto, "getProgramInfoLog", "WebGL", label + ".getProgramInfoLog");
+    hookMethodHot(proto, "getProgramParameter", "WebGL", label + ".getProgramParameter");
 
     // Draw calls — combined with readPixels, produces a GPU-specific image
     hookMethodHot(proto, "drawArrays", "WebGL", label + ".drawArrays");

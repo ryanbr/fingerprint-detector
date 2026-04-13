@@ -13,21 +13,24 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
   }
 
   // ── 24. Bluetooth / USB / Serial / HID (hardware enumeration) ────────
+  // All of these return promises and are commonly called via destructured
+  // references — use access-based hooks so our wrapper isn't in the
+  // rejection stack on "Illegal invocation".
   if (typeof Bluetooth !== "undefined" && Bluetooth.prototype.requestDevice) {
-    hookMethod(Bluetooth.prototype, "requestDevice", "Hardware", "bluetooth.requestDevice");
-    hookMethod(Bluetooth.prototype, "getDevices", "Hardware", "bluetooth.getDevices");
+    hookMethodViaAccess(Bluetooth.prototype, "requestDevice", "Hardware", "bluetooth.requestDevice");
+    hookMethodViaAccess(Bluetooth.prototype, "getDevices", "Hardware", "bluetooth.getDevices");
   }
   if (typeof USB !== "undefined") {
-    hookMethod(USB.prototype, "getDevices", "Hardware", "usb.getDevices");
-    hookMethod(USB.prototype, "requestDevice", "Hardware", "usb.requestDevice");
+    hookMethodViaAccess(USB.prototype, "getDevices", "Hardware", "usb.getDevices");
+    hookMethodViaAccess(USB.prototype, "requestDevice", "Hardware", "usb.requestDevice");
   }
   if (typeof Serial !== "undefined") {
-    hookMethod(Serial.prototype, "getPorts", "Hardware", "serial.getPorts");
-    hookMethod(Serial.prototype, "requestPort", "Hardware", "serial.requestPort");
+    hookMethodViaAccess(Serial.prototype, "getPorts", "Hardware", "serial.getPorts");
+    hookMethodViaAccess(Serial.prototype, "requestPort", "Hardware", "serial.requestPort");
   }
   if (typeof HID !== "undefined") {
-    hookMethod(HID.prototype, "getDevices", "Hardware", "hid.getDevices");
-    hookMethod(HID.prototype, "requestDevice", "Hardware", "hid.requestDevice");
+    hookMethodViaAccess(HID.prototype, "getDevices", "Hardware", "hid.getDevices");
+    hookMethodViaAccess(HID.prototype, "requestDevice", "Hardware", "hid.requestDevice");
   }
 
   // ── 25. Sensor APIs ──────────────────────────────────────────────────

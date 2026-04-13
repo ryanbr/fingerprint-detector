@@ -1,5 +1,5 @@
 // hooks/webrtc.js — WebRTC fingerprinting (IP leak, ICE candidates, codec enumeration)
-export function register({ hookMethod, hookMethodHot, hookGetter, record, recordHot, captureStack, extractSource, queueEvent }) {
+export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookGetter, record, recordHot, captureStack, extractSource, queueEvent }) {
   // ── 7. WebRTC Fingerprinting ────────────────────────────────────────────
   // WebRTC is used for:
   // - Local/public IP discovery via ICE candidates
@@ -59,12 +59,15 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
     };
     window.RTCPeerConnection.prototype = OrigRTC.prototype;
 
-    // Hook the IP leak pipeline methods on the prototype
+    // Hook the IP leak pipeline methods on the prototype.
+    // createDataChannel is sync — plain hookMethod is fine. The other
+    // four return promises and commonly lose `this` via destructuring,
+    // so use access-based to keep our frame out of rejection stacks.
     hookMethod(OrigRTC.prototype, "createDataChannel", "WebRTC", "createDataChannel");
-    hookMethod(OrigRTC.prototype, "createOffer", "WebRTC", "createOffer");
-    hookMethod(OrigRTC.prototype, "createAnswer", "WebRTC", "createAnswer");
-    hookMethod(OrigRTC.prototype, "setLocalDescription", "WebRTC", "setLocalDescription");
-    hookMethod(OrigRTC.prototype, "setRemoteDescription", "WebRTC", "setRemoteDescription");
+    hookMethodViaAccess(OrigRTC.prototype, "createOffer", "WebRTC", "createOffer");
+    hookMethodViaAccess(OrigRTC.prototype, "createAnswer", "WebRTC", "createAnswer");
+    hookMethodViaAccess(OrigRTC.prototype, "setLocalDescription", "WebRTC", "setLocalDescription");
+    hookMethodViaAccess(OrigRTC.prototype, "setRemoteDescription", "WebRTC", "setRemoteDescription");
 
     // Hook addEventListener for "icecandidate" — alternative to onicecandidate
     const origAddEL = OrigRTC.prototype.addEventListener;

@@ -1,5 +1,5 @@
 // hooks/privacy.js — Do Not Track, Headless/automation detection, anti-spoofing
-export function register({ hookMethod, hookMethodHot, hookGetter, record, recordHot, captureStack, extractSource, queueEvent }) {
+export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookGetter, record, recordHot, captureStack, extractSource, queueEvent }) {
   // ── 18. Do Not Track ──────────────────────────────────────────────────
   hookGetter(Navigator.prototype, "doNotTrack", "DNT", "navigator.doNotTrack");
 
@@ -17,12 +17,13 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
     }
   }
 
-  // navigator.share / canShare — absence indicates headless Chrome
+  // navigator.share / canShare — absence indicates headless Chrome.
+  // Access-based: share returns a promise and is often destructured.
   if (Navigator.prototype.share) {
-    hookMethod(Navigator.prototype, "share", "HeadlessDetect", "navigator.share");
+    hookMethodViaAccess(Navigator.prototype, "share", "HeadlessDetect", "navigator.share");
   }
   if (Navigator.prototype.canShare) {
-    hookMethod(Navigator.prototype, "canShare", "HeadlessDetect", "navigator.canShare");
+    hookMethodViaAccess(Navigator.prototype, "canShare", "HeadlessDetect", "navigator.canShare");
   }
 
   // Window dimensions — headless browsers often have outerWidth/outerHeight = 0

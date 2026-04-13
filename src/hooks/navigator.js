@@ -88,9 +88,11 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
   // prototype is always accessible regardless of sandbox state.
   if (typeof ServiceWorkerContainer !== "undefined" &&
       typeof ServiceWorkerContainer.prototype === "object") {
-    hookMethod(ServiceWorkerContainer.prototype, "register", "Navigator", "serviceWorker.register");
-    hookMethod(ServiceWorkerContainer.prototype, "getRegistrations", "Navigator", "serviceWorker.getRegistrations");
-    hookMethod(ServiceWorkerContainer.prototype, "getRegistration", "Navigator", "serviceWorker.getRegistration");
+    // Access-based: all three return promises and frequently lose
+    // `this` when used via destructuring.
+    hookMethodViaAccess(ServiceWorkerContainer.prototype, "register", "Navigator", "serviceWorker.register");
+    hookMethodViaAccess(ServiceWorkerContainer.prototype, "getRegistrations", "Navigator", "serviceWorker.getRegistrations");
+    hookMethodViaAccess(ServiceWorkerContainer.prototype, "getRegistration", "Navigator", "serviceWorker.getRegistration");
     hookGetter(ServiceWorkerContainer.prototype, "ready", "Navigator", "serviceWorker.ready");
     hookGetter(ServiceWorkerContainer.prototype, "controller", "Navigator", "serviceWorker.controller");
   }

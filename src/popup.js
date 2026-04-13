@@ -410,7 +410,27 @@ function addLogBatch(events) {
   const frag = document.createDocumentFragment();
   let added = 0;
 
-  for (const d of events) {
+  // Fast path: when a giant batch arrives (popup open / tab switch
+  // dumps up to 2000 existing detections at once), only build DOM
+  // nodes for events that would actually remain after trimDOM. This
+  // avoids ~1500 wasted buildLogNode + trimDOM cycles on the common
+  // "open popup on a heavy-fingerprinting site" path.
+  let startIdx = 0;
+  if (events.length > MAX_DOM_NODES) {
+    // Everything that was already in the DOM will be trimmed out anyway.
+    logList.innerHTML = "";
+    domNodeCount = 0;
+    // Store the skipped events in the buffer but don't build nodes.
+    const skipUntil = events.length - MAX_DOM_NODES;
+    for (let i = 0; i < skipUntil; i++) {
+      logCount++;
+      storeLogEntry(events[i]);
+    }
+    startIdx = skipUntil;
+  }
+
+  for (let i = startIdx; i < events.length; i++) {
+    const d = events[i];
     logCount++;
     storeLogEntry(d);
     if (isMuted(d)) continue;

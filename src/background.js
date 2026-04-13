@@ -270,63 +270,103 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 });
 
-// ── Tab list with short-lived cache ───────────────────────────────────
-// Cache chrome.tabs.get() results briefly so rapid polling from the popup
-// doesn't hammer the browser with N IPC calls per refresh.
-const tabInfoCache = new Map(); // tabId -> { info, fetchedAt }
-const TAB_INFO_TTL = 2500; // ms — just longer than a typical poll interval
+// ── Tab info cache (event-driven, no polling) ────────────────────────
+// We maintain a cache of tab info that's kept fresh via chrome.tabs events
+// instead of re-fetching on every popup poll. This means getTabsWithData()
+// is an O(N) in-memory iteration with zero IPC calls in the steady state.
+const tabInfoCache = new Map(); // tabId -> { title, url, favIconUrl }
+
+// Seed the cache from a single chrome.tabs.query() — a single IPC that
+// returns info for all tabs at once. Much cheaper than N individual
+// chrome.tabs.get() calls.
+function seedTabInfoCache() {
+  chrome.tabs.query({}, (tabs) => {
+    if (chrome.runtime.lastError) return;
+    for (const tab of tabs) {
+      tabInfoCache.set(tab.id, {
+        title: tab.title || "Unknown",
+        url: tab.url || "",
+        favIconUrl: tab.favIconUrl || "",
+      });
+    }
+  });
+}
+seedTabInfoCache();
+
+// Keep cache fresh via tab events — fires when title/URL/favicon changes
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (!changeInfo.title && !changeInfo.url && !changeInfo.favIconUrl) return;
+  const existing = tabInfoCache.get(tabId) || {};
+  tabInfoCache.set(tabId, {
+    title: tab.title || existing.title || "Unknown",
+    url: tab.url || existing.url || "",
+    favIconUrl: tab.favIconUrl || existing.favIconUrl || "",
+  });
+});
+
+// New tab created — add to cache
+chrome.tabs.onCreated.addListener((tab) => {
+  tabInfoCache.set(tab.id, {
+    title: tab.title || "Unknown",
+    url: tab.url || "",
+    favIconUrl: tab.favIconUrl || "",
+  });
+});
+
+// Evict cache entry when a tab is removed
+chrome.tabs.onRemoved.addListener((tabId) => tabInfoCache.delete(tabId));
 
 async function getTabsWithData() {
-  const now = Date.now();
   const tabIds = Object.keys(tabData).map(Number).filter(id => {
     return tabData[id] && tabData[id].detections.length > 0;
   });
 
-  const results = await Promise.all(tabIds.map(async (id) => {
-    const cached = tabInfoCache.get(id);
-    let info;
-    if (cached && (now - cached.fetchedAt) < TAB_INFO_TTL) {
-      info = cached.info;
+  const results = [];
+  const missingIds = [];
+
+  for (const id of tabIds) {
+    const info = tabInfoCache.get(id);
+    if (info) {
+      results.push({
+        tabId: id,
+        title: info.title,
+        url: info.url,
+        favIconUrl: info.favIconUrl,
+        detectionCount: tabData[id].detections.length,
+        categoryCount: Object.keys(tabData[id].categories).length,
+      });
     } else {
+      missingIds.push(id);
+    }
+  }
+
+  // Fetch any tabs we don't have cached yet (rare — only new tabs)
+  if (missingIds.length > 0) {
+    await Promise.all(missingIds.map(async (id) => {
       try {
         const tab = await chrome.tabs.get(id);
-        info = {
+        const info = {
           title: tab.title || "Unknown",
           url: tab.url || "",
           favIconUrl: tab.favIconUrl || "",
         };
-        tabInfoCache.set(id, { info, fetchedAt: now });
+        tabInfoCache.set(id, info);
+        results.push({
+          tabId: id,
+          title: info.title,
+          url: info.url,
+          favIconUrl: info.favIconUrl,
+          detectionCount: tabData[id].detections.length,
+          categoryCount: Object.keys(tabData[id].categories).length,
+        });
       } catch {
-        return null;
+        // Tab no longer exists
       }
-    }
-    // Always use fresh counts from tabData (cheap, no IPC)
-    return {
-      tabId: id,
-      title: info.title,
-      url: info.url,
-      favIconUrl: info.favIconUrl,
-      detectionCount: tabData[id].detections.length,
-      categoryCount: Object.keys(tabData[id].categories).length,
-    };
-  }));
-
-  // Prune stale cache entries
-  if (tabInfoCache.size > tabIds.length * 2) {
-    const validIds = new Set(tabIds);
-    for (const id of tabInfoCache.keys()) {
-      if (!validIds.has(id)) tabInfoCache.delete(id);
-    }
+    }));
   }
 
-  return results.filter(Boolean);
+  return results;
 }
-
-// Evict cache entry when a tab is removed or navigates
-chrome.tabs.onRemoved.addListener((tabId) => tabInfoCache.delete(tabId));
-chrome.webNavigation?.onCommitted.addListener((details) => {
-  if (details.frameId === 0) tabInfoCache.delete(details.tabId);
-});
 
 // ── Badge ─────────────────────────────────────────────────────────────
 function updateBadge(tabId, data) {

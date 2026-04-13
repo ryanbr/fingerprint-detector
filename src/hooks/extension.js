@@ -28,14 +28,6 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
     // Self-unwrap timer: if no probes for 2s after first probe, restore hooks
     let unwrapTimer = 0;
     const UNWRAP_DELAY = 2000;
-    // Hard deadline for unwrapping fetch/XHR, independent of probe
-    // activity. Sites like amazon.com keep firing non-probe fetches
-    // continuously, and sites that probe repeatedly could keep the idle
-    // timer resetting forever — both scenarios kept our wrapper in the
-    // stack and caused fetch rejections to be blamed on dist/inject.js.
-    // 3s is enough to catch load-time extension probing but short enough
-    // that user-interaction fetches land on unwrapped native.
-    const FETCH_XHR_HARD_DEADLINE = 3000;
 
     // Saved originals for unwrapping
     const savedOriginals = {};
@@ -63,20 +55,6 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
       }, UNWRAP_DELAY);
     }
 
-    // fetch/XHR get a separate hard-deadline unwrap: fires exactly once,
-    // FETCH_XHR_HARD_DEADLINE ms after install. Does NOT reset on probe
-    // activity — we accept missing late fetch-based probes in exchange
-    // for never being in the call stack when the page's own fetch fails.
-    setTimeout(() => {
-      if (savedOriginals.fetch) {
-        window.fetch = savedOriginals.fetch;
-        savedOriginals.fetch = null;
-      }
-      if (savedOriginals.xhrOpen) {
-        XMLHttpRequest.prototype.open = savedOriginals.xhrOpen;
-        savedOriginals.xhrOpen = null;
-      }
-    }, FETCH_XHR_HARD_DEADLINE);
 
     function recordExtProbe(method, url) {
       extProbeCount.total++;
@@ -110,24 +88,16 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
       }
     });
 
-    // fetch()
-    const origFetch = window.fetch;
-    if (typeof origFetch === "function") {
-      savedOriginals.fetch = origFetch;
-      window.fetch = function (input) {
-        const url = (typeof input === "string") ? input : (input && input.url) || "";
-        if (!extProbesDone && isExtUrl(url)) recordExtProbe("fetch(extension URL)", url);
-        return origFetch.apply(this, arguments);
-      };
-    }
-
-    // XMLHttpRequest
-    const origXHROpen = XMLHttpRequest.prototype.open;
-    savedOriginals.xhrOpen = origXHROpen;
-    XMLHttpRequest.prototype.open = function (method, url) {
-      if (!extProbesDone && isExtUrl(url)) recordExtProbe("XHR.open(extension URL)", url);
-      return origXHROpen.apply(this, arguments);
-    };
+    // NOTE: we deliberately do NOT hook window.fetch or
+    // XMLHttpRequest.prototype.open for extension-URL probing. Chrome
+    // blocks chrome-extension:// URLs from regular page fetches via
+    // CORS/CSP, so these hooks catch essentially zero real probes —
+    // but they DID put our wrapper in the call stack of every page
+    // fetch rejection (seen on nzherald.co.nz, amazon.com). The common
+    // extension-probe patterns (resource URLs on <img>/<link>/<script>,
+    // chrome.runtime.sendMessage) are already covered by the hooks
+    // below, which are either setter-based or constructor-based and
+    // don't sit in the call stack of async network operations.
 
     // Image.src setter — charCodeAt fast-exit, self-unwraps after probing
     const origImageSrc = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, "src");

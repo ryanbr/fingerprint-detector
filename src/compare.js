@@ -96,13 +96,102 @@ let leftFilename = ""; // filename of loaded file (or "current tab")
 let rightFilename = "";
 
 // ── Loaders ───────────────────────────────────────────────────────────
+// Convert a Debug Log JSON (flat entries array) into a Summary JSON
+// (categories object) so the compare view can handle it.
+function convertLogToSummary(logData) {
+  const entries = logData.entries || [];
+  const categories = {};
+  const domains = {};
+
+  for (const e of entries) {
+    // Group by category
+    if (!categories[e.category]) {
+      categories[e.category] = {
+        totalCalls: 0,
+        uniqueMethods: [],
+      };
+    }
+    const cat = categories[e.category];
+    cat.totalCalls++;
+
+    // Dedupe methods by method+detail combo
+    const key = e.method + "|" + (e.detail || "");
+    if (!cat._seen) cat._seen = new Set();
+    if (!cat._seen.has(key)) {
+      cat._seen.add(key);
+      cat.uniqueMethods.push({
+        method: e.method,
+        detail: e.detail || "",
+        source: e.source || "",
+        frameUrl: e.isIframe ? e.frameUrl : undefined,
+      });
+    }
+
+    // Accumulate domains
+    if (e.sourceDomain) {
+      if (!domains[e.sourceDomain]) {
+        domains[e.sourceDomain] = { calls: 0, categories: new Set() };
+      }
+      domains[e.sourceDomain].calls++;
+      domains[e.sourceDomain].categories.add(e.category);
+    }
+  }
+
+  // Clean up dedupe state
+  for (const cat of Object.values(categories)) {
+    delete cat._seen;
+  }
+  // Convert domain Sets to arrays
+  for (const d of Object.keys(domains)) {
+    domains[d].categories = [...domains[d].categories];
+  }
+
+  // Compute risk level from category mix
+  const catNames = Object.keys(categories);
+  const highRiskCats = ["Canvas", "WebGL", "Audio", "Fonts", "WebRTC", "ClientHints",
+    "MediaDevices", "Math", "Architecture", "WebGPU", "Hardware", "Sensors",
+    "Keyboard", "AdBlockDetect", "ExtensionDetect", "HeadlessDetect"];
+  const hasHigh = catNames.some(c => highRiskCats.includes(c));
+  let riskLevel = "No Risk";
+  if (hasHigh && catNames.length >= 4) riskLevel = "High Risk";
+  else if (hasHigh || catNames.length >= 3) riskLevel = "Medium Risk";
+  else if (catNames.length > 0) riskLevel = "Low Risk";
+
+  return {
+    exportedAt: logData.exportedAt,
+    url: logData.url || "",
+    riskLevel,
+    totalTechniques: catNames.length,
+    totalCalls: entries.length,
+    domains,
+    categories,
+    _convertedFromLog: true,
+  };
+}
+
 function loadFromFile(file, side) {
   const reader = new FileReader();
   reader.onload = (e) => {
     try {
       const json = JSON.parse(e.target.result);
-      // Support both summary-only and full report format
-      const data = json.summary ? json.summary : json;
+      // Detect format and convert if needed:
+      // 1. Full report: { summary: {...}, log: [...] } → use summary
+      // 2. Summary: { categories: {...} } → use as-is
+      // 3. Debug log: { entries: [...] } → convert to summary shape
+      let data;
+      if (json.summary && json.summary.categories) {
+        data = json.summary;
+      } else if (json.categories) {
+        data = json;
+      } else if (Array.isArray(json.entries)) {
+        data = convertLogToSummary(json);
+      } else if (Array.isArray(json)) {
+        // Legacy: bare array of log entries
+        data = convertLogToSummary({ entries: json });
+      } else {
+        alert("This file doesn't look like a Fingerprint Detector export.");
+        return;
+      }
       if (!data.categories) {
         alert("This file doesn't look like a Fingerprint Detector export.");
         return;
@@ -142,10 +231,15 @@ function renderSide(side, data, filename) {
   const cats = Object.keys(data.categories || {});
   const risk = data.riskLevel || "unknown";
 
+  const convertedBadge = data._convertedFromLog
+    ? `<span class="badge none" title="Converted from debug log format — some metadata may be approximated">from log</span>`
+    : "";
+
   const html = `<div class="summary-stats">
     <span class="badge ${riskClass(risk)}">${escapeHtml(risk)}</span>
     <span class="badge none">${cats.length} techniques</span>
     <span class="badge none">${data.totalCalls || 0} total calls</span>
+    ${convertedBadge}
     ${exportedAt ? `<span class="badge none" title="${escapeHtml(data.exportedAt)}">${escapeHtml(exportedAt)}</span>` : ""}
   </div>
   <div class="categories" id="${side}-categories"></div>`;

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Fingerprint Detector",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Detects and displays browser fingerprinting techniques used by websites",
   "permissions": [
     "activeTab",
@@ -50,8 +50,13 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["src/compare.html", "src/compare.js"],
-      "matches": ["<all_urls>"]
+      "resources": [
+        "src/compare.html",
+        "src/compare.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ]
 }

@@ -15,6 +15,7 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
   ]);
   let systemFontLogged = false;
   const UNWRAP_THRESHOLD = 1000; // after this many probes, restore original getters
+  const UNWRAP_HARD_DEADLINE_MS = 5000; // always unwrap after 5s regardless of probe count
 
   if (typeof document !== "undefined") {
     let fontProbeCount = 0;
@@ -22,18 +23,29 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
     let unwrapped = false;
 
     // Store originals for self-unwrapping
-    const originals = {};
+    const originals = [];
 
     function unwrapAll() {
       if (unwrapped) return;
       unwrapped = true;
       // Restore all dimension getters to their originals — zero overhead from now on
-      for (const [proto, prop, desc] of Object.values(originals)) {
+      for (const [proto, prop, desc] of originals) {
         Object.defineProperty(proto, prop, desc);
       }
-      record("Fonts", "dimension hooks unwrapped",
-        fontProbeCount + " probes detected — restoring native getters for performance");
+      if (fontProbeCount > 0) {
+        record("Fonts", "dimension hooks unwrapped",
+          fontProbeCount + " probes detected — restoring native getters for performance");
+      }
     }
+
+    // Hard time-based deadline: even if no font probing happens, we
+    // restore the native dimension getters after 5s so we don't sit
+    // in the call stack of every offsetWidth / offsetHeight /
+    // scrollWidth / scrollHeight read for the rest of the page
+    // lifetime. The probe-count-based unwrap above handled
+    // fingerprint-heavy pages; this handles the common case of
+    // normal pages that never trip the probe threshold.
+    setTimeout(unwrapAll, UNWRAP_HARD_DEADLINE_MS);
 
     function checkFontProbe(el, method) {
       if (!el.style || !el.style.fontFamily) return;
@@ -74,7 +86,7 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
     function hookDimGetter(proto, prop, method) {
       const desc = Object.getOwnPropertyDescriptor(proto, prop);
       if (!desc || !desc.get) return;
-      originals[prop] = [proto, prop, desc]; // save for unwrapping
+      originals.push([proto, prop, desc]); // save for unwrapping
       const origGet = desc.get;
       Object.defineProperty(proto, prop, {
         configurable: true, enumerable: true,
@@ -134,15 +146,21 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
     hookMethod(window, "queryLocalFonts", "Fonts", "queryLocalFonts");
   }
 
-  // ── 34. Font Preferences (default font metrics) ───────────────────────
-  {
-    const origCreateElement = document.createElement;
-    document.createElement = function (tag) {
-      const el = origCreateElement.call(this, tag);
-      if (typeof tag === "string" && (tag.charCodeAt(0) === 105 || tag.charCodeAt(0) === 73) && tag.toLowerCase() === "iframe") {
-        recordHot("Fonts", "createElement('iframe')", "possible font metrics iframe");
-      }
-      return el;
-    };
-  }
+  // NOTE: we used to wrap document.createElement to detect iframe
+  // creation as a "possible font metrics iframe" signal. That hook was
+  // removed because:
+  //
+  // 1. document.createElement is one of the hottest functions on the
+  //    web — wrapping it put our frame in the call stack of every
+  //    React/Vue render and every library's DOM construction. Any
+  //    Chrome console warning emitted during an element creation
+  //    (deprecated elements, CSP violations, etc.) was attributed to
+  //    dist/inject.js.
+  // 2. The detection signal was weak. Every modern site creates
+  //    iframes for videos, ads, analytics, chat widgets, and social
+  //    embeds — "createElement('iframe')" on its own was not
+  //    meaningful fingerprinting evidence.
+  // 3. The actual font metrics iframe technique still gets caught by
+  //    the dimension-probing hooks above (offsetWidth/offsetHeight),
+  //    which is where the fingerprint signal actually lives.
 }

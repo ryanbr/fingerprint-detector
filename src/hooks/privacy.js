@@ -1,5 +1,5 @@
 // hooks/privacy.js — Do Not Track, Headless/automation detection, anti-spoofing
-export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookGetter, record, recordHot, captureStack, extractSource, queueEvent }) {
+export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookGetter, record, recordHot, captureStack, extractSource, queueEvent, fnWrapperMap }) {
   // ── 18. Do Not Track ──────────────────────────────────────────────────
   hookGetter(Navigator.prototype, "doNotTrack", "DNT", "navigator.doNotTrack");
 
@@ -38,20 +38,33 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
   hookGetter(Document.prototype, "hidden", "HeadlessDetect", "document.hidden");
   hookGetter(Document.prototype, "visibilityState", "HeadlessDetect", "document.visibilityState");
 
-  // ── Anti-spoofing / prototype lie detection ───────────────────────────
-  // Sites call Function.prototype.toString on native APIs to verify they
-  // haven't been replaced by anti-fingerprinting extensions. If toString
-  // returns something other than "[native code]", the environment is spoofed.
+  // ── Anti-spoofing / prototype lie detection + counter-spoofing ───────
+  // Sites call Function.prototype.toString on native APIs to verify
+  // they haven't been replaced by anti-fingerprinting extensions. If
+  // toString returns something other than "[native code]", the
+  // environment is flagged as spoofed (seen on accounts.google.com:
+  // "This browser or app may not be secure").
+  //
+  // We do TWO things here:
+  // 1. Detect the probe — record it so the user knows the site is
+  //    checking.
+  // 2. Spoof the response — if `this` is one of our wrapper functions
+  //    (looked up in fnWrapperMap), return the NATIVE toString of the
+  //    wrapped original, not our wrapper source. This makes our hooks
+  //    transparent to toString-based tamper detection.
   {
     const origToString = Function.prototype.toString;
     let toStringProbed = false;
-    Function.prototype.toString = function () {
-      const result = origToString.call(this);
-      // Only flag when toString is called on browser API prototypes
-      // (sites specifically check navigator, canvas, WebGL functions)
-      if (!toStringProbed && this !== Function.prototype.toString) {
-        const name = this.name || "";
-        // Flag calls on known fingerprinted API functions
+    const newToString = function () {
+      // Resolve effective target: if `this` is our wrapper, get the
+      // native fn we wrapped; otherwise use `this` directly.
+      const orig = fnWrapperMap && fnWrapperMap.get(this);
+      const effective = orig || this;
+      // Detection: flag probes on well-known fingerprint API functions.
+      // Check the effective (native) fn's name since our wrappers are
+      // anonymous (name === "").
+      if (!toStringProbed && this !== newToString) {
+        const name = (effective && effective.name) || "";
         if (name === "getImageData" || name === "toDataURL" || name === "getParameter" ||
             name === "getExtension" || name === "getVoices" || name === "enumerateDevices" ||
             name === "getHighEntropyValues" || name === "hardwareConcurrency" ||
@@ -60,8 +73,22 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
           record("HeadlessDetect", "Function.prototype.toString", "checking: " + name + " — anti-spoofing probe");
         }
       }
-      return result;
+      // Spoof: return the effective fn's toString (native source for
+      // wrapped fns, normal behavior for everything else).
+      return origToString.call(effective);
     };
+    // Register our newToString itself so Function.prototype.toString
+    // .toString() returns the native toString signature instead of our
+    // wrapper source — otherwise sites could detect us via the meta
+    // check `Function.prototype.toString.toString()`.
+    if (fnWrapperMap) fnWrapperMap.set(newToString, origToString);
+    // Spoof .name / .length on the wrapper to match native toString.
+    // Without this, sites can detect us via
+    //   Function.prototype.toString.name === "toString"
+    // check (our wrapper would otherwise be "newToString").
+    try { Object.defineProperty(newToString, "name", { value: "toString", configurable: true }); } catch { /* non-configurable */ }
+    try { Object.defineProperty(newToString, "length", { value: 0, configurable: true }); } catch { /* non-configurable */ }
+    Function.prototype.toString = newToString;
   }
 
   // ── ChromeDriver / automation tool artifacts ──────────────────────────

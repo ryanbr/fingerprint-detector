@@ -224,6 +224,35 @@ import { register as permissions } from './hooks/permissions.js';
 
   // ── Hook helpers with inlined mute checks ────────────────────────────
 
+  // Map of wrapper fn → original native fn. Used by the
+  // Function.prototype.toString override below so that calling
+  // toString on a wrapped method returns the NATIVE source, not our
+  // wrapper's source. This is critical for sites like Google Accounts
+  // that probe toString on well-known browser APIs as an anti-tamper
+  // check ("This browser or app may not be secure"). WeakMap so
+  // entries are GC'd with the wrapper.
+  const fnWrapperMap = new WeakMap();
+
+  // Spoof .name and .length on a wrapper to match the original native
+  // function. Without this, sites can detect us by probing wrapper.name
+  // (our wrappers default to "wrapper" or "" from NamedEvaluation) or
+  // wrapper.length (always 0 for `function() {}`, but natives have
+  // specific arity). Used by all three hook helpers below.
+  function copyFnIdentity(wrapper, orig) {
+    try {
+      Object.defineProperty(wrapper, "name", {
+        value: (orig && orig.name) || "",
+        configurable: true,
+      });
+    } catch { /* non-configurable */ }
+    try {
+      Object.defineProperty(wrapper, "length", {
+        value: (orig && orig.length) || 0,
+        configurable: true,
+      });
+    } catch { /* non-configurable */ }
+  }
+
   function hookGetter(obj, prop, category, method) {
     const desc = Object.getOwnPropertyDescriptor(obj, prop);
     if (!desc || !desc.get) return;
@@ -234,15 +263,15 @@ import { register as permissions } from './hooks/permissions.js';
     // Precompute the rate-limit key once at hook install time
     const key = category + "|" + method;
     try {
-      Object.defineProperty(obj, prop, {
-        ...desc,
-        get() {
-          if (!mutedCategoriesSet.has(category) && !mutedMethodsSet.has(method)) {
-            record(category, method, prop, key);
-          }
-          return origGet.call(this);
-        },
-      });
+      const newGet = function () {
+        if (!mutedCategoriesSet.has(category) && !mutedMethodsSet.has(method)) {
+          record(category, method, prop, key);
+        }
+        return origGet.call(this);
+      };
+      fnWrapperMap.set(newGet, origGet);
+      copyFnIdentity(newGet, origGet);
+      Object.defineProperty(obj, prop, { ...desc, get: newGet });
     } catch { /* property frozen by another extension or the browser */ }
   }
 
@@ -252,12 +281,15 @@ import { register as permissions } from './hooks/permissions.js';
     // Precompute key once at hook install time
     const key = category + "|" + method;
     try {
-      obj[prop] = function () {
+      const wrapper = function () {
         if (!mutedCategoriesSet.has(category) && !mutedMethodsSet.has(method)) {
           record(category, method, prop, key);
         }
         return orig.apply(this, arguments);
       };
+      fnWrapperMap.set(wrapper, orig);
+      copyFnIdentity(wrapper, orig);
+      obj[prop] = wrapper;
     } catch { /* property is non-writable — leave it alone */ }
   }
 
@@ -321,12 +353,14 @@ import { register as permissions } from './hooks/permissions.js';
         }
         return orig.apply(this, arguments);
       };
+      fnWrapperMap.set(wrapper, orig);
+      copyFnIdentity(wrapper, orig);
       obj[prop] = wrapper;
     } catch { /* property is non-writable — leave it alone */ }
   }
 
   // ── Register all hook modules ────────────────────────────────────────
-  const helpers = { hookMethod, hookMethodHot, hookMethodViaAccess, hookGetter, record, recordHot, captureStack, extractSource, queueEvent };
+  const helpers = { hookMethod, hookMethodHot, hookMethodViaAccess, hookGetter, record, recordHot, captureStack, extractSource, queueEvent, fnWrapperMap };
 
   canvas(helpers);
   webgl(helpers);

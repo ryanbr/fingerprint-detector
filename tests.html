@@ -305,34 +305,79 @@
         }
         gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT);
         gl.getContextAttributes();
-        // Shader pipeline
+
+        // Set up a minimal-but-valid WebGL state so the draw / buffer /
+        // framebuffer / renderbuffer calls below don't log
+        // INVALID_OPERATION errors in the devtools console. The hooks
+        // fire either way, but with real state set up the calls are
+        // clean no-ops (count=0 draws on a valid linked program).
         const vs = gl.createShader(gl.VERTEX_SHADER);
-        gl.shaderSource(vs, "attribute vec2 a; void main(){gl_Position=vec4(a,0,1);}");
+        gl.shaderSource(vs, "void main(){gl_Position=vec4(0);}");
         gl.compileShader(vs);
         gl.getShaderParameter(vs, gl.COMPILE_STATUS);
         gl.getShaderInfoLog(vs);
+        const fs = gl.createShader(gl.FRAGMENT_SHADER);
+        gl.shaderSource(fs, "void main(){gl_FragColor=vec4(0);}");
+        gl.compileShader(fs);
         const prog = gl.createProgram();
+        gl.attachShader(prog, vs);
+        gl.attachShader(prog, fs);
         gl.linkProgram(prog);
         gl.getProgramParameter(prog, gl.LINK_STATUS);
         gl.getProgramInfoLog(prog);
-        // Draw calls + buffer/framebuffer queries — wrapped in tryCall
-        // because they throw without a bound program/buffer; our hooks
-        // still fire before the native call throws.
-        tryCall(() => gl.drawArrays(gl.TRIANGLES, 0, 0));
-        tryCall(() => gl.drawElements(gl.TRIANGLES, 0, gl.UNSIGNED_SHORT, 0));
-        tryCall(() => gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(4)));
-        tryCall(() => gl.getBufferParameter(gl.ARRAY_BUFFER, gl.BUFFER_SIZE));
-        tryCall(() => gl.getRenderbufferParameter(gl.RENDERBUFFER, gl.RENDERBUFFER_WIDTH));
-        tryCall(() => gl.getFramebufferAttachmentParameter(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE));
-        // WebGL2 extras
+        gl.useProgram(prog);
+
+        // Bind a vertex buffer + element buffer — getBufferParameter
+        // and drawElements need a bound buffer of each type.
+        const vbo = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(0), gl.STATIC_DRAW);
+        const ibo = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(0), gl.STATIC_DRAW);
+
+        // Bind a renderbuffer for getRenderbufferParameter
+        const rbo = gl.createRenderbuffer();
+        gl.bindRenderbuffer(gl.RENDERBUFFER, rbo);
+        gl.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA4, 1, 1);
+
+        // Bind a framebuffer with an attachment for
+        // getFramebufferAttachmentParameter
+        const fbo = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, rbo);
+
+        // Now the real test calls — all no-ops on valid state
+        gl.drawArrays(gl.TRIANGLES, 0, 0);
+        gl.drawElements(gl.TRIANGLES, 0, gl.UNSIGNED_SHORT, 0);
+        gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(4));
+        gl.getBufferParameter(gl.ARRAY_BUFFER, gl.BUFFER_SIZE);
+        gl.getRenderbufferParameter(gl.RENDERBUFFER, gl.RENDERBUFFER_WIDTH);
+        gl.getFramebufferAttachmentParameter(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE);
+
+        // WebGL2 extras — same setup, same clean state
         const c2 = document.createElement("canvas");
         const gl2 = c2.getContext("webgl2");
         if (gl2) {
-          tryCall(() => gl2.getInternalformatParameter(gl2.RENDERBUFFER, gl2.RGBA8, gl2.SAMPLES));
-          tryCall(() => gl2.getIndexedParameter(gl2.TRANSFORM_FEEDBACK_BUFFER_BINDING, 0));
-          tryCall(() => gl2.drawArraysInstanced(gl2.TRIANGLES, 0, 0, 1));
-          tryCall(() => gl2.drawElementsInstanced(gl2.TRIANGLES, 0, gl2.UNSIGNED_SHORT, 0, 1));
-          tryCall(() => gl2.drawRangeElements(gl2.TRIANGLES, 0, 0, 0, gl2.UNSIGNED_SHORT, 0));
+          const vs2 = gl2.createShader(gl2.VERTEX_SHADER);
+          gl2.shaderSource(vs2, "#version 300 es\nvoid main(){gl_Position=vec4(0);}");
+          gl2.compileShader(vs2);
+          const fs2 = gl2.createShader(gl2.FRAGMENT_SHADER);
+          gl2.shaderSource(fs2, "#version 300 es\nout mediump vec4 o;void main(){o=vec4(0);}");
+          gl2.compileShader(fs2);
+          const prog2 = gl2.createProgram();
+          gl2.attachShader(prog2, vs2);
+          gl2.attachShader(prog2, fs2);
+          gl2.linkProgram(prog2);
+          gl2.useProgram(prog2);
+          const ibo2 = gl2.createBuffer();
+          gl2.bindBuffer(gl2.ELEMENT_ARRAY_BUFFER, ibo2);
+          gl2.bufferData(gl2.ELEMENT_ARRAY_BUFFER, new Uint16Array(0), gl2.STATIC_DRAW);
+          gl2.getInternalformatParameter(gl2.RENDERBUFFER, gl2.RGBA8, gl2.SAMPLES);
+          gl2.getIndexedParameter(gl2.TRANSFORM_FEEDBACK_BUFFER_BINDING, 0);
+          gl2.drawArraysInstanced(gl2.TRIANGLES, 0, 0, 1);
+          gl2.drawElementsInstanced(gl2.TRIANGLES, 0, gl2.UNSIGNED_SHORT, 0, 1);
+          gl2.drawRangeElements(gl2.TRIANGLES, 0, 0, 0, gl2.UNSIGNED_SHORT, 0);
         }
         return [
           "getParameter (VENDOR/RENDERER/VERSION/MAX_TEXTURE_SIZE)",
@@ -359,6 +404,11 @@
         tryCall(() => ctx.createGain());
         tryCall(() => ctx.createBiquadFilter());
         tryCall(() => ctx.createBufferSource());
+        // Note: createScriptProcessor emits a one-time Chromium
+        // deprecation warning ("The ScriptProcessorNode is deprecated.
+        // Use AudioWorkletNode instead.") — that's a legitimate
+        // browser notice, not an error. The hook fires anyway and
+        // the notice doesn't affect test behavior.
         tryCall(() => ctx.createScriptProcessor(256, 1, 1));
         const buffer = tryCall(() => ctx.createBuffer(1, 1024, ctx.sampleRate));
         // AudioBuffer reads

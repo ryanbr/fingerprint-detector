@@ -293,6 +293,25 @@ import { register as permissions } from './hooks/permissions.js';
     } catch { /* property is non-writable — leave it alone */ }
   }
 
+  // Tracks which (prototype, prop) pairs have been converted to
+  // accessor descriptors by hookMethodViaAccess. Consulted by the
+  // Object.getOwnPropertyDescriptor / getOwnPropertyDescriptors /
+  // Reflect.getOwnPropertyDescriptor overrides below so those APIs
+  // return a fake data descriptor when a site probes a hooked prop,
+  // instead of leaking the accessor via { get, set }. Without this
+  // spoof, sites running more sophisticated tamper checks (enterprise
+  // fingerprint libraries, anti-bot services) can detect us by
+  // inspecting descriptor shape.
+  const accessHookMap = new WeakMap();
+  function registerAccessHook(obj, prop) {
+    let set = accessHookMap.get(obj);
+    if (!set) {
+      set = new Set();
+      accessHookMap.set(obj, set);
+    }
+    set.add(prop);
+  }
+
   // Access-based hook. Records on property *access* instead of *call*
   // and returns the native function unchanged, so we don't sit in the
   // call stack when the native throws. Use this for async/promise-
@@ -318,6 +337,7 @@ import { register as permissions } from './hooks/permissions.js';
         },
         set(v) { orig = v; },
       });
+      registerAccessHook(obj, prop);
     } catch { /* property frozen by another extension or the browser */ }
   }
 
@@ -383,5 +403,72 @@ import { register as permissions } from './hooks/permissions.js';
   misc(helpers);
   behavior(helpers);
   permissions(helpers);
+
+  // ── Descriptor spoofing for access-based hooks ───────────────────────
+  // hookMethodViaAccess converts data descriptors into accessor
+  // descriptors. Advanced tamper checks (enterprise fingerprint libs,
+  // anti-bot services) probe descriptors directly via
+  // Object.getOwnPropertyDescriptor and flag the accessor shape as
+  // tampering. These overrides intercept all three descriptor APIs and
+  // synthesize a fake data descriptor for any prop we converted,
+  // calling the getter to produce the `value` field. The hooked props
+  // now look identical to the native data descriptors they replaced.
+  //
+  // Registered in fnWrapperMap so the overrides themselves are
+  // invisible to Function.prototype.toString probes.
+  {
+    // Synthesize a data descriptor from an accessor descriptor if the
+    // (target, prop) pair is one of our access-based hooks.
+    function spoofDesc(target, prop, desc) {
+      if (!desc || !desc.get) return desc;
+      const set = accessHookMap.get(target);
+      if (!set || !set.has(prop)) return desc;
+      try {
+        return {
+          value: desc.get.call(target),
+          writable: true,
+          enumerable: desc.enumerable,
+          configurable: desc.configurable,
+        };
+      } catch { return desc; }
+    }
+
+    const origGOPD = Object.getOwnPropertyDescriptor;
+    const newGOPD = function getOwnPropertyDescriptor(target, prop) {
+      return spoofDesc(target, prop, origGOPD(target, prop));
+    };
+    fnWrapperMap.set(newGOPD, origGOPD);
+    copyFnIdentity(newGOPD, origGOPD);
+    Object.getOwnPropertyDescriptor = newGOPD;
+
+    const origGOPDs = Object.getOwnPropertyDescriptors;
+    if (typeof origGOPDs === "function") {
+      const newGOPDs = function getOwnPropertyDescriptors(target) {
+        const result = origGOPDs(target);
+        const set = accessHookMap.get(target);
+        if (set) {
+          for (const prop of set) {
+            if (prop in result) {
+              result[prop] = spoofDesc(target, prop, result[prop]);
+            }
+          }
+        }
+        return result;
+      };
+      fnWrapperMap.set(newGOPDs, origGOPDs);
+      copyFnIdentity(newGOPDs, origGOPDs);
+      Object.getOwnPropertyDescriptors = newGOPDs;
+    }
+
+    if (typeof Reflect !== "undefined" && typeof Reflect.getOwnPropertyDescriptor === "function") {
+      const origReflectGOPD = Reflect.getOwnPropertyDescriptor;
+      const newReflectGOPD = function getOwnPropertyDescriptor(target, prop) {
+        return spoofDesc(target, prop, origReflectGOPD(target, prop));
+      };
+      fnWrapperMap.set(newReflectGOPD, origReflectGOPD);
+      copyFnIdentity(newReflectGOPD, origReflectGOPD);
+      Reflect.getOwnPropertyDescriptor = newReflectGOPD;
+    }
+  }
 
 })();

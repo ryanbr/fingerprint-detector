@@ -37,6 +37,7 @@ manifest.browser_specific_settings = {
   gecko: {
     id: "fingerprint-detector@ryanbr",
     strict_min_version: "128.0",
+    data_collection_permissions: { required: ["none"] },
   },
 };
 if (manifest.background && manifest.background.service_worker) {

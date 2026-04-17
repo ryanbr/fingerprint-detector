@@ -126,8 +126,12 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
     {
       name: "DataDome",
       category: "DataDomeDetect",
-      globals: ["DD_RUM", "DD_LOGS", "datadome"],
-      globalPrefixes: ["_dd_"],
+      // Note: the globals DD_RUM and DD_LOGS are DataDog (observability
+      // product), NOT DataDome — deliberately excluded to prevent false
+      // positives. DataDome client-side presence is primarily via the
+      // cookie + script URL; it doesn't expose obvious globals.
+      globals: ["datadome"],
+      globalPrefixes: [],
       keyPatterns: [
         /^datadome$/i, /^dd_cookie_test/i, /^dd_s$/i,
       ],
@@ -167,9 +171,10 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       category: "ImpervaDetect",
       globals: [],  // Imperva operates mostly at edge, limited client globals
       globalPrefixes: ["__imperva_"],
+      // Only high-confidence cookie names. ___utmvc was removed —
+      // couldn't confirm it's Imperva-specific, may be other trackers.
       keyPatterns: [
         /^incap_ses/i, /^visid_incap/i, /^nlbi_/i,
-        /^___utmvc$/i,  // Imperva tracking cookie variant
       ],
       scriptSrcPatterns: [
         /\bcdn\.incapsula\.com\b/i,
@@ -182,6 +187,11 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
     {
       name: "Kasada",
       category: "KasadaDetect",
+      // KPSDK global is the primary reliable signal. x-kpsdk-* are
+      // primarily HTTP request headers (not localStorage/cookies) so
+      // storage-based detection is inconsistent; keeping the patterns
+      // for deployments that do cache the tokens, but the global +
+      // script-URL checks are the reliable path.
       globals: ["KPSDK"],
       globalPrefixes: ["KPSDK_"],
       keyPatterns: [

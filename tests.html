@@ -1360,15 +1360,16 @@
         } catch (_) { /* noop */ }
 
         // ── DataDome ──────────────────────────────────────────────
+        // Note: DD_RUM / DD_LOGS are DataDog, not DataDome — not tested
         try {
-          window.DD_RUM = window.DD_RUM || { __test: true };
+          window.datadome = window.datadome || { __test: true };
           document.cookie = "datadome=test-datadome-session; path=/; max-age=60";
           const s = document.createElement("script");
           s.src = "https://example.com/js.datadome.co/dd.js";
           s.onerror = () => {};
           document.head.appendChild(s);
           setTimeout(() => { try { s.remove(); } catch (_) {} }, 100);
-          results.push("DataDome: DD_RUM global + datadome cookie + script src");
+          results.push("DataDome: window.datadome + datadome cookie + script src");
         } catch (_) { /* noop */ }
 
         // ── PerimeterX / HUMAN ────────────────────────────────────

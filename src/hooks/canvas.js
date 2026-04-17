@@ -11,6 +11,13 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
   hookMethodViaAccess(CanvasRenderingContext2D.prototype, "getImageData", "Canvas", "getImageData");
   hookMethodViaAccess(HTMLCanvasElement.prototype, "toDataURL", "Canvas", "HTMLCanvasElement.toDataURL");
   hookMethodViaAccess(HTMLCanvasElement.prototype, "toBlob", "Canvas", "HTMLCanvasElement.toBlob");
+  // captureStream — returns a MediaStream of the canvas. Used for
+  // WebRTC-based canvas fingerprinting (pipe canvas frames through an
+  // RTCPeerConnection to read back pixel data, bypassing toDataURL
+  // protections). Access-based keeps us out of the stream pipeline.
+  if (typeof HTMLCanvasElement.prototype.captureStream === "function") {
+    hookMethodViaAccess(HTMLCanvasElement.prototype, "captureStream", "Canvas", "HTMLCanvasElement.captureStream");
+  }
 
   // Text rendering — the most common canvas fingerprint technique draws text
   // with specific fonts/styles and then extracts the pixel data

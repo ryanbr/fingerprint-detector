@@ -181,4 +181,14 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
   if (Document.prototype.hasFocus) {
     hookMethodHot(Document.prototype, "hasFocus", "HeadlessDetect", "document.hasFocus");
   }
+
+  // ── 47. Web Crypto — subtle.digest ────────────────────────────────────
+  // FingerprintJS and similar libraries use SHA-256 to hash the final
+  // fingerprint payload. Not fingerprinting evidence itself, but a
+  // strong indicator that fingerprinting or data hashing is happening.
+  // Access-based: returns a promise, commonly destructured.
+  if (typeof SubtleCrypto !== "undefined" &&
+      typeof SubtleCrypto.prototype.digest === "function") {
+    hookMethodViaAccess(SubtleCrypto.prototype, "digest", "Crypto", "crypto.subtle.digest");
+  }
 }

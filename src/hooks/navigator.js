@@ -16,6 +16,8 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
     "buildID",
     // Connection object access
     "connection",
+    // Online state — FingerprintJS reads this as a low-entropy signal
+    "onLine",
   ];
   for (const prop of navProps) {
     hookGetter(Navigator.prototype, prop, "Navigator", "navigator." + prop);

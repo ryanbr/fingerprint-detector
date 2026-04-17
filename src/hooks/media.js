@@ -101,4 +101,16 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
   if (typeof MediaRecorder !== "undefined" && typeof MediaRecorder.isTypeSupported === "function") {
     hookMethodHot(MediaRecorder, "isTypeSupported", "MediaDevices", "MediaRecorder.isTypeSupported");
   }
+
+  // WebCodec API — VideoDecoder / AudioDecoder isConfigSupported
+  // probe which codec configurations the browser can decode, which
+  // varies by hardware and platform. Complementary to canPlayType and
+  // used by newer fingerprinting libraries. Access-based because both
+  // return promises.
+  if (typeof VideoDecoder !== "undefined" && typeof VideoDecoder.isConfigSupported === "function") {
+    hookMethodViaAccess(VideoDecoder, "isConfigSupported", "MediaDevices", "VideoDecoder.isConfigSupported");
+  }
+  if (typeof AudioDecoder !== "undefined" && typeof AudioDecoder.isConfigSupported === "function") {
+    hookMethodViaAccess(AudioDecoder, "isConfigSupported", "MediaDevices", "AudioDecoder.isConfigSupported");
+  }
 }

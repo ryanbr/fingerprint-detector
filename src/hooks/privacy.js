@@ -38,6 +38,17 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
   hookGetter(Document.prototype, "hidden", "HeadlessDetect", "document.hidden");
   hookGetter(Document.prototype, "visibilityState", "HeadlessDetect", "document.visibilityState");
 
+  // Secure context detection — FingerprintJS reads this to branch
+  // detection logic based on HTTPS vs HTTP.
+  hookGetter(Window.prototype, "isSecureContext", "HeadlessDetect", "window.isSecureContext");
+
+  // Fullscreen state — page state detection used alongside
+  // fingerprinting for anti-embedding / frame-busting.
+  hookGetter(Document.prototype, "fullscreenElement", "HeadlessDetect", "document.fullscreenElement");
+  if (Object.getOwnPropertyDescriptor(Document.prototype, "fullscreenEnabled")) {
+    hookGetter(Document.prototype, "fullscreenEnabled", "HeadlessDetect", "document.fullscreenEnabled");
+  }
+
   // ── Anti-spoofing / prototype lie detection + counter-spoofing ───────
   // Sites call Function.prototype.toString on native APIs to verify
   // they haven't been replaced by anti-fingerprinting extensions. If

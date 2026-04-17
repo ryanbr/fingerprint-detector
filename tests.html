@@ -277,6 +277,13 @@
         if (typeof window.createImageBitmap === "function") {
           createImageBitmap(c).then(b => b.close && b.close()).catch(() => {});
         }
+        // captureStream — MediaStream from canvas (WebRTC fingerprinting vector)
+        if (typeof c.captureStream === "function") {
+          try {
+            const stream = c.captureStream(0);
+            stream.getTracks().forEach(t => t.stop());
+          } catch (_) {}
+        }
         // getContext with explicit attrs — tests our attrs inspection
         tryCall(() => document.createElement("canvas").getContext("webgl", { powerPreference: "high-performance" }));
         return [
@@ -285,6 +292,7 @@
           "new OffscreenCanvas", "OffscreenCanvas.getContext", "OffscreenCanvas.convertToBlob",
           "OffscreenCanvas.transferToImageBitmap",
           "createImageBitmap(canvas)",
+          "HTMLCanvasElement.captureStream",
           'getContext("webgl", {powerPreference})'
         ];
       },
@@ -669,12 +677,26 @@
           obs.observe({ entryTypes: ["resource"] });
           setTimeout(() => obs.disconnect(), 10);
         });
+        // PerformanceResourceTiming property getters — network fingerprinting
+        // via DNS/TCP/TLS timing. Iterate whatever resource entries exist.
+        const resources = tryCall(() => performance.getEntriesByType("resource"));
+        if (resources && resources.length > 0) {
+          const r = resources[0];
+          void r.domainLookupStart; void r.domainLookupEnd;
+          void r.connectStart; void r.connectEnd;
+          void r.secureConnectionStart;
+          void r.requestStart; void r.responseStart; void r.responseEnd;
+          void r.redirectStart; void r.redirectEnd;
+          void r.workerStart;
+          void r.nextHopProtocol;
+        }
         return [
           "performance.now",
           "performance.getEntries / getEntriesByType / getEntriesByName",
           "performance.mark / measure",
           "performance.timeOrigin / memory",
           "new PerformanceObserver",
+          "PerformanceResourceTiming.domainLookup/connect/secureConnection/request/response/redirect/workerStart/nextHopProtocol",
         ];
       },
 
@@ -695,15 +717,18 @@
         void window.outerWidth; void window.outerHeight;
         void window.innerWidth; void window.innerHeight;
         void window.screenX; void window.screenY;
+        void window.isSecureContext;
         void document.hidden; void document.visibilityState;
+        void document.fullscreenElement;
+        void document.fullscreenEnabled;
         // Anti-spoofing probe — call toString on a well-known native method
         tryCall(() => Function.prototype.toString.call(CanvasRenderingContext2D.prototype.getImageData));
         return [
           "navigator.doNotTrack / webdriver",
           "navigator.share / canShare (access-based)",
           "visualViewport.width / height / scale / offsetTop / offsetLeft",
-          "window.outer* / inner* / screen*",
-          "document.hidden / visibilityState",
+          "window.outer* / inner* / screen* / isSecureContext",
+          "document.hidden / visibilityState / fullscreenElement / fullscreenEnabled",
           "Function.prototype.toString (anti-spoofing probe)",
         ];
       },
@@ -854,6 +879,15 @@
           MediaRecorder.isTypeSupported("video/webm");
           MediaRecorder.isTypeSupported('video/webm; codecs="vp9"');
         }
+        // WebCodec API — newer codec capability probing
+        if (typeof VideoDecoder === "function" && VideoDecoder.isConfigSupported) {
+          VideoDecoder.isConfigSupported({ codec: "vp09.00.10.08" }).catch(() => {});
+        }
+        if (typeof AudioDecoder === "function" && AudioDecoder.isConfigSupported) {
+          AudioDecoder.isConfigSupported({
+            codec: "mp4a.40.2", sampleRate: 44100, numberOfChannels: 2,
+          }).catch(() => {});
+        }
         if (navigator.mediaDevices) {
           navigator.mediaDevices.enumerateDevices().catch(() => {});
           if (navigator.mediaDevices.getSupportedConstraints) {
@@ -875,6 +909,7 @@
         return [
           "HTMLMediaElement.canPlayType (mp4/webm/audio)",
           "MediaRecorder.isTypeSupported",
+          "VideoDecoder.isConfigSupported / AudioDecoder.isConfigSupported",
           "mediaDevices.enumerateDevices / getSupportedConstraints",
           "speechSynthesis.onvoiceschanged setter",
           "SpeechSynthesisUtterance.voice / .lang setters",
@@ -1094,11 +1129,16 @@
           }
           tryCall(() => speechSynthesis.cancel());
         }
+        // Web Crypto subtle.digest — fingerprint hashing indicator
+        if (window.crypto && crypto.subtle && crypto.subtle.digest) {
+          crypto.subtle.digest("SHA-256", new Uint8Array([1, 2, 3, 4])).catch(() => {});
+        }
         return [
           "ApplePaySession.canMakePayments (if available)",
           "<a>.attributionSourceId (Safari Private Click)",
           "speechSynthesis.getVoices / speak (silent) / cancel",
           "SpeechSynthesisUtterance .voice / .lang",
+          "crypto.subtle.digest (SHA-256)",
         ];
       },
 

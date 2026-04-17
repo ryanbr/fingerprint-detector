@@ -62,4 +62,26 @@ export function register({ hookMethod, hookMethodHot, hookGetter, record, record
       });
     }
   }
+
+  // ── PerformanceResourceTiming property getters ───────────────────────
+  // FingerprintJS reads these per-resource timing values to profile
+  // network behaviour (DNS lookup, TCP connect, TLS handshake, request
+  // latency) which can reveal VPN/proxy characteristics and distinguish
+  // network topologies.
+  if (typeof PerformanceResourceTiming !== "undefined") {
+    const resourceTimingProps = [
+      "domainLookupStart", "domainLookupEnd",
+      "connectStart", "connectEnd",
+      "secureConnectionStart",
+      "requestStart", "responseStart", "responseEnd",
+      "redirectStart", "redirectEnd",
+      "workerStart",
+      "nextHopProtocol",
+    ];
+    for (const prop of resourceTimingProps) {
+      if (Object.getOwnPropertyDescriptor(PerformanceResourceTiming.prototype, prop)) {
+        hookGetter(PerformanceResourceTiming.prototype, prop, "Timing", "PerformanceResourceTiming." + prop);
+      }
+    }
+  }
 }

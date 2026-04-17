@@ -82,6 +82,7 @@ const CATEGORY_META = {
   HeadlessDetect: { icon: "\u{1F916}", color: "#e94560", risk: "high" },
   ExtensionDetect:{ icon: "\u{1F9E9}", color: "#e94560", risk: "high" },
   Behavior:       { icon: "\u{1F5B1}", color: "#e94560", risk: "high" },
+  Crypto:         { icon: "\u{1F510}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

@@ -36,6 +36,7 @@ const CATEGORY_META = {
   HeadlessDetect: { icon: "🤖", color: "#e94560", risk: "high",   desc: "Headless/automation detection — navigator.webdriver, visualViewport, share API" },
   ExtensionDetect:{ icon: "🧩", color: "#e94560", risk: "high",   desc: "Extension detection — probing chrome-extension:// URLs, injected CSS, or DOM changes" },
   Behavior:       { icon: "🖱️", color: "#e94560", risk: "high",   desc: "Behavioral biometrics — mouse movement, keystroke dynamics, touch, pointer, scroll tracking" },
+  Crypto:         { icon: "🔐", color: "#fb8c00", risk: "medium", desc: "Web Crypto hashing (subtle.digest) — strong indicator of fingerprinting activity" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────

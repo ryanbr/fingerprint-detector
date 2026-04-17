@@ -191,4 +191,51 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       typeof SubtleCrypto.prototype.digest === "function") {
     hookMethodViaAccess(SubtleCrypto.prototype, "digest", "Crypto", "crypto.subtle.digest");
   }
+
+  // ── 48. WebAssembly — compile / instantiate / Module ─────────────────
+  // Recent Akamai Bot Manager builds load a WASM module to perform the
+  // sensor_data hashing client-side (makes the payload harder to
+  // reverse-engineer than pure JS). WASM use on a non-interactive
+  // site (bank / news / e-commerce landing) is a strong signal that
+  // something heavyweight is running. Most legitimate WASM usage
+  // (games, video editors, emulators) is gated behind explicit user
+  // action, so a page loading WASM on its own is unusual.
+  if (typeof WebAssembly !== "undefined") {
+    if (typeof WebAssembly.compile === "function") {
+      hookMethodViaAccess(WebAssembly, "compile", "HeadlessDetect", "WebAssembly.compile");
+    }
+    if (typeof WebAssembly.instantiate === "function") {
+      hookMethodViaAccess(WebAssembly, "instantiate", "HeadlessDetect", "WebAssembly.instantiate");
+    }
+    if (typeof WebAssembly.compileStreaming === "function") {
+      hookMethodViaAccess(WebAssembly, "compileStreaming", "HeadlessDetect", "WebAssembly.compileStreaming");
+    }
+    if (typeof WebAssembly.instantiateStreaming === "function") {
+      hookMethodViaAccess(WebAssembly, "instantiateStreaming", "HeadlessDetect", "WebAssembly.instantiateStreaming");
+    }
+    // Wrap the Module / Memory / Instance constructors as well. These
+    // are synchronous and construction is the only way to get a new
+    // instance, so first-fire recording is enough.
+    if (typeof WebAssembly.Module === "function") {
+      const OrigWM = WebAssembly.Module;
+      try {
+        WebAssembly.Module = function (bufferSource, ...args) {
+          recordHot("HeadlessDetect", "new WebAssembly.Module",
+            "WASM binary module construction");
+          return args.length > 0 ? new OrigWM(bufferSource, ...args) : new OrigWM(bufferSource);
+        };
+        WebAssembly.Module.prototype = OrigWM.prototype;
+      } catch { /* non-writable */ }
+    }
+    if (typeof WebAssembly.Memory === "function") {
+      const OrigWMem = WebAssembly.Memory;
+      try {
+        WebAssembly.Memory = function (descriptor) {
+          recordHot("HeadlessDetect", "new WebAssembly.Memory", "WASM memory allocation");
+          return new OrigWMem(descriptor);
+        };
+        WebAssembly.Memory.prototype = OrigWMem.prototype;
+      } catch { /* non-writable */ }
+    }
+  }
 }

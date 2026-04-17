@@ -738,6 +738,13 @@
         void document.fullscreenEnabled;
         // Anti-spoofing probe — call toString on a well-known native method
         tryCall(() => Function.prototype.toString.call(CanvasRenderingContext2D.prototype.getImageData));
+        // Object.prototype.toString proxy-tamper probe (Akamai pattern)
+        tryCall(() => Object.prototype.toString.call(window));
+        tryCall(() => Object.prototype.toString.call(navigator));
+        tryCall(() => Object.prototype.toString.call(document));
+        // Error.stack engine-format fingerprinting (Firefox / Safari only —
+        // V8 doesn't expose stack as a prototype accessor)
+        try { void new Error().stack; } catch (_) {}
         return [
           "navigator.doNotTrack / webdriver",
           "navigator.share / canShare (access-based)",
@@ -745,6 +752,8 @@
           "window.outer* / inner* / screen* / isSecureContext",
           "document.hidden / visibilityState / fullscreenElement / fullscreenEnabled",
           "Function.prototype.toString (anti-spoofing probe)",
+          "Object.prototype.toString.call(window/navigator/document)",
+          "new Error().stack (engine fingerprint, Firefox/Safari)",
         ];
       },
 
@@ -1148,12 +1157,23 @@
         if (window.crypto && crypto.subtle && crypto.subtle.digest) {
           crypto.subtle.digest("SHA-256", new Uint8Array([1, 2, 3, 4])).catch(() => {});
         }
+        // WebAssembly — ABM uses WASM for sensor_data hashing
+        if (typeof WebAssembly !== "undefined") {
+          // Minimal valid WASM module (8-byte header + empty sections).
+          // Constructor succeeds; compile/instantiate also fire hooks.
+          const emptyWasm = new Uint8Array([0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00]);
+          tryCall(() => new WebAssembly.Module(emptyWasm));
+          if (WebAssembly.compile) WebAssembly.compile(emptyWasm).catch(() => {});
+          if (WebAssembly.instantiate) WebAssembly.instantiate(emptyWasm).catch(() => {});
+          if (WebAssembly.Memory) tryCall(() => new WebAssembly.Memory({ initial: 1 }));
+        }
         return [
           "ApplePaySession.canMakePayments (if available)",
           "<a>.attributionSourceId (Safari Private Click)",
           "speechSynthesis.getVoices / speak (silent) / cancel",
           "SpeechSynthesisUtterance .voice / .lang",
           "crypto.subtle.digest (SHA-256)",
+          "WebAssembly.compile / instantiate / new Module / new Memory",
         ];
       },
 

@@ -72,6 +72,7 @@ export default [
         AudioDecoder: "readonly",
         SubtleCrypto: "readonly",
         PerformanceResourceTiming: "readonly",
+        WebAssembly: "readonly",
         Permissions: "readonly",
         Notification: "readonly",
         NetworkInformation: "readonly",

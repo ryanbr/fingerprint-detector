@@ -102,6 +102,77 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
     Function.prototype.toString = newToString;
   }
 
+  // ── Object.prototype.toString probe detection ────────────────────────
+  // Anti-bot libraries (Akamai Bot Manager in particular) call
+  // Object.prototype.toString.call(window) / .call(navigator) /
+  // .call(document) to detect if any of those have been wrapped in a
+  // Proxy — a Proxy would return "[object Object]" instead of the
+  // expected "[object Window]" / etc.
+  //
+  // Object.prototype.toString is extremely hot (called by
+  // JSON.stringify, template literals, Array.prototype.join, and many
+  // libraries' type-check utilities). So we:
+  // 1. Only report + self-unwrap on the first probe that hits a
+  //    fingerprint-relevant target (window/navigator/document).
+  // 2. Hard-deadline unwrap after 5s regardless — if no probe fires
+  //    in that window, restore the native to stop paying wrapper
+  //    overhead on hot paths.
+  // 3. Register the wrapper in fnWrapperMap + fake name/length so
+  //    the override itself is invisible to tamper checks.
+  {
+    const origOT = Object.prototype.toString;
+    let fired = false;
+    const newOT = function () {
+      if (!fired && (this === window || this === navigator || this === document)) {
+        fired = true;
+        const targetName = this === window ? "window" :
+                           this === navigator ? "navigator" : "document";
+        record("HeadlessDetect", "Object.prototype.toString probe",
+          "called on " + targetName + " — proxy-tamper detection");
+        // Self-unwrap on successful detection
+        try {
+          if (Object.prototype.toString === newOT) {
+            Object.prototype.toString = origOT;
+          }
+        } catch { /* non-writable */ }
+      }
+      return origOT.call(this);
+    };
+    if (fnWrapperMap) fnWrapperMap.set(newOT, origOT);
+    try { Object.defineProperty(newOT, "name", { value: "toString", configurable: true }); } catch { /* noop */ }
+    try { Object.defineProperty(newOT, "length", { value: 0, configurable: true }); } catch { /* noop */ }
+    try { Object.prototype.toString = newOT; } catch { /* noop */ }
+    // Hard-deadline unwrap — even if no probe fired, restore native
+    // so hot paths (JSON.stringify, template literals, etc.) aren't
+    // paying per-call wrapper overhead for the remainder of the page.
+    setTimeout(() => {
+      try {
+        if (Object.prototype.toString === newOT) {
+          Object.prototype.toString = origOT;
+        }
+      } catch { /* noop */ }
+    }, 5000);
+  }
+
+  // ── Error.prototype.stack engine fingerprinting ──────────────────────
+  // Anti-bot libraries read `new Error().stack` and inspect the format
+  // to identify the JS engine (V8 uses "    at X (url:line:col)",
+  // SpiderMonkey and JSC use "X@url:line:col"). Sites compare the
+  // inferred engine against navigator.userAgent to detect spoofing.
+  //
+  // NOTE: V8 (Chrome/Edge) doesn't define an own "stack" accessor on
+  // Error.prototype — stack is set per-instance lazily via
+  // Error.captureStackTrace. So getOwnPropertyDescriptor returns
+  // nothing and hookGetter bails out silently. This detection only
+  // fires on Firefox (where stack IS an accessor on Error.prototype)
+  // and Safari. Better than nothing, and it's a clean add.
+  {
+    const stackDesc = Object.getOwnPropertyDescriptor(Error.prototype, "stack");
+    if (stackDesc && stackDesc.get) {
+      hookGetter(Error.prototype, "stack", "HeadlessDetect", "Error.stack");
+    }
+  }
+
   // ── ChromeDriver / automation tool artifacts ──────────────────────────
   // Puppeteer and ChromeDriver leave detectable globals on the window object.
   // We check for their presence at init time.

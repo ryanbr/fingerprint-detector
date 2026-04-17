@@ -1406,6 +1406,22 @@
           results.push("Kasada: window.KPSDK + x-kpsdk-* storage keys");
         } catch (_) { /* noop */ }
 
+        // ── Piano / Tinypass ──────────────────────────────────────
+        try {
+          window.tp = window.tp || { __test: true };
+          window.pn = window.pn || { __test: true };
+          window.__tpVersion = "1.15.11";
+          document.cookie = "_pcid=test-pc-id; path=/; max-age=60";
+          document.cookie = "__tbc=test-tbc; path=/; max-age=60";
+          localStorage.setItem("__tp-test-key", "test-value");
+          const s = document.createElement("script");
+          s.src = "https://example.com/cdn-au.piano.io/api/tinypass.min.js";
+          s.onerror = () => {};
+          document.head.appendChild(s);
+          setTimeout(() => { try { s.remove(); } catch (_) {} }, 100);
+          results.push("Piano: tp/pn/__tpVersion globals + _pcid/__tbc cookies + __tp-* storage + tinypass.min.js URL");
+        } catch (_) { /* noop */ }
+
         return results.length > 0 ? results : ["(failed to simulate any signals)"];
       },
 

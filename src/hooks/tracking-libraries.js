@@ -198,6 +198,45 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       classifyOrigin: false,
     },
     {
+      name: "Piano / Tinypass",
+      category: "PianoDetect",
+      // Piano (formerly Tinypass) is a paywall / subscription platform.
+      // Used by news and magazine publishers. Their script does user
+      // identification and page-view tracking for paywall enforcement.
+      globals: [
+        "tp",                 // primary Piano SDK global
+        "pn",                 // internal namespace (confirmed on cdn-au.piano.io)
+        "pdl",                // Piano Data Layer
+        "tinypass",           // legacy name
+        "__tpVersion",        // version string
+        "pnFullTPVersion",
+        "pnHasPolyfilled",
+        "pnInitPerformance",
+      ],
+      globalPrefixes: ["__tp_", "pn_", "tp__"],
+      keyPatterns: [
+        // Consent / tracking cookies
+        /^_pc_/i,
+        /^_pcid$/i, /^_pctx$/i, /^_pcus$/i, /^_pprv$/i,
+        // Telemetry cookies (short prefixes are distinctive)
+        /^__tbc$/i, /^__tac$/i, /^__tae$/i,
+        /^__pls$/i, /^__pnahc$/i, /^__pat$/i,
+        // localStorage keys
+        /^__tp/i,            // __tp*
+        /^tp__/i,            // tp__*
+        /^pianoId$/i,
+        /^_ls_ttl$/i,
+      ],
+      scriptSrcPatterns: [
+        /\bcdn(?:-\w+)?\.piano\.io\b/i,   // cdn.piano.io, cdn-au.piano.io, cdn-eu, cdn-na
+        /\btinypass\.com\b/i,              // legacy domain
+        /\bexperience\.piano\.io\b/i,
+        /\/tinypass(?:\.min)?\.js\b/i,    // script filename
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
+    {
       name: "Kasada",
       category: "KasadaDetect",
       // KPSDK global is the primary reliable signal. x-kpsdk-* are

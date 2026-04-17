@@ -91,6 +91,7 @@ const CATEGORY_META = {
   PerimeterXDetect: { icon: "\u{1F6A7}", color: "#e94560", risk: "high" },
   ImpervaDetect: { icon: "\u{1F512}", color: "#fb8c00", risk: "medium" },
   KasadaDetect: { icon: "\u{1F3EF}", color: "#e94560", risk: "high" },
+  PianoDetect:  { icon: "\u{1F3B9}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

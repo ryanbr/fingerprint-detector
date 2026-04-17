@@ -85,6 +85,7 @@ const CATEGORY_META = {
   Crypto:         { icon: "\u{1F510}", color: "#fb8c00", risk: "medium" },
   FingerprintJSDetect: { icon: "\u{1F575}\u{FE0F}", color: "#e94560", risk: "high" },
   MatomoDetect:   { icon: "\u{1F4CA}", color: "#fb8c00", risk: "medium" },
+  AkamaiBotManagerDetect: { icon: "\u{1F6E1}\u{FE0F}", color: "#e94560", risk: "high" },
 };
 
 function escapeHtml(str) {

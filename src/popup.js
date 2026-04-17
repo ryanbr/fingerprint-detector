@@ -39,6 +39,7 @@ const CATEGORY_META = {
   Crypto:         { icon: "🔐", color: "#fb8c00", risk: "medium", desc: "Web Crypto hashing (subtle.digest) — strong indicator of fingerprinting activity" },
   FingerprintJSDetect: { icon: "🕵️", color: "#e94560", risk: "high", desc: "FingerprintJS library detected — via loader URL, DOM integration tags, or global variables" },
   MatomoDetect:   { icon: "📊", color: "#fb8c00", risk: "medium", desc: "Matomo / Piwik analytics library detected — globals (_paq, Matomo), cookie/storage keys, or script filename" },
+  AkamaiBotManagerDetect: { icon: "🛡️", color: "#e94560", risk: "high", desc: "Akamai Bot Manager detected — anti-bot/anti-fraud product via window.bmak global and _abck cookie family" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -127,8 +128,9 @@ document.querySelectorAll(".tab").forEach(tab => {
 // Map of detection-category → { label, icon } for the tracking-library
 // banner. Adding a new tracking library detector? Add a row here.
 const TRACKING_LIBRARY_CATEGORIES = {
-  FingerprintJSDetect: { label: "FingerprintJS", icon: "🕵️" },
-  MatomoDetect:        { label: "Matomo",        icon: "📊" },
+  FingerprintJSDetect:    { label: "FingerprintJS",        icon: "🕵️" },
+  MatomoDetect:           { label: "Matomo",               icon: "📊" },
+  AkamaiBotManagerDetect: { label: "Akamai Bot Manager",   icon: "🛡️" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

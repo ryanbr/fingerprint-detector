@@ -198,6 +198,11 @@
     <ul class="ops"></ul>
   </section>
 
+  <section data-test="akamaiBotManagerDetect">
+    <h2>Akamai Bot Manager Detection (simulated signals) <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
   <!-- ══════════════════════ INTERACTIVE TESTS ══════════════════════ -->
 
   <div class="notice">
@@ -1268,6 +1273,48 @@
           document.head.appendChild(s);
           results.push('<script src=".../matomo.js">');
           setTimeout(() => { try { s.remove(); } catch (_) {} }, 100);
+        } catch (_) { /* noop */ }
+
+        return results.length > 0 ? results : ["(failed to simulate any signals)"];
+      },
+
+      akamaiBotManagerDetect() {
+        // Simulate Akamai Bot Manager signals. The URL-based detection
+        // can't be tested from this page (ABM paths are randomized
+        // per-customer so there's no pattern to match), but the global
+        // + cookie + storage detections all fire from simple assignments.
+        const results = [];
+
+        // Signal 1: window.bmak — THE Akamai Bot Manager global
+        try {
+          window.bmak = window.bmak || { __test: true, init: function() {} };
+          results.push("window.bmak (primary ABM global)");
+        } catch (_) { /* noop */ }
+
+        // Signal 2: arbitrary bmak-prefixed global (pattern match)
+        try {
+          window.bmak_session = { __test: true };
+          results.push("window.bmak_session (pattern match)");
+        } catch (_) { /* noop */ }
+
+        // Signal 3: _abck cookie — the universal ABM cookie
+        try {
+          document.cookie = "_abck=test-value; path=/; max-age=60";
+          results.push('document.cookie "_abck"');
+        } catch (_) { /* noop */ }
+
+        // Signal 4: bm_* cookie family
+        try {
+          document.cookie = "bm_sz=test-session; path=/; max-age=60";
+          document.cookie = "bm_mi=test-mitigation; path=/; max-age=60";
+          results.push('document.cookie "bm_sz", "bm_mi"');
+        } catch (_) { /* noop */ }
+
+        // Signal 5: localStorage keys
+        try {
+          localStorage.setItem("_abck", "test-localstorage-value");
+          localStorage.setItem("bm_sv", "test-sv");
+          results.push('localStorage["_abck", "bm_sv"]');
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

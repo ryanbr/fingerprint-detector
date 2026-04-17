@@ -116,7 +116,17 @@ import { register as trackingLibraries } from './hooks/tracking-libraries.js';
   const METHOD_LOG_EVERY = 100;
 
   // ── V8 optimization: Error.captureStackTrace ─────────────────────────
-  const hasCapture = typeof Error.captureStackTrace === "function";
+  // Save a private reference to the native Error.captureStackTrace at
+  // inject.js init time (before any hook runs). This prevents our own
+  // stack-capturing from triggering privacy.js's
+  // Error.captureStackTrace hook — if we called the live
+  // Error.captureStackTrace after hooks are installed, each of our
+  // own record() calls would fire a false HeadlessDetect event for
+  // itself.
+  const origCaptureStackTrace = typeof Error.captureStackTrace === "function"
+    ? Error.captureStackTrace
+    : null;
+  const hasCapture = origCaptureStackTrace !== null;
   // Truncate captured stacks to this many frames — saves ~70% of storage
   // since most fingerprinting happens within a few caller frames.
   const MAX_STACK_FRAMES = 8;
@@ -125,7 +135,7 @@ import { register as trackingLibraries } from './hooks/tracking-libraries.js';
     let stack;
     if (hasCapture) {
       const obj = {};
-      Error.captureStackTrace(obj, captureStack);
+      origCaptureStackTrace(obj, captureStack);
       stack = obj.stack;
     } else {
       stack = new Error().stack;

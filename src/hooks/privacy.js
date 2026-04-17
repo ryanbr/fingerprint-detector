@@ -168,22 +168,32 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
     }, 5000);
   }
 
-  // ── Error.prototype.stack engine fingerprinting ──────────────────────
-  // Anti-bot libraries read `new Error().stack` and inspect the format
-  // to identify the JS engine (V8 uses "    at X (url:line:col)",
+  // ── Error.stack / Error.captureStackTrace engine fingerprinting ──────
+  // Anti-bot libraries read stack traces and inspect the format to
+  // identify the JS engine (V8 uses "    at X (url:line:col)",
   // SpiderMonkey and JSC use "X@url:line:col"). Sites compare the
   // inferred engine against navigator.userAgent to detect spoofing.
   //
-  // NOTE: V8 (Chrome/Edge) doesn't define an own "stack" accessor on
-  // Error.prototype — stack is set per-instance lazily via
-  // Error.captureStackTrace. So getOwnPropertyDescriptor returns
-  // nothing and hookGetter bails out silently. This detection only
-  // fires on Firefox (where stack IS an accessor on Error.prototype)
-  // and Safari. Better than nothing, and it's a clean add.
+  // Two detection paths to cover both engine families:
+  //
+  // 1. Firefox / Safari: Error.prototype.stack is an own accessor on
+  //    Error.prototype — hookGetter catches every read.
+  // 2. V8 (Chrome / Edge): stack is set per-instance lazily via C++
+  //    APIs, so Error.prototype.stack has no JS-visible accessor and
+  //    hookGetter(1) silently bails. Instead we hook the JS-visible
+  //    Error.captureStackTrace static method — fingerprint scripts
+  //    that want consistent cross-engine behavior call this
+  //    explicitly (V8's internal new Error() path does NOT go
+  //    through this function, so we only catch explicit JS calls,
+  //    which is exactly the signal we want).
   {
     const stackDesc = Object.getOwnPropertyDescriptor(Error.prototype, "stack");
     if (stackDesc && stackDesc.get) {
       hookGetter(Error.prototype, "stack", "HeadlessDetect", "Error.stack");
+    }
+    // V8-only — Error.captureStackTrace is Chrome/Edge-specific
+    if (typeof Error.captureStackTrace === "function") {
+      hookMethodHot(Error, "captureStackTrace", "HeadlessDetect", "Error.captureStackTrace");
     }
   }
 

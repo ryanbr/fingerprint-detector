@@ -23,9 +23,7 @@ import { register as intl } from './hooks/intl.js';
 import { register as misc } from './hooks/misc.js';
 import { register as behavior } from './hooks/behavior.js';
 import { register as permissions } from './hooks/permissions.js';
-import { register as fingerprintLibrary } from './hooks/fingerprint-library.js';
-import { register as matomo } from './hooks/matomo.js';
-import { register as akamaiBotManager } from './hooks/akamai-bot-manager.js';
+import { register as trackingLibraries } from './hooks/tracking-libraries.js';
 
 (function () {
   "use strict";
@@ -406,9 +404,7 @@ import { register as akamaiBotManager } from './hooks/akamai-bot-manager.js';
   misc(helpers);
   behavior(helpers);
   permissions(helpers);
-  fingerprintLibrary(helpers);
-  matomo(helpers);
-  akamaiBotManager(helpers);
+  trackingLibraries(helpers);
 
   // ── Descriptor spoofing for access-based hooks ───────────────────────
   // hookMethodViaAccess converts data descriptors into accessor

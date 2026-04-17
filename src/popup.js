@@ -145,11 +145,19 @@ const TRACKING_LIBRARY_CATEGORIES = {
 
 // Update the tracking-library banner above the tabs. Shown whenever any
 // of the TRACKING_LIBRARY_CATEGORIES has events on the current tab.
-// Lists the detected libraries by name with their per-library signal
-// counts.
+//
+// Single detection: compact one-line banner with icon + name + count
+//   🕵️ FingerprintJS detected on this page   [3 signals]
+// Multiple detections: generic header + stacked list of libraries,
+// each on its own row with icon + name + per-library signal count:
+//   ⚠️ 3 tracking libraries detected
+//     🕵️ FingerprintJS         3 signals
+//     📊 Matomo                2 signals
+//     🚧 PerimeterX / HUMAN    5 signals
 function updateFingerprintBanner(categories) {
   const banner = document.getElementById("fingerprint-banner");
   if (!banner) return;
+  const list = document.getElementById("banner-list");
   const hits = [];
   for (const cat of Object.keys(TRACKING_LIBRARY_CATEGORIES)) {
     const events = categories && categories[cat];
@@ -160,22 +168,50 @@ function updateFingerprintBanner(categories) {
   }
   if (hits.length === 0) {
     banner.classList.remove("active");
+    if (list) list.classList.remove("active");
     return;
   }
   banner.classList.add("active");
-  // Build the text: "FingerprintJS (3) · Matomo (2)"
-  const list = hits.map(h => h.icon + " " + h.label + " (" + h.count + ")").join(" · ");
   const iconEl = banner.querySelector(".banner-icon");
   const textEl = banner.querySelector(".banner-text");
   const countEl = document.getElementById("banner-count");
-  // Use a generic shield icon since multiple kinds are possible
-  if (iconEl) iconEl.textContent = hits.length === 1 ? hits[0].icon : "⚠️";
-  if (textEl) textEl.textContent = hits.length === 1
-    ? hits[0].label + " detected on this page"
-    : "Tracking libraries detected";
-  if (countEl) countEl.textContent = hits.length === 1
-    ? hits[0].count + (hits[0].count === 1 ? " signal" : " signals")
-    : list;
+  if (hits.length === 1) {
+    // Compact single-line layout
+    const h = hits[0];
+    if (iconEl) iconEl.textContent = h.icon;
+    if (textEl) textEl.textContent = h.label + " detected on this page";
+    if (countEl) countEl.textContent = h.count + (h.count === 1 ? " signal" : " signals");
+    if (list) {
+      list.classList.remove("active");
+      list.innerHTML = "";
+    }
+  } else {
+    // Stacked multi-line layout
+    if (iconEl) iconEl.textContent = "⚠️";
+    if (textEl) textEl.textContent = hits.length + " tracking libraries detected";
+    if (countEl) countEl.textContent = "";
+    if (list) {
+      list.innerHTML = "";
+      for (const h of hits) {
+        const row = document.createElement("div");
+        row.className = "banner-row";
+        const icon = document.createElement("span");
+        icon.className = "banner-row-icon";
+        icon.textContent = h.icon;
+        const label = document.createElement("span");
+        label.className = "banner-row-label";
+        label.textContent = h.label;
+        const count = document.createElement("span");
+        count.className = "banner-row-count";
+        count.textContent = h.count + (h.count === 1 ? " signal" : " signals");
+        row.appendChild(icon);
+        row.appendChild(label);
+        row.appendChild(count);
+        list.appendChild(row);
+      }
+      list.classList.add("active");
+    }
+  }
 }
 
 // ── Summary Panel ──────────────────────────────────────────────────────

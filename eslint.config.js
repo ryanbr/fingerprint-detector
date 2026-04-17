@@ -81,6 +81,7 @@ export default [
         SpeechSynthesisUtterance: "readonly",
         PerformanceObserver: "readonly",
         Performance: "readonly",
+        performance: "readonly",
         Keyboard: "readonly",
         GPU: "readonly",
         GPUAdapter: "readonly",

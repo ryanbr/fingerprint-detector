@@ -83,6 +83,7 @@ const CATEGORY_META = {
   ExtensionDetect:{ icon: "\u{1F9E9}", color: "#e94560", risk: "high" },
   Behavior:       { icon: "\u{1F5B1}", color: "#e94560", risk: "high" },
   Crypto:         { icon: "\u{1F510}", color: "#fb8c00", risk: "medium" },
+  FingerprintJSDetect: { icon: "\u{1F575}\u{FE0F}", color: "#e94560", risk: "high" },
 };
 
 function escapeHtml(str) {

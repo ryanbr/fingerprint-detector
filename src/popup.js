@@ -37,6 +37,7 @@ const CATEGORY_META = {
   ExtensionDetect:{ icon: "🧩", color: "#e94560", risk: "high",   desc: "Extension detection — probing chrome-extension:// URLs, injected CSS, or DOM changes" },
   Behavior:       { icon: "🖱️", color: "#e94560", risk: "high",   desc: "Behavioral biometrics — mouse movement, keystroke dynamics, touch, pointer, scroll tracking" },
   Crypto:         { icon: "🔐", color: "#fb8c00", risk: "medium", desc: "Web Crypto hashing (subtle.digest) — strong indicator of fingerprinting activity" },
+  FingerprintJSDetect: { icon: "🕵️", color: "#e94560", risk: "high", desc: "FingerprintJS library detected — via loader URL, DOM integration tags, or global variables" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -122,12 +123,35 @@ document.querySelectorAll(".tab").forEach(tab => {
   });
 });
 
+// Update the FingerprintJS banner above the tabs. Visible whenever the
+// current tab has any FingerprintJSDetect events in the summary.
+function updateFingerprintBanner(categories) {
+  const banner = document.getElementById("fingerprint-banner");
+  if (!banner) return;
+  const hits = (categories && categories.FingerprintJSDetect) || [];
+  if (hits.length > 0) {
+    banner.classList.add("active");
+    const counter = document.getElementById("banner-count");
+    if (counter) {
+      // Count distinct signals (by method name) rather than raw events
+      const distinct = new Set(hits.map(h => h.method)).size;
+      counter.textContent = distinct + (distinct === 1 ? " signal" : " signals");
+    }
+  } else {
+    banner.classList.remove("active");
+  }
+}
+
 // ── Summary Panel ──────────────────────────────────────────────────────
 function renderSummary(response) {
   const content = document.getElementById("content");
-  if (!response || Object.keys(response.categories).length === 0) return;
+  if (!response || Object.keys(response.categories).length === 0) {
+    updateFingerprintBanner(null);
+    return;
+  }
 
   const { categories } = response;
+  updateFingerprintBanner(categories);
   const risk = getRiskLevel(categories);
 
   let html = `<div class="summary">
@@ -941,6 +965,28 @@ chrome.storage.local.get(["mutedGlobal", "mutedByDomain"], (localStored) => {
 
       port.onMessage.addListener((msg) => {
         if (msg.type === "fp-batch") {
+          // Live FingerprintJS detection — flip the banner on as soon
+          // as an event in that category arrives, even before the next
+          // summary refresh.
+          let hasFPDetect = false;
+          for (let i = 0; i < msg.data.length; i++) {
+            if (msg.data[i].category === "FingerprintJSDetect") {
+              hasFPDetect = true;
+              break;
+            }
+          }
+          if (hasFPDetect) {
+            const banner = document.getElementById("fingerprint-banner");
+            if (banner && !banner.classList.contains("active")) {
+              banner.classList.add("active");
+              // Count isn't authoritative here (we don't have the full
+              // list) — leave the existing count or set to "1" if empty.
+              const counter = document.getElementById("banner-count");
+              if (counter && !counter.textContent.trim()) {
+                counter.textContent = "detected";
+              }
+            }
+          }
           if (paused) {
             pausedQueue.push(...msg.data);
             updateCounter();

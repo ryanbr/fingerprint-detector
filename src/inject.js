@@ -23,6 +23,7 @@ import { register as intl } from './hooks/intl.js';
 import { register as misc } from './hooks/misc.js';
 import { register as behavior } from './hooks/behavior.js';
 import { register as permissions } from './hooks/permissions.js';
+import { register as fingerprintLibrary } from './hooks/fingerprint-library.js';
 
 (function () {
   "use strict";
@@ -403,6 +404,7 @@ import { register as permissions } from './hooks/permissions.js';
   misc(helpers);
   behavior(helpers);
   permissions(helpers);
+  fingerprintLibrary(helpers);
 
   // ── Descriptor spoofing for access-based hooks ───────────────────────
   // hookMethodViaAccess converts data descriptors into accessor

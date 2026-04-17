@@ -435,6 +435,32 @@
       margin-top: 2px;
     }
 
+    /* ── FingerprintJS detection banner ────────────────── */
+    #fingerprint-banner {
+      display: none;
+      padding: 7px 16px;
+      background: linear-gradient(90deg, #e94560 0%, #c62b47 100%);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #8b1e38;
+      flex-shrink: 0;
+      letter-spacing: 0.2px;
+    }
+    #fingerprint-banner.active { display: flex; }
+    #fingerprint-banner .banner-icon { font-size: 14px; flex-shrink: 0; }
+    #fingerprint-banner .banner-text { flex: 1; }
+    #fingerprint-banner .banner-count {
+      background: rgba(255,255,255,0.22);
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
     /* ── Footer ──────────────────────────────────────── */
     footer {
       padding: 8px 16px;
@@ -490,6 +516,12 @@
       </div>
     </div>
   </header>
+
+  <div id="fingerprint-banner">
+    <span class="banner-icon">🕵️</span>
+    <span class="banner-text">FingerprintJS detected on this page</span>
+    <span class="banner-count" id="banner-count">0</span>
+  </div>
 
   <div class="tabs">
     <div class="tab active" data-panel="summary-panel">Summary</div>

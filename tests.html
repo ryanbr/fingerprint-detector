@@ -188,6 +188,11 @@
     <ul class="ops"></ul>
   </section>
 
+  <section data-test="fingerprintjsDetect">
+    <h2>FingerprintJS Library Detection (simulated signals) <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
   <!-- ══════════════════════ INTERACTIVE TESTS ══════════════════════ -->
 
   <div class="notice">
@@ -1140,6 +1145,54 @@
           "SpeechSynthesisUtterance .voice / .lang",
           "crypto.subtle.digest (SHA-256)",
         ];
+      },
+
+      fingerprintjsDetect() {
+        // Simulate three of the four detection signals:
+        // 1. Global variable set
+        // 2. DOM <script data-fpjs-public-key> inserted
+        // 3. DOM <script> tag with matching loader URL query string
+        //    (intentionally points at an unreachable host — the resource
+        //    URL matches the pattern, which is what the hook keys off)
+        //
+        // The 4th signal (PerformanceObserver loader match) can only
+        // fire from real resource loads, which is exercised naturally
+        // on pages that actually use FingerprintJS.
+        const results = [];
+
+        // Signal 1: set a well-known global
+        try {
+          window.FingerprintJS = window.FingerprintJS || { __test: true };
+          results.push("window.FingerprintJS (global set)");
+        } catch (_) { /* noop */ }
+
+        // Signal 2: <script data-fpjs-public-key>
+        try {
+          const s = document.createElement("script");
+          s.setAttribute("data-fpjs-public-key", "test-public-key");
+          document.head.appendChild(s);
+          results.push('<script data-fpjs-public-key>');
+          setTimeout(() => { try { s.remove(); } catch (_) {} }, 100);
+        } catch (_) { /* noop */ }
+
+        // Signal 3: <script src> matching the FingerprintJS Pro query string
+        // (host is example.com; real resource load will fail harmlessly)
+        try {
+          const s2 = document.createElement("script");
+          s2.src = "https://example.com/abc123def456/xyz789ghi012?apiKey=test&version=3&loaderVersion=3.11.12";
+          s2.onerror = () => {};
+          document.head.appendChild(s2);
+          results.push('<script src="...?apiKey=...&loaderVersion=...">');
+          setTimeout(() => { try { s2.remove(); } catch (_) {} }, 100);
+        } catch (_) { /* noop */ }
+
+        // Signal 4: set fpPromise global
+        try {
+          window.fpPromise = window.fpPromise || Promise.resolve({ __test: true });
+          results.push("window.fpPromise (global set)");
+        } catch (_) { /* noop */ }
+
+        return results.length > 0 ? results : ["(failed to simulate any signals)"];
       },
 
       // ── Interactive tests ──

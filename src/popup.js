@@ -827,6 +827,32 @@ function buildSummaryExport(callback) {
       categories: {},
     };
 
+    // Tracking library roll-up — one entry per detected library
+    // (FingerprintJS, Matomo, Akamai BM, Cloudflare, DataDome,
+    // PerimeterX, Imperva, Kasada). Lets consumers of the JSON
+    // answer "which trackers does this site use?" without having
+    // to iterate categories and string-match names.
+    const trackingLibraries = [];
+    for (const cat of Object.keys(TRACKING_LIBRARY_CATEGORIES)) {
+      const events = categories[cat];
+      if (events && events.length > 0) {
+        const distinct = new Set(events.map(e => e.method)).size;
+        trackingLibraries.push({
+          name: TRACKING_LIBRARY_CATEGORIES[cat].label,
+          category: cat,
+          totalEvents: events.length,
+          distinctSignals: distinct,
+          signals: dedupeDetections(events).map(d => ({
+            method: d.method,
+            detail: d.detail || "",
+          })),
+        });
+      }
+    }
+    if (trackingLibraries.length > 0) {
+      summary.trackingLibraries = trackingLibraries;
+    }
+
     for (const cat of cats) {
       const meta = CATEGORY_META[cat] || {};
       const unique = dedupeDetections(categories[cat]);

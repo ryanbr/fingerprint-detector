@@ -2,7 +2,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "esbuild src/inject.js --bundle --outfile=dist/inject.js --format=iife --target=es2020",
+    "build": "esbuild src/inject.js --bundle --outfile=dist/inject.js --format=iife --target=es2020 --minify --legal-comments=none",
     "watch": "esbuild src/inject.js --bundle --outfile=dist/inject.js --format=iife --target=es2020 --watch",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",

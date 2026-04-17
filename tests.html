@@ -1192,6 +1192,26 @@
           results.push("window.fpPromise (global set)");
         } catch (_) { /* noop */ }
 
+        // Signal 5: obfuscated Pro loader global (pattern matcher)
+        try {
+          window.__fpjs_p_l_b = window.__fpjs_p_l_b || { __test: true };
+          results.push("window.__fpjs_p_l_b (Pro loader global)");
+        } catch (_) { /* noop */ }
+
+        // Signal 6: arbitrary __fpjs_* global (pattern match)
+        try {
+          window.__fpjs_test_variant = { __test: true };
+          results.push("window.__fpjs_test_variant (pattern match)");
+        } catch (_) { /* noop */ }
+
+        // Signal 7: localStorage key patterns
+        try {
+          localStorage.setItem("__fpjs_pvid", "11111111-2222-3333-4444-555555555555");
+          results.push('localStorage["__fpjs_pvid"] (UUID-shaped value)');
+          localStorage.setItem("_vid", "test-visitor-id");
+          results.push('localStorage["_vid"]');
+        } catch (_) { /* noop */ }
+
         return results.length > 0 ? results : ["(failed to simulate any signals)"];
       },
 

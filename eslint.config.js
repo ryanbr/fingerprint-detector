@@ -82,6 +82,8 @@ export default [
         PerformanceObserver: "readonly",
         Performance: "readonly",
         performance: "readonly",
+        localStorage: "readonly",
+        sessionStorage: "readonly",
         Keyboard: "readonly",
         GPU: "readonly",
         GPUAdapter: "readonly",

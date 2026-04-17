@@ -172,13 +172,18 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
   }
 
   // ── Global variable detection ────────────────────────────────────────
-  // FingerprintJS libraries commonly set one or more of these globals.
-  // We poll at install, at DOMContentLoaded, and after a 2s delay —
-  // this catches libraries that load asynchronously after page load.
+  // Two layers: explicit name list (public integrations, common UMD
+  // names) and pattern-based scan for any window property starting
+  // with "__fpjs" (catches per-build obfuscated globals like
+  // __fpjs_p_l_b, __fpjs_d_c, __fpjs_d_m, __fpjs_pvid, etc. — the
+  // Pro loader's internals vary by build/version).
   const FP_GLOBALS = [
     "FingerprintJS", "FingerprintJSPro",
     "fpjsAgent", "fpPromise",
     "__fpjs", "fpjs",
+    // Known Pro loader internal exports observed across builds
+    "__fpjs_p_l_b", "__fpjs_d_c", "__fpjs_d_m",
+    "FPJS_AGENT", "FPJS",
   ];
 
   function scanGlobals() {
@@ -190,11 +195,67 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
         }
       } catch { /* some globals may throw on access */ }
     }
+    // Pattern scan — catches arbitrary __fpjs* prefixes set by
+    // obfuscated loader builds we haven't explicitly listed.
+    try {
+      const keys = Object.keys(window);
+      for (let i = 0; i < keys.length; i++) {
+        const k = keys[i];
+        if (typeof k === "string" &&
+            (k.indexOf("__fpjs") === 0 || k.indexOf("_fpjs_") === 0)) {
+          fireOnce("global-pattern:" + k, "Global variable (pattern match)", "window." + k);
+        }
+      }
+    } catch { /* no-op */ }
   }
 
-  scanGlobals();
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", scanGlobals, { once: true });
+  // ── Storage key detection ───────────────────────────────────────────
+  // FingerprintJS Pro persists the visitor ID under well-known storage
+  // and cookie keys. Scanning localStorage for these gives a separate
+  // signal that's independent of scripts/globals (useful for cases
+  // where the loader has already finished and cleaned up its globals
+  // by the time we scan).
+  const STORAGE_KEY_PATTERNS = [
+    /^__fpjs/i,
+    /^_fpjs/i,
+    /^_vid$/i,
+    /^_sid$/i,
+    /^_fp_vid$/i,
+    /^fpjs_/i,
+  ];
+
+  function matchesStorageKey(key) {
+    if (typeof key !== "string" || !key) return false;
+    for (let i = 0; i < STORAGE_KEY_PATTERNS.length; i++) {
+      if (STORAGE_KEY_PATTERNS[i].test(key)) return true;
+    }
+    return false;
   }
-  setTimeout(scanGlobals, 2000);
+
+  function scanLocalStorage() {
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (matchesStorageKey(key)) {
+          fireOnce("storage:" + key, "localStorage key", key);
+        }
+      }
+    } catch { /* cross-origin / disabled / quota */ }
+  }
+
+  // Combined init: scan globals + localStorage at install, at
+  // DOMContentLoaded, and +2s (catches late-loading libraries).
+  function runScans() {
+    scanGlobals();
+    scanLocalStorage();
+  }
+
+  runScans();
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", runScans, { once: true });
+  }
+  setTimeout(runScans, 2000);
+  // Also scan on window load in case the loader finishes only at
+  // or after the load event (less common but possible with async).
+  window.addEventListener("load", runScans, { once: true });
 }

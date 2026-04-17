@@ -107,6 +107,93 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: false,
     },
+    {
+      name: "Cloudflare Bot Management",
+      category: "CloudflareBotManagementDetect",
+      globals: ["turnstile"],   // Turnstile CAPTCHA widget
+      globalPrefixes: ["_cf_chl_"],  // Cloudflare challenge runtime options
+      keyPatterns: [
+        /^__cf_bm$/, /^cf_clearance$/, /^_cfuvid$/, /^_cf_bm$/,
+      ],
+      scriptSrcPatterns: [
+        /\bchallenges\.cloudflare\.com\b/i,
+        /\/cdn-cgi\/challenge-platform\//i,
+        /\/cdn-cgi\/bm\//i,
+      ],
+      domAttributes: [],
+      classifyOrigin: false,
+    },
+    {
+      name: "DataDome",
+      category: "DataDomeDetect",
+      globals: ["DD_RUM", "DD_LOGS", "datadome"],
+      globalPrefixes: ["_dd_"],
+      keyPatterns: [
+        /^datadome$/i, /^dd_cookie_test/i, /^dd_s$/i,
+      ],
+      scriptSrcPatterns: [
+        /\bjs\.datadome\.co\b/i,
+        /\bapi\.datadome\.co\b/i,
+        /\bcaptcha-delivery\.com\b/i,
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
+    {
+      name: "PerimeterX / HUMAN",
+      category: "PerimeterXDetect",
+      globals: [
+        "_pxAppId", "_pxAction", "_pxSID",
+        "_pxParam1", "_pxjsClientSrc",
+      ],
+      globalPrefixes: ["_px"],
+      keyPatterns: [
+        /^_px$/, /^_px2$/, /^_px3$/,
+        /^_pxhd$/, /^_pxvid$/,
+        /^_pxff_/,
+      ],
+      scriptSrcPatterns: [
+        /\bclient\.perimeterx\.net\b/i,
+        /\bclient\.px-cdn\.net\b/i,
+        /\bclient\.px-cloud\.net\b/i,
+        /\bpxl\.humansecurity\.com\b/i,
+        /\bclient-response\.px-client\.net\b/i,
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
+    {
+      name: "Imperva / Incapsula",
+      category: "ImpervaDetect",
+      globals: [],  // Imperva operates mostly at edge, limited client globals
+      globalPrefixes: ["__imperva_"],
+      keyPatterns: [
+        /^incap_ses/i, /^visid_incap/i, /^nlbi_/i,
+        /^___utmvc$/i,  // Imperva tracking cookie variant
+      ],
+      scriptSrcPatterns: [
+        /\bcdn\.incapsula\.com\b/i,
+        /\bincapsula\.com\/.+\.js\b/i,
+        /\bimperva\.com\/.+\.js\b/i,
+      ],
+      domAttributes: [],
+      classifyOrigin: false,
+    },
+    {
+      name: "Kasada",
+      category: "KasadaDetect",
+      globals: ["KPSDK"],
+      globalPrefixes: ["KPSDK_"],
+      keyPatterns: [
+        /^x-kpsdk-/i, /^KPSDK-/i,
+      ],
+      scriptSrcPatterns: [
+        /\bips\.js\.kasada\.io\b/i,
+        /\bkasada\.io\b/i,
+      ],
+      domAttributes: [],
+      classifyOrigin: false,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

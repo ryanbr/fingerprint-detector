@@ -40,6 +40,11 @@ const CATEGORY_META = {
   FingerprintJSDetect: { icon: "🕵️", color: "#e94560", risk: "high", desc: "FingerprintJS library detected — via loader URL, DOM integration tags, or global variables" },
   MatomoDetect:   { icon: "📊", color: "#fb8c00", risk: "medium", desc: "Matomo / Piwik analytics library detected — globals (_paq, Matomo), cookie/storage keys, or script filename" },
   AkamaiBotManagerDetect: { icon: "🛡️", color: "#e94560", risk: "high", desc: "Akamai Bot Manager detected — anti-bot/anti-fraud product via window.bmak global and _abck cookie family" },
+  CloudflareBotManagementDetect: { icon: "☁️", color: "#fb8c00", risk: "medium", desc: "Cloudflare Bot Management / Turnstile — __cf_bm cookie, cf_clearance, challenges.cloudflare.com" },
+  DataDomeDetect: { icon: "🏛️", color: "#e94560", risk: "high", desc: "DataDome anti-bot — datadome cookie, DD_RUM/DD_LOGS globals, js.datadome.co loader" },
+  PerimeterXDetect: { icon: "🚧", color: "#e94560", risk: "high", desc: "PerimeterX / HUMAN — _pxvid/_pxhd cookie family, _pxAction globals, client.perimeterx.net loader" },
+  ImpervaDetect:   { icon: "🔒", color: "#fb8c00", risk: "medium", desc: "Imperva / Incapsula — incap_ses/visid_incap/nlbi cookie family" },
+  KasadaDetect:    { icon: "🏯", color: "#e94560", risk: "high", desc: "Kasada — window.KPSDK global, x-kpsdk-* storage, ips.js.kasada.io loader" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -131,6 +136,11 @@ const TRACKING_LIBRARY_CATEGORIES = {
   FingerprintJSDetect:    { label: "FingerprintJS",        icon: "🕵️" },
   MatomoDetect:           { label: "Matomo",               icon: "📊" },
   AkamaiBotManagerDetect: { label: "Akamai Bot Manager",   icon: "🛡️" },
+  CloudflareBotManagementDetect: { label: "Cloudflare",    icon: "☁️" },
+  DataDomeDetect:         { label: "DataDome",             icon: "🏛️" },
+  PerimeterXDetect:       { label: "PerimeterX / HUMAN",   icon: "🚧" },
+  ImpervaDetect:          { label: "Imperva",              icon: "🔒" },
+  KasadaDetect:           { label: "Kasada",               icon: "🏯" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

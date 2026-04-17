@@ -203,6 +203,11 @@
     <ul class="ops"></ul>
   </section>
 
+  <section data-test="otherTrackerLibs">
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada (simulated signals) <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
   <!-- ══════════════════════ INTERACTIVE TESTS ══════════════════════ -->
 
   <div class="notice">
@@ -1335,6 +1340,60 @@
           localStorage.setItem("_abck", "test-localstorage-value");
           localStorage.setItem("bm_sv", "test-sv");
           results.push('localStorage["_abck", "bm_sv"]');
+        } catch (_) { /* noop */ }
+
+        return results.length > 0 ? results : ["(failed to simulate any signals)"];
+      },
+
+      otherTrackerLibs() {
+        // Simulates signals for five additional anti-bot / anti-fraud
+        // libraries. Each block triggers the registered detection
+        // signals for one library.
+        const results = [];
+
+        // ── Cloudflare Bot Management / Turnstile ─────────────────
+        try {
+          window.turnstile = window.turnstile || { __test: true };
+          document.cookie = "__cf_bm=test-cloudflare-bm; path=/; max-age=60";
+          document.cookie = "cf_clearance=test-clearance; path=/; max-age=60";
+          results.push("Cloudflare: window.turnstile + __cf_bm + cf_clearance cookies");
+        } catch (_) { /* noop */ }
+
+        // ── DataDome ──────────────────────────────────────────────
+        try {
+          window.DD_RUM = window.DD_RUM || { __test: true };
+          document.cookie = "datadome=test-datadome-session; path=/; max-age=60";
+          const s = document.createElement("script");
+          s.src = "https://example.com/js.datadome.co/dd.js";
+          s.onerror = () => {};
+          document.head.appendChild(s);
+          setTimeout(() => { try { s.remove(); } catch (_) {} }, 100);
+          results.push("DataDome: DD_RUM global + datadome cookie + script src");
+        } catch (_) { /* noop */ }
+
+        // ── PerimeterX / HUMAN ────────────────────────────────────
+        try {
+          window._pxAppId = "test-app-id";
+          window._pxAction = window._pxAction || "test";
+          document.cookie = "_pxvid=test-visitor-id; path=/; max-age=60";
+          document.cookie = "_pxhd=test-hd; path=/; max-age=60";
+          results.push("PerimeterX: _pxAppId/_pxAction globals + _pxvid/_pxhd cookies");
+        } catch (_) { /* noop */ }
+
+        // ── Imperva / Incapsula ───────────────────────────────────
+        try {
+          document.cookie = "incap_ses_123_456=test-incap-session; path=/; max-age=60";
+          document.cookie = "visid_incap_456=test-visitor; path=/; max-age=60";
+          document.cookie = "nlbi_456=test-load-balancer; path=/; max-age=60";
+          results.push("Imperva: incap_ses / visid_incap / nlbi cookies");
+        } catch (_) { /* noop */ }
+
+        // ── Kasada ────────────────────────────────────────────────
+        try {
+          window.KPSDK = window.KPSDK || { __test: true };
+          localStorage.setItem("x-kpsdk-ct", "test-kpsdk-ct");
+          localStorage.setItem("x-kpsdk-v", "test-kpsdk-v");
+          results.push("Kasada: window.KPSDK + x-kpsdk-* storage keys");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

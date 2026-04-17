@@ -86,6 +86,11 @@ const CATEGORY_META = {
   FingerprintJSDetect: { icon: "\u{1F575}\u{FE0F}", color: "#e94560", risk: "high" },
   MatomoDetect:   { icon: "\u{1F4CA}", color: "#fb8c00", risk: "medium" },
   AkamaiBotManagerDetect: { icon: "\u{1F6E1}\u{FE0F}", color: "#e94560", risk: "high" },
+  CloudflareBotManagementDetect: { icon: "\u{2601}\u{FE0F}", color: "#fb8c00", risk: "medium" },
+  DataDomeDetect: { icon: "\u{1F3DB}\u{FE0F}", color: "#e94560", risk: "high" },
+  PerimeterXDetect: { icon: "\u{1F6A7}", color: "#e94560", risk: "high" },
+  ImpervaDetect: { icon: "\u{1F512}", color: "#fb8c00", risk: "medium" },
+  KasadaDetect: { icon: "\u{1F3EF}", color: "#e94560", risk: "high" },
 };
 
 function escapeHtml(str) {

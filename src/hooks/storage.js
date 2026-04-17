@@ -81,6 +81,22 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
     hookMethodViaAccess(StorageManager.prototype, "persisted", "Storage", "navigator.storage.persisted");
   }
 
+  // ── Storage Access API (3rd-party context detection) ──────────────────
+  // Sites call these to check/request first-party storage access when
+  // running inside iframes. Increasingly used for tracking and
+  // single-sign-on flows across 3rd-party contexts. Both return
+  // promises so access-based avoids stack attribution on rejections.
+  if (typeof Document.prototype.hasStorageAccess === "function") {
+    hookMethodViaAccess(Document.prototype, "hasStorageAccess", "Storage", "document.hasStorageAccess");
+  }
+  if (typeof Document.prototype.requestStorageAccess === "function") {
+    hookMethodViaAccess(Document.prototype, "requestStorageAccess", "Storage", "document.requestStorageAccess");
+  }
+  // Newer Storage Access for ad tech (requestStorageAccessFor)
+  if (typeof Document.prototype.requestStorageAccessFor === "function") {
+    hookMethodViaAccess(Document.prototype, "requestStorageAccessFor", "Storage", "document.requestStorageAccessFor");
+  }
+
   // ── 38. openDatabase (Web SQL) ────────────────────────────────────────
   if (typeof window.openDatabase === "function") {
     const origOpenDB = window.openDatabase;

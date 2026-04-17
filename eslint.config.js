@@ -73,6 +73,8 @@ export default [
         SubtleCrypto: "readonly",
         PerformanceResourceTiming: "readonly",
         WebAssembly: "readonly",
+        ScreenOrientation: "readonly",
+        UserActivation: "readonly",
         Permissions: "readonly",
         Notification: "readonly",
         NetworkInformation: "readonly",

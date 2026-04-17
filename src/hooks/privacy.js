@@ -38,6 +38,20 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
   hookGetter(Document.prototype, "hidden", "HeadlessDetect", "document.hidden");
   hookGetter(Document.prototype, "visibilityState", "HeadlessDetect", "document.visibilityState");
 
+  // navigator.userActivation — classic automation / bot detection.
+  // Bots typically have hasBeenActive === false even on apparently-
+  // loaded pages since they don't dispatch real user gestures.
+  if (typeof UserActivation !== "undefined") {
+    hookGetter(UserActivation.prototype, "isActive", "HeadlessDetect", "navigator.userActivation.isActive");
+    hookGetter(UserActivation.prototype, "hasBeenActive", "HeadlessDetect", "navigator.userActivation.hasBeenActive");
+  }
+
+  // document.currentScript — returns the currently-executing <script>
+  // element. Fingerprinting scripts read this to self-identify their
+  // own loader URL and configure themselves. Legitimate apps rarely
+  // access it outside of polyfills.
+  hookGetter(Document.prototype, "currentScript", "HeadlessDetect", "document.currentScript");
+
   // Secure context detection — FingerprintJS reads this to branch
   // detection logic based on HTTPS vs HTTP.
   hookGetter(Window.prototype, "isSecureContext", "HeadlessDetect", "window.isSecureContext");

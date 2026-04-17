@@ -113,4 +113,13 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
   if (typeof AudioDecoder !== "undefined" && typeof AudioDecoder.isConfigSupported === "function") {
     hookMethodViaAccess(AudioDecoder, "isConfigSupported", "MediaDevices", "AudioDecoder.isConfigSupported");
   }
+
+  // navigator.getAutoplayPolicy() — returns "allowed" / "allowed-muted"
+  // / "disallowed". Depends on browser settings + OS + site-specific
+  // media policy. Fingerprintable signal, takes an optional argument
+  // like "mediaelement" or a media element.
+  if (typeof Navigator !== "undefined" &&
+      typeof Navigator.prototype.getAutoplayPolicy === "function") {
+    hookMethodHot(Navigator.prototype, "getAutoplayPolicy", "MediaDevices", "navigator.getAutoplayPolicy");
+  }
 }

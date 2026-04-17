@@ -542,7 +542,21 @@
           void screen[p];
         }
         void window.devicePixelRatio;
-        return ["screen.* properties + window.devicePixelRatio"];
+        // ScreenOrientation API
+        if (screen.orientation) {
+          void screen.orientation.type;
+          void screen.orientation.angle;
+          if (typeof screen.orientation.lock === "function") {
+            screen.orientation.lock("portrait-primary").catch(() => {});
+          }
+          if (typeof screen.orientation.unlock === "function") {
+            tryCall(() => screen.orientation.unlock());
+          }
+        }
+        return [
+          "screen.* properties + window.devicePixelRatio",
+          "screen.orientation.type / angle / lock / unlock",
+        ];
       },
 
       fonts() {
@@ -670,6 +684,17 @@
         if (typeof window.openDatabase === "function") {
           tryCall(() => openDatabase("fp-test", "1", "fp-test", 1024));
         }
+        // Storage Access API — 3rd-party context detection
+        if (typeof document.hasStorageAccess === "function") {
+          document.hasStorageAccess().catch(() => {});
+        }
+        if (typeof document.requestStorageAccess === "function") {
+          // Will reject without user gesture; we just need the hook to fire
+          document.requestStorageAccess().catch(() => {});
+        }
+        if (typeof document.requestStorageAccessFor === "function") {
+          document.requestStorageAccessFor("https://example.com").catch(() => {});
+        }
         return [
           "navigator.cookieEnabled",
           "localStorage setItem / getItem / removeItem / length",
@@ -750,6 +775,13 @@
         // Error.stack engine-format fingerprinting (Firefox / Safari only —
         // V8 doesn't expose stack as a prototype accessor)
         try { void new Error().stack; } catch (_) {}
+        // navigator.userActivation — bot detection signal
+        if (navigator.userActivation) {
+          void navigator.userActivation.isActive;
+          void navigator.userActivation.hasBeenActive;
+        }
+        // document.currentScript — tracker self-identification
+        void document.currentScript;
         return [
           "navigator.doNotTrack / webdriver",
           "navigator.share / canShare (access-based)",
@@ -759,6 +791,8 @@
           "Function.prototype.toString (anti-spoofing probe)",
           "Object.prototype.toString.call(window/navigator/document)",
           "new Error().stack (engine fingerprint, Firefox/Safari)",
+          "navigator.userActivation.isActive / hasBeenActive",
+          "document.currentScript",
         ];
       },
 
@@ -922,6 +956,10 @@
           if (navigator.mediaDevices.getSupportedConstraints) {
             navigator.mediaDevices.getSupportedConstraints();
           }
+        }
+        // navigator.getAutoplayPolicy — browser/OS-dependent autoplay policy
+        if (typeof navigator.getAutoplayPolicy === "function") {
+          tryCall(() => navigator.getAutoplayPolicy("mediaelement"));
         }
         // onvoiceschanged setter hook
         if (window.speechSynthesis) {

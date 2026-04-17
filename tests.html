@@ -193,6 +193,11 @@
     <ul class="ops"></ul>
   </section>
 
+  <section data-test="matomoDetect">
+    <h2>Matomo / Piwik Library Detection (simulated signals) <button class="run-btn">Run</button></h2>
+    <ul class="ops"></ul>
+  </section>
+
   <!-- ══════════════════════ INTERACTIVE TESTS ══════════════════════ -->
 
   <div class="notice">
@@ -1210,6 +1215,59 @@
           results.push('localStorage["__fpjs_pvid"] (UUID-shaped value)');
           localStorage.setItem("_vid", "test-visitor-id");
           results.push('localStorage["_vid"]');
+        } catch (_) { /* noop */ }
+
+        return results.length > 0 ? results : ["(failed to simulate any signals)"];
+      },
+
+      matomoDetect() {
+        // Simulate Matomo/Piwik signals without actually loading the
+        // tracker. Each assignment triggers a specific detection path
+        // in hooks/matomo.js.
+        const results = [];
+
+        // Signal 1: _paq queue — universal Matomo call pattern
+        try {
+          window._paq = window._paq || [];
+          results.push("window._paq (queue array)");
+        } catch (_) { /* noop */ }
+
+        // Signal 2: window.Matomo global
+        try {
+          window.Matomo = window.Matomo || { __test: true };
+          results.push("window.Matomo (global set)");
+        } catch (_) { /* noop */ }
+
+        // Signal 3: window.Piwik legacy alias
+        try {
+          window.Piwik = window.Piwik || { __test: true };
+          results.push("window.Piwik (legacy alias)");
+        } catch (_) { /* noop */ }
+
+        // Signal 4: Date.prototype.getTimeAlias — Matomo anomaly
+        try {
+          if (!Date.prototype.getTimeAlias) {
+            Date.prototype.getTimeAlias = Date.prototype.getTime;
+          }
+          results.push("Date.prototype.getTimeAlias (Matomo anomaly)");
+        } catch (_) { /* noop */ }
+
+        // Signal 5: localStorage _pk_* and mtm_* keys
+        try {
+          localStorage.setItem("_pk_id.1.abcd", "test-visitor-id");
+          localStorage.setItem("_pk_ses.1.abcd", "1");
+          localStorage.setItem("mtm_consent", "accepted");
+          results.push('localStorage["_pk_id", "_pk_ses", "mtm_consent"]');
+        } catch (_) { /* noop */ }
+
+        // Signal 6: <script src> matching matomo.js / piwik.js filename pattern
+        try {
+          const s = document.createElement("script");
+          s.src = "https://example.com/analytics/matomo.js";
+          s.onerror = () => {};
+          document.head.appendChild(s);
+          results.push('<script src=".../matomo.js">');
+          setTimeout(() => { try { s.remove(); } catch (_) {} }, 100);
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

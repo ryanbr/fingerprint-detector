@@ -38,6 +38,7 @@ const CATEGORY_META = {
   Behavior:       { icon: "🖱️", color: "#e94560", risk: "high",   desc: "Behavioral biometrics — mouse movement, keystroke dynamics, touch, pointer, scroll tracking" },
   Crypto:         { icon: "🔐", color: "#fb8c00", risk: "medium", desc: "Web Crypto hashing (subtle.digest) — strong indicator of fingerprinting activity" },
   FingerprintJSDetect: { icon: "🕵️", color: "#e94560", risk: "high", desc: "FingerprintJS library detected — via loader URL, DOM integration tags, or global variables" },
+  MatomoDetect:   { icon: "📊", color: "#fb8c00", risk: "medium", desc: "Matomo / Piwik analytics library detected — globals (_paq, Matomo), cookie/storage keys, or script filename" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -123,23 +124,46 @@ document.querySelectorAll(".tab").forEach(tab => {
   });
 });
 
-// Update the FingerprintJS banner above the tabs. Visible whenever the
-// current tab has any FingerprintJSDetect events in the summary.
+// Map of detection-category → { label, icon } for the tracking-library
+// banner. Adding a new tracking library detector? Add a row here.
+const TRACKING_LIBRARY_CATEGORIES = {
+  FingerprintJSDetect: { label: "FingerprintJS", icon: "🕵️" },
+  MatomoDetect:        { label: "Matomo",        icon: "📊" },
+};
+
+// Update the tracking-library banner above the tabs. Shown whenever any
+// of the TRACKING_LIBRARY_CATEGORIES has events on the current tab.
+// Lists the detected libraries by name with their per-library signal
+// counts.
 function updateFingerprintBanner(categories) {
   const banner = document.getElementById("fingerprint-banner");
   if (!banner) return;
-  const hits = (categories && categories.FingerprintJSDetect) || [];
-  if (hits.length > 0) {
-    banner.classList.add("active");
-    const counter = document.getElementById("banner-count");
-    if (counter) {
-      // Count distinct signals (by method name) rather than raw events
-      const distinct = new Set(hits.map(h => h.method)).size;
-      counter.textContent = distinct + (distinct === 1 ? " signal" : " signals");
+  const hits = [];
+  for (const cat of Object.keys(TRACKING_LIBRARY_CATEGORIES)) {
+    const events = categories && categories[cat];
+    if (events && events.length > 0) {
+      const distinct = new Set(events.map(e => e.method)).size;
+      hits.push({ ...TRACKING_LIBRARY_CATEGORIES[cat], count: distinct });
     }
-  } else {
-    banner.classList.remove("active");
   }
+  if (hits.length === 0) {
+    banner.classList.remove("active");
+    return;
+  }
+  banner.classList.add("active");
+  // Build the text: "FingerprintJS (3) · Matomo (2)"
+  const list = hits.map(h => h.icon + " " + h.label + " (" + h.count + ")").join(" · ");
+  const iconEl = banner.querySelector(".banner-icon");
+  const textEl = banner.querySelector(".banner-text");
+  const countEl = document.getElementById("banner-count");
+  // Use a generic shield icon since multiple kinds are possible
+  if (iconEl) iconEl.textContent = hits.length === 1 ? hits[0].icon : "⚠️";
+  if (textEl) textEl.textContent = hits.length === 1
+    ? hits[0].label + " detected on this page"
+    : "Tracking libraries detected";
+  if (countEl) countEl.textContent = hits.length === 1
+    ? hits[0].count + (hits[0].count === 1 ? " signal" : " signals")
+    : list;
 }
 
 // ── Summary Panel ──────────────────────────────────────────────────────
@@ -965,22 +989,20 @@ chrome.storage.local.get(["mutedGlobal", "mutedByDomain"], (localStored) => {
 
       port.onMessage.addListener((msg) => {
         if (msg.type === "fp-batch") {
-          // Live FingerprintJS detection — flip the banner on as soon
-          // as an event in that category arrives, even before the next
-          // summary refresh.
-          let hasFPDetect = false;
+          // Live tracking-library detection — flip the banner on as
+          // soon as an event in any tracking category arrives, before
+          // the next full summary fetch.
+          let hasTrackerEvent = false;
           for (let i = 0; i < msg.data.length; i++) {
-            if (msg.data[i].category === "FingerprintJSDetect") {
-              hasFPDetect = true;
+            if (TRACKING_LIBRARY_CATEGORIES[msg.data[i].category]) {
+              hasTrackerEvent = true;
               break;
             }
           }
-          if (hasFPDetect) {
+          if (hasTrackerEvent) {
             const banner = document.getElementById("fingerprint-banner");
             if (banner && !banner.classList.contains("active")) {
               banner.classList.add("active");
-              // Count isn't authoritative here (we don't have the full
-              // list) — leave the existing count or set to "1" if empty.
               const counter = document.getElementById("banner-count");
               if (counter && !counter.textContent.trim()) {
                 counter.textContent = "detected";

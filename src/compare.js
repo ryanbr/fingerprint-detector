@@ -84,6 +84,7 @@ const CATEGORY_META = {
   Behavior:       { icon: "\u{1F5B1}", color: "#e94560", risk: "high" },
   Crypto:         { icon: "\u{1F510}", color: "#fb8c00", risk: "medium" },
   FingerprintJSDetect: { icon: "\u{1F575}\u{FE0F}", color: "#e94560", risk: "high" },
+  MatomoDetect:   { icon: "\u{1F4CA}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

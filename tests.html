@@ -1374,11 +1374,20 @@
 
         // ── PerimeterX / HUMAN ────────────────────────────────────
         try {
-          window._pxAppId = "test-app-id";
+          window._pxAppId = "PXjAYekY18";  // real-world-shaped appId
           window._pxAction = window._pxAction || "test";
+          window._pxUuid = window._pxUuid || "test-uuid";
           document.cookie = "_pxvid=test-visitor-id; path=/; max-age=60";
           document.cookie = "_pxhd=test-hd; path=/; max-age=60";
-          results.push("PerimeterX: _pxAppId/_pxAction globals + _pxvid/_pxhd cookies");
+          document.cookie = "_pxc=test-tracking-cookie; path=/; max-age=60";
+          document.cookie = "pxjsc=test-js-cookie; path=/; max-age=60";
+          // First-party proxy URL pattern (as seen on apartmenttherapy.com)
+          const s = document.createElement("script");
+          s.src = "https://example.com/jAYekY18/init.js";
+          s.onerror = () => {};
+          document.head.appendChild(s);
+          setTimeout(() => { try { s.remove(); } catch (_) {} }, 100);
+          results.push("PerimeterX: _pxAppId/_pxAction/_pxUuid globals + _pxvid/_pxhd/_pxc/pxjsc cookies + /<appId>/init.js URL");
         } catch (_) { /* noop */ }
 
         // ── Imperva / Incapsula ───────────────────────────────────

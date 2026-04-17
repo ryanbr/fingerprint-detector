@@ -149,19 +149,32 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       globals: [
         "_pxAppId", "_pxAction", "_pxSID",
         "_pxParam1", "_pxjsClientSrc",
+        "_pxttld", "_pxUuid",
       ],
       globalPrefixes: ["_px"],
+      // Both underscore-prefixed and non-underscore cookie families.
+      // The _px* family is universal; the non-underscore ones
+      // (pxjsc/pxhc/pxcts/pxsid/pxac) are set by newer builds and
+      // the _pxc cookie is the main tracking cookie observed on
+      // apartmenttherapy.com and similar first-party proxy sites.
       keyPatterns: [
-        /^_px$/, /^_px2$/, /^_px3$/,
-        /^_pxhd$/, /^_pxvid$/,
-        /^_pxff_/,
+        /^_px/i,           // catches _px, _px2, _px3, _pxc, _pxhd, _pxvid, _pxff_*, _pxttld, _pxUuid, etc.
+        /^pxjsc$/i, /^pxhc$/i, /^pxcts$/i, /^pxsid$/i, /^pxac$/i,
       ],
       scriptSrcPatterns: [
+        // Direct / third-party CDN deployments
         /\bclient\.perimeterx\.net\b/i,
         /\bclient\.px-cdn\.net\b/i,
         /\bclient\.px-cloud\.net\b/i,
+        /\bcollector-\w+\.px-cloud\.net\b/i,
         /\bpxl\.humansecurity\.com\b/i,
         /\bclient-response\.px-client\.net\b/i,
+        // First-party proxy path pattern — the <appId>/init.js
+        // structure is distinctive to PerimeterX. appId is 6-12
+        // alphanumeric chars. Confirmed on apartmenttherapy.com
+        // (/jAYekY18/init.js) and similar customer-domain setups.
+        /\/[a-zA-Z0-9]{6,12}\/init\.js\b/,
+        /\/[a-zA-Z0-9]{6,12}\/main\.min\.js\b/,
       ],
       domAttributes: [],
       classifyOrigin: true,

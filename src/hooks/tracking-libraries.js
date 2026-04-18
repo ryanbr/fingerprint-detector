@@ -1129,6 +1129,33 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Noibu",
+      category: "NoibuDetect",
+      // Noibu — customer-experience / error monitoring for
+      // e-commerce (competitor to FullStory's error-triage product).
+      // Wraps window.fetch, history, alert, MutationObserver via
+      // rrweb (__rrMutationObserver global) and records session
+      // traces to diagnose checkout / cart errors. Loader at
+      // cdn.noibu.com/collect.js, beacons to input(.b)?.noibu.com
+      // and live.noibu.com.
+      globals: [
+        "NOIBUJS",                   // primary global
+        "NOIBUJS_CONFIG",            // config object
+        "NOIBUJS_DOCUMENT_READY_PROMISE",
+      ],
+      globalPrefixes: [],
+      keyPatterns: [
+        /^n_key$/,                   // localStorage (short name, anchored for specificity)
+        /^n_platform$/,
+        /^noibu-agent-mode$/,
+      ],
+      scriptSrcPatterns: [
+        /\bnoibu\.com\b/i,           // catches cdn / input / live / resource-proxy subs
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

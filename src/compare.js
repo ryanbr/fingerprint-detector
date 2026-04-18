@@ -120,6 +120,7 @@ const CATEGORY_META = {
   ZiffDavisDetect: { icon: "\u{1F5DE}\u{FE0F}", color: "#fb8c00", risk: "medium" },
   HubSpotDetect: { icon: "\u{1F9F2}", color: "#fb8c00", risk: "medium" },
   LinkedInInsightDetect: { icon: "\u{1F4BC}", color: "#fb8c00", risk: "medium" },
+  NoibuDetect: { icon: "\u{1F6D2}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

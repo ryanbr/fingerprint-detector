@@ -74,6 +74,7 @@ const CATEGORY_META = {
   ZiffDavisDetect: { icon: "🗞️", color: "#fb8c00", risk: "medium", desc: "Ziff Davis consent wrapper (ZDNet, PCMag, IGN, Mashable, Speedtest) — zdconsent/_ZDCABADML/_ZDCCOMSCORE globals, ziffstatic.com + ziffdavis.com hosts, /zdconsent.js" },
   HubSpotDetect: { icon: "🧲", color: "#fb8c00", risk: "medium", desc: "HubSpot CRM + marketing automation — _hsq/hbspt globals, __hstc/__hssc/__hsfp/hubspotutk cookies, hubspot.com + hscta.net + hsforms.net + hs-scripts.com + hs-analytics.net hosts" },
   LinkedInInsightDetect: { icon: "💼", color: "#fb8c00", risk: "medium", desc: "LinkedIn Insight Tag (B2B retargeting) — lintrk/_linkedin_data_partner_id* globals, li_fat_id/li_gc/li_mc cookies, snap.licdn.com + px.ads.linkedin.com + dc.ads.linkedin.com" },
+  NoibuDetect: { icon: "🛒", color: "#fb8c00", risk: "medium", desc: "Noibu e-commerce error monitoring — NOIBUJS/NOIBUJS_CONFIG globals, n_key/n_platform/noibu-agent-mode storage, noibu.com hosts (cdn/input/live/resource-proxy)" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -199,6 +200,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   ZiffDavisDetect:        { label: "Ziff Davis",           icon: "🗞️" },
   HubSpotDetect:          { label: "HubSpot",              icon: "🧲" },
   LinkedInInsightDetect:  { label: "LinkedIn Insight",     icon: "💼" },
+  NoibuDetect:            { label: "Noibu",                icon: "🛒" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

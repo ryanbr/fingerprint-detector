@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -1926,6 +1926,22 @@
           document.head.appendChild(s29);
           setTimeout(() => { try { s29.remove(); } catch (_) {} }, 100);
           results.push("LinkedIn: lintrk/_lintrk/_linkedin_data_partner_ids globals + li_fat_id/li_gc cookies + snap.licdn.com/li.lms-analytics/insight.min.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── Noibu (e-commerce error monitoring) ───────────────────
+        try {
+          window.NOIBUJS = window.NOIBUJS || { init: () => {}, __test: true };
+          window.NOIBUJS_CONFIG = window.NOIBUJS_CONFIG || { scriptID: "1.155.0", domain: "." };
+          window.NOIBUJS_DOCUMENT_READY_PROMISE = Promise.resolve();
+          localStorage.setItem("n_key", "test-noibu-key");
+          localStorage.setItem("n_platform", "shopify");
+          localStorage.setItem("noibu-agent-mode", "normal");
+          const s30 = document.createElement("script");
+          s30.src = "https://cdn.noibu.com/collect.js";
+          s30.onerror = () => {};
+          document.head.appendChild(s30);
+          setTimeout(() => { try { s30.remove(); } catch (_) {} }, 100);
+          results.push("Noibu: NOIBUJS/NOIBUJS_CONFIG globals + n_key/n_platform/noibu-agent-mode storage + cdn.noibu.com/collect.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

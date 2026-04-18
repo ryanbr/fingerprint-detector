@@ -1565,6 +1565,31 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Osano",
+      category: "OsanoDetect",
+      // Osano — privacy / cookie consent platform. Smaller than
+      // OneTrust but solid market share, popular with Shopify
+      // stores. Heavy integrator: hooks into window.gtag /
+      // window.uetq / window.amznConsent / window.Shopify for tag-
+      // gating on consent. Served from
+      // cmp.osano.com/<customerID>/<UUID>/osano.js.
+      globals: [
+        "Osano",                     // primary namespace (Osano.cm, Osano.data)
+      ],
+      globalPrefixes: [],
+      keyPatterns: [
+        /^osano_consentmanager$/i,   // main consent cookie
+        /^osano-cm-/i,               // osano-cm-* storage / event markers
+      ],
+      scriptSrcPatterns: [
+        /\bcmp\.osano\.com\b/i,      // primary CDN host
+        /\bosano\.com\b/i,            // company domain fallback
+        /\/osano\.js\b/i,             // distinctive loader filename
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

@@ -89,6 +89,7 @@ const CATEGORY_META = {
   AdobeDTMDetect: { icon: "🅰️", color: "#fb8c00", risk: "medium", desc: "Adobe DTM / Launch tag manager (loads Analytics / Target / AAM / Campaign stack) — _satellite/AdobeDataLayer globals, adobedtm.com hosts, launch-<hash>.min.js + satelliteLib-<hash>.js" },
   AdobeCommerceEventsDetect: { icon: "🛍️", color: "#fb8c00", risk: "medium", desc: "Adobe Commerce (Magento) Storefront Events — magentoStorefrontEvents/magentoStorefrontEventCollector globals, @adobe/magento-storefront-event-collector NPM path, Snowplow-powered" },
   AdobeCommerceRecsDetect: { icon: "✨", color: "#fb8c00", risk: "medium", desc: "Adobe Commerce Product Recommendations (Sensei AI) — RecommendationsClient global, magento-recs-sdk.adobe.net + @magento/recommendations-js-sdk NPM" },
+  OsanoDetect: { icon: "🥠", color: "#fb8c00", risk: "medium", desc: "Osano cookie consent platform — Osano global (Osano.cm/.data), osano_consentmanager cookie + osano-cm-* markers, cmp.osano.com/osano.js" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -229,6 +230,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   AdobeDTMDetect:         { label: "Adobe DTM / Launch",   icon: "🅰️" },
   AdobeCommerceEventsDetect: { label: "Adobe Commerce Events", icon: "🛍️" },
   AdobeCommerceRecsDetect: { label: "Adobe Commerce Recs",    icon: "✨" },
+  OsanoDetect:            { label: "Osano",                icon: "🥠" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

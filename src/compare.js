@@ -135,6 +135,7 @@ const CATEGORY_META = {
   AdobeDTMDetect: { icon: "\u{1F170}\u{FE0F}", color: "#fb8c00", risk: "medium" },
   AdobeCommerceEventsDetect: { icon: "\u{1F6CD}\u{FE0F}", color: "#fb8c00", risk: "medium" },
   AdobeCommerceRecsDetect: { icon: "\u{2728}", color: "#fb8c00", risk: "medium" },
+  OsanoDetect: { icon: "\u{1F960}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

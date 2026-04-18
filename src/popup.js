@@ -53,6 +53,7 @@ const CATEGORY_META = {
   NewRelicBrowserDetect: { icon: "📈", color: "#fb8c00", risk: "medium", desc: "New Relic Browser APM agent — NREUM/newrelic globals, NREUM_SESSION_ID storage, bam.nr-data.net beacon, js-agent.newrelic.com loader" },
   BlockthroughDetect: { icon: "🧨", color: "#e94560", risk: "high", desc: "Blockthrough Ad Recovery (anti-adblock) — __bt_* globals, BT_* storage keys, btloader.com + cdn.btmessage.com + dns-finder.com probes" },
   AdmiralDetect:   { icon: "⚓", color: "#e94560", risk: "high", desc: "Admiral anti-adblock surveillance — admiral global, _awl/_admrla/_alvd cookies, _admrlri storage, rotating disposable loader domains" },
+  PubliftFuseDetect: { icon: "🎯", color: "#fb8c00", risk: "medium", desc: "Publift Fuse header-bidding orchestrator — fusetag global, cdn.fuseplatform.net loader, loads Prebid/GPT/Amazon UAM + 23 SSP bidders" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -157,6 +158,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   NewRelicBrowserDetect:  { label: "New Relic Browser",    icon: "📈" },
   BlockthroughDetect:     { label: "Blockthrough",         icon: "🧨" },
   AdmiralDetect:          { label: "Admiral",              icon: "⚓" },
+  PubliftFuseDetect:      { label: "Publift Fuse",         icon: "🎯" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

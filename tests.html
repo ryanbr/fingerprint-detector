@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -1577,6 +1577,22 @@
           document.head.appendChild(s8);
           setTimeout(() => { try { s8.remove(); } catch (_) {} }, 100);
           results.push("Admiral: admiral/4dm1r1* globals + _awl/_admrla/_alvd cookies + _admrlri/_admlValRec/afsvisits storage + pearpouch.com URL");
+        } catch (_) { /* noop */ }
+
+        // ── Publift Fuse ──────────────────────────────────────────
+        try {
+          window.fusetag = window.fusetag || {
+            que: [],
+            activateZone: () => {},
+            addQueue: () => {},
+            __test: true,
+          };
+          const s9 = document.createElement("script");
+          s9.src = "https://cdn.fuseplatform.net/publift/tags/2/3052/fuse.js";
+          s9.onerror = () => {};
+          document.head.appendChild(s9);
+          setTimeout(() => { try { s9.remove(); } catch (_) {} }, 100);
+          results.push("Publift Fuse: fusetag global + cdn.fuseplatform.net URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

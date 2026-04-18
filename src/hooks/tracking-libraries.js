@@ -490,6 +490,29 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Publift Fuse",
+      category: "PubliftFuseDetect",
+      // Publift Fuse — header-bidding / ad-stack orchestrator that
+      // loads Prebid.js, Google Publisher Tag, Amazon UAM, Quantcast
+      // CMP and 23 SSP bidders (AppNexus, Criteo, Rubicon, PubMatic,
+      // Index Exchange, Trade Desk etc.) on behalf of publishers.
+      // Fuse itself doesn't set cookies — the downstream SSPs do —
+      // so detection relies on the fusetag global plus URL patterns.
+      globals: [
+        "fusetag",               // primary API (activateZone, addQueue, etc.)
+      ],
+      globalPrefixes: [],
+      keyPatterns: [],
+      scriptSrcPatterns: [
+        /\bcdn\.fuseplatform\.net\b/i,   // primary loader CDN
+        /\bfuseplatform\.net\b/i,         // fallback host
+        /\bpublift\.com\b/i,              // company site / legacy
+        /\/publift\/tags\//i,             // publisher tag path pattern
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

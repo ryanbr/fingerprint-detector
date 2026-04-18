@@ -1049,6 +1049,50 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "HubSpot",
+      category: "HubSpotDetect",
+      // HubSpot — CRM + marketing automation. One of the most
+      // deployed marketing trackers on the web. Multi-domain stack:
+      // hubspot.com (main), hscta.net (CTAs), hsforms.net (forms),
+      // hsleadflows.net (lead flows), hs-scripts.com (tracking code),
+      // hs-analytics.net (analytics), hs-banner.com (banners),
+      // hubapi.com (API). Distinctive __hstc / __hssc / hubspotutk
+      // cookie family — and yes, HubSpot literally sets a cookie
+      // named __hsfp ("HubSpot fingerprint").
+      globals: [
+        "_hsq",                      // main event queue (_hsq.push([...]))
+        "hbspt",                     // namespace (hbspt.cta, hbspt.forms)
+        "hsVars",
+        "hsCallsToActionsReady",
+        "hsCtasOnReady",
+      ],
+      globalPrefixes: [
+        "__PRIVATE__Hubspot",        // __PRIVATE__HubspotCtaClient etc.
+        "_hs",                        // _hsOnlyTrackHubspotCTAS, _hstc_loaded etc.
+      ],
+      keyPatterns: [
+        /^__hstc$/,                  // visitor tracking
+        /^__hssc$/,                  // session
+        /^__hssrc$/,                 // session source
+        /^__hsfp$/,                  // "HubSpot fingerprint" hash cookie
+        /^hubspotutk$/,              // user identifier
+        /^_hsenc$/,                  // encoded parameter / cookie
+      ],
+      scriptSrcPatterns: [
+        /\bhubspot\.com\b/i,         // main company domain (blog / cdn / js)
+        /\bhscta\.net\b/i,            // CTAs loader
+        /\bhsforms\.(?:net|com)\b/i,  // forms loader
+        /\bhsleadflows\.net\b/i,      // lead flows
+        /\bhs-scripts\.com\b/i,       // tracking code
+        /\bhs-analytics\.net\b/i,     // analytics beacon
+        /\bhs-banner\.com\b/i,        // smart banners
+        /\bhubapi\.com\b/i,           // public API
+        /\bhsappstatic\.net\b/i,      // app CDN
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

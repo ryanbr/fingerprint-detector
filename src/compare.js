@@ -118,6 +118,7 @@ const CATEGORY_META = {
   GoogleFundingChoicesDetect: { icon: "\u{1F4B0}", color: "#fb8c00", risk: "medium" },
   ChartbeatDetect: { icon: "\u{1F4E1}", color: "#fb8c00", risk: "medium" },
   ZiffDavisDetect: { icon: "\u{1F5DE}\u{FE0F}", color: "#fb8c00", risk: "medium" },
+  HubSpotDetect: { icon: "\u{1F9F2}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

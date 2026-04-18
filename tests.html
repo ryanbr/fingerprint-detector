@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -1889,6 +1889,25 @@
           document.head.appendChild(s27);
           setTimeout(() => { try { s27.remove(); } catch (_) {} }, 100);
           results.push("Ziff Davis: zdconsent/_ZDCABADML/_ZDCCOMSCORE globals + cdn.ziffstatic.com/jst/zdconsent.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── HubSpot (CRM + marketing automation) ──────────────────
+        try {
+          window._hsq = window._hsq || [];
+          window._hsq.push(["identify", { email: "test@example.com" }]);
+          window.hbspt = window.hbspt || { cta: { __test: true }, forms: { create: () => {} } };
+          window.hsVars = window.hsVars || { __test: true };
+          window._hsOnlyTrackHubspotCTAS = true;
+          document.cookie = "__hstc=test-visitor; path=/; max-age=60";
+          document.cookie = "__hssc=test-session; path=/; max-age=60";
+          document.cookie = "__hsfp=1234567890; path=/; max-age=60";
+          document.cookie = "hubspotutk=test-utk; path=/; max-age=60";
+          const s28 = document.createElement("script");
+          s28.src = "https://js.hscta.net/cta/current.js";
+          s28.onerror = () => {};
+          document.head.appendChild(s28);
+          setTimeout(() => { try { s28.remove(); } catch (_) {} }, 100);
+          results.push("HubSpot: _hsq/hbspt/hsVars globals + __hstc/__hssc/__hsfp/hubspotutk cookies + js.hscta.net/cta/current.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

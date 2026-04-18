@@ -1880,8 +1880,17 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
         "swanDeviceId",              // device identifier
         "swanSessionId",             // session identifier
         "swanCredentials",           // stored credentials
+        // Distinctive multi-word Swan event globals — listed
+        // explicitly rather than via a "swan" prefix (which
+        // would false-positive on unrelated window.swanAnything).
+        "swanOnSiteNotificationTest",
+        "swanecomlogin",
+        "swanecomlogout",
+        "swanonsitelogin",
+        "swanonsitelogout",
+        "swanwebpushlogin",
       ],
-      globalPrefixes: ["swan"],      // catches swanOnSiteNotificationTest, swanecomlogin, swanonsitelogin, swanwebpushlogin etc.
+      globalPrefixes: [],             // deliberately empty — "swan" is too generic as a prefix (common English word)
       keyPatterns: [
         /^swanDeviceId$/,            // localStorage device ID
         /^swanCredentials$/,         // localStorage credentials

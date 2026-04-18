@@ -579,6 +579,28 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "WordPress.com Stats",
+      category: "WPComStatsDetect",
+      // WordPress.com Stats / Jetpack Stats — Automattic's analytics
+      // service used on WordPress.com-hosted sites and any WordPress
+      // site running the Jetpack plugin. Lightweight: navigator.userAgent
+      // + performance paint timing + referrer + UTM params only.
+      // Pageviews beacon via pixel.wp.com/g.gif GET requests.
+      globals: [
+        "_stq",                  // primary queue array (_stq.push([...]))
+        "wpcom",                 // namespace (wpcom.stats)
+      ],
+      globalPrefixes: [],
+      keyPatterns: [],             // script sets no cookies / storage of its own
+      scriptSrcPatterns: [
+        /\bstats\.wp\.com\b/i,     // loader host (script served as /e-<siteID>.js)
+        /\bpixel\.wp\.com\b/i,      // beacon host (g.gif / c.gif / b.gif)
+        /\/e-\d+\.js\b/i,            // site-numbered loader filename pattern
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

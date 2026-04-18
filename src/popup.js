@@ -56,6 +56,7 @@ const CATEGORY_META = {
   PubliftFuseDetect: { icon: "🎯", color: "#fb8c00", risk: "medium", desc: "Publift Fuse header-bidding orchestrator — fusetag global, cdn.fuseplatform.net loader, loads Prebid/GPT/Amazon UAM + 23 SSP bidders" },
   MediaNetDetect:  { icon: "🌐", color: "#fb8c00", risk: "medium", desc: "Media.net (Yahoo) contextual + header-bidding tag — mnjs/_mN* globals, warp.media.net + contextual.media.net + adservetx.media.net hosts, /clientag.js filename" },
   TealiumDetect:   { icon: "🏷️", color: "#fb8c00", risk: "medium", desc: "Tealium iQ (utag.js) tag manager — utag/utag_data globals, utag_main_* cookies, tealium_va storage, tiqcdn.com + /utag/ path + customer CNAME deployments" },
+  WPComStatsDetect: { icon: "📝", color: "#fb8c00", risk: "medium", desc: "WordPress.com / Jetpack Stats — _stq/wpcom globals, stats.wp.com loader, pixel.wp.com/g.gif beacon, /e-<siteID>.js filename" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -163,6 +164,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   PubliftFuseDetect:      { label: "Publift Fuse",         icon: "🎯" },
   MediaNetDetect:         { label: "Media.net",            icon: "🌐" },
   TealiumDetect:          { label: "Tealium iQ",           icon: "🏷️" },
+  WPComStatsDetect:       { label: "WordPress.com Stats",  icon: "📝" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

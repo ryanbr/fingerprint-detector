@@ -102,6 +102,7 @@ const CATEGORY_META = {
   PubliftFuseDetect: { icon: "\u{1F3AF}", color: "#fb8c00", risk: "medium" },
   MediaNetDetect: { icon: "\u{1F310}", color: "#fb8c00", risk: "medium" },
   TealiumDetect: { icon: "\u{1F3F7}\u{FE0F}", color: "#fb8c00", risk: "medium" },
+  WPComStatsDetect: { icon: "\u{1F4DD}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

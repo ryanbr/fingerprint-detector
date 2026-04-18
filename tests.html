@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -1635,6 +1635,19 @@
           document.head.appendChild(s11);
           setTimeout(() => { try { s11.remove(); } catch (_) {} }, 100);
           results.push("Tealium iQ: utag/utag_data/utag_cfg_ovrd/utag_condload globals + utag_main*/utag_main_v_id cookies + tealium_va storage + tags.tiqcdn.com URL");
+        } catch (_) { /* noop */ }
+
+        // ── WordPress.com / Jetpack Stats ─────────────────────────
+        try {
+          window._stq = window._stq || [];
+          window._stq.push(["view", { v: "ext", j: "test" }]);
+          window.wpcom = window.wpcom || { stats: { __test: true } };
+          const s12 = document.createElement("script");
+          s12.src = "https://stats.wp.com/e-202616.js";
+          s12.onerror = () => {};
+          document.head.appendChild(s12);
+          setTimeout(() => { try { s12.remove(); } catch (_) {} }, 100);
+          results.push("WordPress.com Stats: _stq/wpcom globals + stats.wp.com/e-<siteID>.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

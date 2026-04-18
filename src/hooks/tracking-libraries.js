@@ -2244,7 +2244,11 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
     if (typeof key !== "string" || !key) return null;
     for (let li = 0; li < LIBRARIES.length; li++) {
       const lib = LIBRARIES[li];
-      if (!lib.keyPatterns) continue;
+      // Skip entries with no keyPatterns (e.g. tracker defined purely
+      // by globals + script URLs). `[]` is truthy so a bare
+      // `if (!lib.keyPatterns)` check would never fire — consistent
+      // with the length-check used in matchScriptUrl / scanScript.
+      if (!lib.keyPatterns || lib.keyPatterns.length === 0) continue;
       for (let p = 0; p < lib.keyPatterns.length; p++) {
         if (lib.keyPatterns[p].test(key)) return lib;
       }

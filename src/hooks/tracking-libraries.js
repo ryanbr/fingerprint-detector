@@ -959,6 +959,36 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Google Funding Choices",
+      category: "GoogleFundingChoicesDetect",
+      // Google Funding Choices — Google's CMP for AdSense / Ad
+      // Manager publishers (rebranded "Privacy & Messaging" in the
+      // AdSense UI). Shows GDPR / CCPA consent banners and optional
+      // ad-blocking messages on AdSense-monetised sites. Served from
+      // fundingchoicesmessages.google.com/i/pub-<id>. Deliberately
+      // avoids __gpi / __gads cookies since those are shared with
+      // GPT / AdSense — using FC-specific FCCDCF / FCIDCF / FCNEC
+      // cookies only.
+      globals: [
+        "googlefc",                  // primary namespace
+        "googlefcInactive",          // inactive flag
+        "googlefcLoaded",            // loaded flag
+        "googlefcPresent",           // presence sentinel
+      ],
+      globalPrefixes: [],
+      keyPatterns: [
+        /^FCCDCF$/,                  // content feature consent
+        /^FCIDCF$/,                  // content feature ID
+        /^FCNEC$/,                   // non-essential cookies consent
+      ],
+      scriptSrcPatterns: [
+        /\bfundingchoicesmessages\.google\.com\b/i,  // primary host
+        /\/i\/pub-\d+\b/i,                             // distinctive publisher instance path
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

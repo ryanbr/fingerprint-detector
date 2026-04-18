@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -1844,6 +1844,22 @@
           document.head.appendChild(s24);
           setTimeout(() => { try { s24.remove(); } catch (_) {} }, 100);
           results.push("Geniuslink: Genius global (with .snippet/.amazon/.google/.itunes/.microsoft) + geniuslinkcdn.com URL");
+        } catch (_) { /* noop */ }
+
+        // ── Google Funding Choices (AdSense CMP) ──────────────────
+        try {
+          window.googlefc = window.googlefc || { __test: true };
+          window.googlefcLoaded = true;
+          window.googlefcPresent = true;
+          document.cookie = "FCCDCF=test-consent; path=/; max-age=60";
+          document.cookie = "FCIDCF=test-fcidcf; path=/; max-age=60";
+          document.cookie = "FCNEC=test-fcnec; path=/; max-age=60";
+          const s25 = document.createElement("script");
+          s25.src = "https://fundingchoicesmessages.google.com/i/pub-8038936283815017?ers=1";
+          s25.onerror = () => {};
+          document.head.appendChild(s25);
+          setTimeout(() => { try { s25.remove(); } catch (_) {} }, 100);
+          results.push("Funding Choices: googlefc/googlefcLoaded/googlefcPresent globals + FCCDCF/FCIDCF/FCNEC cookies + fundingchoicesmessages.google.com/i/pub-<id> URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

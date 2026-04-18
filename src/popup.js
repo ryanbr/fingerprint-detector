@@ -69,6 +69,7 @@ const CATEGORY_META = {
   RUMVisionDetect: { icon: "👁️", color: "#fb8c00", risk: "medium", desc: "RUM Vision Core Web Vitals monitoring — no cookies/globals, URL-only: rumvision.com + /RUM-<hex>/v<digit>-<domain>.js CloudFront build path" },
   NativoDetect: { icon: "🪶", color: "#fb8c00", risk: "medium", desc: "Nativo (formerly PostRelease) native advertising — Nativo/nativoSDK/ntv/ntvConfig globals, ntv.io + postrelease.com hosts, /serve/load.js loader" },
   GeniuslinkDetect: { icon: "🔗", color: "#fb8c00", risk: "medium", desc: "Geniuslink affiliate link converter — Genius global with .snippet/.amazon/.google/.itunes/.microsoft, geniuslinkcdn.com + geni.us hosts" },
+  GoogleFundingChoicesDetect: { icon: "💰", color: "#fb8c00", risk: "medium", desc: "Google Funding Choices CMP (AdSense/Ad Manager consent) — googlefc globals, FCCDCF/FCIDCF/FCNEC cookies, fundingchoicesmessages.google.com/i/pub-<id>" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -189,6 +190,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   RUMVisionDetect:        { label: "RUM Vision",           icon: "👁️" },
   NativoDetect:           { label: "Nativo",               icon: "🪶" },
   GeniuslinkDetect:       { label: "Geniuslink",           icon: "🔗" },
+  GoogleFundingChoicesDetect: { label: "Google Funding Choices", icon: "💰" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

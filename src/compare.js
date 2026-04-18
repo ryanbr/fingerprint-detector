@@ -115,6 +115,7 @@ const CATEGORY_META = {
   RUMVisionDetect: { icon: "\u{1F441}\u{FE0F}", color: "#fb8c00", risk: "medium" },
   NativoDetect: { icon: "\u{1FAB6}", color: "#fb8c00", risk: "medium" },
   GeniuslinkDetect: { icon: "\u{1F517}", color: "#fb8c00", risk: "medium" },
+  GoogleFundingChoicesDetect: { icon: "\u{1F4B0}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

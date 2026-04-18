@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -1942,6 +1942,23 @@
           document.head.appendChild(s30);
           setTimeout(() => { try { s30.remove(); } catch (_) {} }, 100);
           results.push("Noibu: NOIBUJS/NOIBUJS_CONFIG globals + n_key/n_platform/noibu-agent-mode storage + cdn.noibu.com/collect.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── Criteo (retargeting) ──────────────────────────────────
+        try {
+          window.Criteo = window.Criteo || { oneTagConfig: { partnerId: [98530] }, events: [] };
+          window.criteo_q = window.criteo_q || [];
+          window.criteo_q.push({ event: "viewItem", item: "TEST-SKU" });
+          document.cookie = "cto_bundle=test-criteo-bundle; path=/; max-age=60";
+          document.cookie = "cto_pld=test-payload; path=/; max-age=60";
+          document.cookie = "cto_clc=test-click-log; path=/; max-age=60";
+          document.cookie = "cto_tld_test=1; path=/; max-age=60";
+          const s31 = document.createElement("script");
+          s31.src = "https://dynamic.criteo.com/js/ld/ld.js?a=98530";
+          s31.onerror = () => {};
+          document.head.appendChild(s31);
+          setTimeout(() => { try { s31.remove(); } catch (_) {} }, 100);
+          results.push("Criteo: Criteo/criteo_q globals + cto_bundle/cto_pld/cto_clc/cto_tld_test cookies + dynamic.criteo.com URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

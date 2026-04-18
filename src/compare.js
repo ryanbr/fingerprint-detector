@@ -121,6 +121,7 @@ const CATEGORY_META = {
   HubSpotDetect: { icon: "\u{1F9F2}", color: "#fb8c00", risk: "medium" },
   LinkedInInsightDetect: { icon: "\u{1F4BC}", color: "#fb8c00", risk: "medium" },
   NoibuDetect: { icon: "\u{1F6D2}", color: "#fb8c00", risk: "medium" },
+  CriteoDetect: { icon: "\u{1F3AA}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

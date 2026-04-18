@@ -1156,6 +1156,36 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Criteo",
+      category: "CriteoDetect",
+      // Criteo — major retargeting / display advertising network.
+      // OneTag loader at dynamic.criteo.com/js/ld/ld.js. Integrates
+      // with header-bidding stacks and maintains its own identity
+      // graph via gum.criteo.com (Global User Matching). Publishes
+      // privateModeDetectionEnabled flag — probes for private
+      // browsing via storage quota checks (already covered by
+      // storage.js hooks).
+      globals: [
+        "Criteo",                    // primary namespace (Criteo.oneTagConfig, Criteo.events)
+        "criteo_q",                  // event queue (criteo_q.push({event:'viewItem',...}))
+      ],
+      globalPrefixes: [],
+      keyPatterns: [
+        /^cto_bundle$/i,             // encoded user-data bundle
+        /^cto_clc$/i,                // click log
+        /^cto_optout$/i,             // opt-out flag
+        /^cto_pld$/i,                // payload
+        /^cto_tld_test$/i,           // TLD detection probe
+        /^cto_/i,                    // fallback for any new cto_* cookie
+      ],
+      scriptSrcPatterns: [
+        /\bcriteo\.com\b/i,          // catches dynamic / gum / cas / widget / bidder / dis
+        /\bcriteo\.net\b/i,          // static CDN
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

@@ -130,6 +130,7 @@ const CATEGORY_META = {
   SpeedCurveLUXDetect: { icon: "\u{26A1}", color: "#fb8c00", risk: "medium" },
   InsiderDetect: { icon: "\u{1F381}", color: "#fb8c00", risk: "medium" },
   BrightEdgeDetect: { icon: "\u{1F9ED}", color: "#fb8c00", risk: "medium" },
+  QualtricsDetect: { icon: "\u{1F4CB}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

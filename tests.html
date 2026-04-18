@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -2087,6 +2087,20 @@
           document.head.appendChild(s39);
           setTimeout(() => { try { s39.remove(); } catch (_) {} }, 100);
           results.push("BrightEdge: BEIXF/BEJSSDK/BEJSSDKObserver/BELinkBlockGenerator/jsElementReady globals + cdn.bc0a.com/autopilot/f<id>/autopilot_sdk.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── Qualtrics SiteIntercept (survey pop-ups) ──────────────
+        try {
+          window.QSI = window.QSI || { config: { zoneId: "ZN_3pUqYKoCe6iBiRf" }, dbg: {}, __test: true };
+          window.QSI_TESTING_MODE = false;
+          document.cookie = "QSI_S_ZN_3pUqYKoCe6iBiRf=test-session; path=/; max-age=60";
+          document.cookie = "QSI_HistorySession=test-history; path=/; max-age=60";
+          const s40 = document.createElement("script");
+          s40.src = "https://zn3puqykoce6ibirf-testcustomer.siteintercept.qualtrics.com/SIE/?Q_ZID=ZN_3pUqYKoCe6iBiRf";
+          s40.onerror = () => {};
+          document.head.appendChild(s40);
+          setTimeout(() => { try { s40.remove(); } catch (_) {} }, 100);
+          results.push("Qualtrics: QSI/QSI_TESTING_MODE globals + QSI_S_ZN_*/QSI_HistorySession cookies + siteintercept.qualtrics.com/SIE/?Q_ZID=* URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

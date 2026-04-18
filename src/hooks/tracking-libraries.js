@@ -1433,6 +1433,33 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Qualtrics SiteIntercept",
+      category: "QualtricsDetect",
+      // Qualtrics SiteIntercept — on-page survey / feedback pop-ups
+      // from the Qualtrics XM platform. Triggers "How did we do?"
+      // modals to qualifying visitors based on URL / time-on-page /
+      // scroll / exit-intent rules. Loader at
+      // <hash>-<customer>.siteintercept.qualtrics.com/SIE/?Q_ZID=<id>.
+      // Surveys served from s.qualtrics.com.
+      globals: [
+        "QSI",                       // Qualtrics SiteIntercept (primary)
+        "QSI_TESTING_MODE",
+      ],
+      globalPrefixes: ["QSI_"],      // catches QSI_S_ZN_<id>, QSI_HistorySession, etc.
+      keyPatterns: [
+        /^QSI_S_ZN_/,                // per-zone session cookie
+        /^QSI_HistorySession$/,
+      ],
+      scriptSrcPatterns: [
+        /\bqualtrics\.com\b/i,       // catches siteintercept / s / customer CNAMEs
+        /\/SIE\/\?Q_ZID=/i,          // distinctive SiteIntercept entry path
+        /\/dxjsmodule\//i,           // DX JS module path
+        /\/spoke\/all\/jam\b/i,      // survey-serving endpoint
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

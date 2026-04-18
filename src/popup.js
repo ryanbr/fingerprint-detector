@@ -76,6 +76,7 @@ const CATEGORY_META = {
   LinkedInInsightDetect: { icon: "💼", color: "#fb8c00", risk: "medium", desc: "LinkedIn Insight Tag (B2B retargeting) — lintrk/_linkedin_data_partner_id* globals, li_fat_id/li_gc/li_mc cookies, snap.licdn.com + px.ads.linkedin.com + dc.ads.linkedin.com" },
   NoibuDetect: { icon: "🛒", color: "#fb8c00", risk: "medium", desc: "Noibu e-commerce error monitoring — NOIBUJS/NOIBUJS_CONFIG globals, n_key/n_platform/noibu-agent-mode storage, noibu.com hosts (cdn/input/live/resource-proxy)" },
   CriteoDetect: { icon: "🎪", color: "#fb8c00", risk: "medium", desc: "Criteo retargeting / display ads — Criteo/criteo_q globals, cto_bundle/cto_clc/cto_pld/cto_optout cookies, criteo.com + criteo.net (gum.criteo.com identity graph)" },
+  OneTrustDetect: { icon: "🍪", color: "#fb8c00", risk: "medium", desc: "OneTrust CMP (#1 globally) — OneTrust/OneTrustStub/Optanon* globals, OptanonConsent/OptanonAlertBoxClosed cookies, cookielaw.org + cdn-*.onetrust.com, otSDKStub.js + otBannerSdk.js" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -203,6 +204,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   LinkedInInsightDetect:  { label: "LinkedIn Insight",     icon: "💼" },
   NoibuDetect:            { label: "Noibu",                icon: "🛒" },
   CriteoDetect:           { label: "Criteo",               icon: "🎪" },
+  OneTrustDetect:         { label: "OneTrust",             icon: "🍪" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

@@ -1186,6 +1186,43 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "OneTrust",
+      category: "OneTrustDetect",
+      // OneTrust — the #1 CMP globally, deployed on millions of sites.
+      // Acquired Cookielaw.org and Optanon (hence the hybrid
+      // Optanon*/OneTrust* global set still in use). Stub at
+      // otSDKStub.js, full banner SDK at otBannerSdk.js, auto-block
+      // engine at otAutoBlock.js. Multi-region CDN: cookielaw.org
+      // (legacy global), cdn-ukwest.onetrust.com, cdn-apac.onetrust.com
+      // and other cdn-*.onetrust.com regional hosts.
+      globals: [
+        "OneTrust",                  // main API
+        "OneTrustStub",              // loader stub
+        "OneTrustLoaded",            // loaded flag
+        "OnetrustActiveGroups",      // active consent groups (mixed-case "Onetrust")
+        "OptanonActiveGroups",       // legacy Optanon brand
+        "OptanonLoaded",             // legacy loaded flag
+        "OptanonWrapper",            // publisher callback hook
+        "otStubData",                // stub data object
+      ],
+      globalPrefixes: [],
+      keyPatterns: [
+        /^OptanonConsent$/,          // full consent string cookie
+        /^OptanonAlertBoxClosed$/,   // banner dismissal flag
+        /^OneTrustWPCCPAGoogleOptOut$/, // CCPA opt-out flag
+        /^eupubconsent-v2$/,         // TCF 2.0 string cookie (OneTrust's IAB vendor)
+      ],
+      scriptSrcPatterns: [
+        /\bcookielaw\.org\b/i,       // legacy Cookielaw CDN (cdn.cookielaw.org)
+        /\bonetrust\.com\b/i,         // OneTrust regional CDNs (cdn-ukwest / cdn-apac / geolocation)
+        /\/otSDKStub\.js\b/i,         // loader stub filename
+        /\/otBannerSdk\.js\b/i,       // full banner SDK
+        /\/otAutoBlock\.js\b/i,       // auto-block engine
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

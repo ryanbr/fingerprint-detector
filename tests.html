@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -1959,6 +1959,24 @@
           document.head.appendChild(s31);
           setTimeout(() => { try { s31.remove(); } catch (_) {} }, 100);
           results.push("Criteo: Criteo/criteo_q globals + cto_bundle/cto_pld/cto_clc/cto_tld_test cookies + dynamic.criteo.com URL");
+        } catch (_) { /* noop */ }
+
+        // ── OneTrust (CMP leader) ─────────────────────────────────
+        try {
+          window.OneTrust = window.OneTrust || { GetDomainData: () => ({}), IsAlertBoxClosed: () => false, __test: true };
+          window.OneTrustStub = window.OneTrustStub || function () { /* noop */ };
+          window.OneTrustLoaded = true;
+          window.OnetrustActiveGroups = ",C0001,C0002,C0003,C0004,";
+          window.OptanonActiveGroups = ",C0001,C0002,C0003,C0004,";
+          window.OptanonLoaded = true;
+          document.cookie = "OptanonConsent=isGpcEnabled=0&datestamp=Sat+Apr+18+2026&version=202308.1.0&hosts=&consentId=test&interactionCount=1&groups=C0001%3A1%2CC0002%3A1; path=/; max-age=60";
+          document.cookie = "OptanonAlertBoxClosed=2026-04-18T07:00:00.000Z; path=/; max-age=60";
+          const s32 = document.createElement("script");
+          s32.src = "https://cdn-ukwest.onetrust.com/scripttemplates/otSDKStub.js";
+          s32.onerror = () => {};
+          document.head.appendChild(s32);
+          setTimeout(() => { try { s32.remove(); } catch (_) {} }, 100);
+          results.push("OneTrust: OneTrust/OneTrustStub/OnetrustActiveGroups/OptanonActiveGroups globals + OptanonConsent/OptanonAlertBoxClosed cookies + onetrust.com/otSDKStub.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

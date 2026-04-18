@@ -300,26 +300,55 @@ function applyBannerCollapsedState() {
 }
 
 // Build a plain-text tooltip listing the distinct signals that fired
-// for a tracker. Signals come straight from event.method — examples:
-//   "global:fbq", "cookie:_fbp", "script-url:connect.facebook.net/...",
-//   "global-pattern:_fbq", "anomaly:Date.prototype.getTimeAlias".
-// Long URLs are truncated and the list is capped to keep the native
-// title tooltip readable.
-function buildTrackerSignalsTooltip(label, methods) {
-  const MAX_METHODS = 15;
-  const MAX_METHOD_LEN = 90;
+// for a tracker. Each signal is a pair:
+//   method = label ("Cookie key", "Global variable", "Script URL match",
+//                   "localStorage key", "sessionStorage key",
+//                   "DOM integration tag", or an anomaly label)
+//   detail = the actual identifier (cookie name like "_fbp",
+//            global like "window.fbq", URL, or "<script data-*>" tag)
+// Rendered as "label: detail" so users see both the type of signal
+// and the specific key / value. Long URLs are truncated and the list
+// is capped to keep the native title tooltip readable.
+function buildTrackerSignalsTooltip(label, signals) {
+  const MAX_SIGNALS = 15;
+  const MAX_LINE_LEN = 110;
   const lines = [label + " — detected signals:"];
-  const shown = methods.slice(0, MAX_METHODS);
-  for (const m of shown) {
-    const truncated = m.length > MAX_METHOD_LEN
-      ? m.slice(0, MAX_METHOD_LEN - 1) + "…"
-      : m;
+  const shown = signals.slice(0, MAX_SIGNALS);
+  for (const s of shown) {
+    const full = s.method + ": " + s.detail;
+    const truncated = full.length > MAX_LINE_LEN
+      ? full.slice(0, MAX_LINE_LEN - 1) + "…"
+      : full;
     lines.push("• " + truncated);
   }
-  if (methods.length > MAX_METHODS) {
-    lines.push("…and " + (methods.length - MAX_METHODS) + " more");
+  if (signals.length > MAX_SIGNALS) {
+    lines.push("…and " + (signals.length - MAX_SIGNALS) + " more");
   }
   return lines.join("\n");
+}
+
+// Collect the distinct (method, detail) signal pairs for a category's
+// event stream. Dedupes by method+detail and strips the " (call #N)"
+// suffix that record() appends to detail after the first 3 calls (rare
+// for tracker detections but can happen when a library matches 4+
+// distinct cookies / globals of the same kind).
+function collectTrackerSignals(events) {
+  const seen = new Set();
+  const signals = [];
+  const STRIP_COUNT = / \(call #\d+\)$/;
+  for (const e of events) {
+    if (!e) continue;
+    const method = typeof e.method === "string" ? e.method : "";
+    const detailRaw = typeof e.detail === "string" ? e.detail : "";
+    const detail = detailRaw.replace(STRIP_COUNT, "");
+    if (!method && !detail) continue;
+    const key = method + "|" + detail;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    signals.push({ method, detail });
+  }
+  signals.sort((a, b) => (a.method + a.detail).localeCompare(b.method + b.detail));
+  return signals;
 }
 
 function updateFingerprintBanner(categories) {
@@ -330,12 +359,12 @@ function updateFingerprintBanner(categories) {
   for (const cat of Object.keys(TRACKING_LIBRARY_CATEGORIES)) {
     const events = categories && categories[cat];
     if (events && events.length > 0) {
-      const distinctSet = new Set(events.map(e => e.method));
-      const methods = Array.from(distinctSet).sort();
+      const signals = collectTrackerSignals(events);
+      if (signals.length === 0) continue;
       hits.push({
         ...TRACKING_LIBRARY_CATEGORIES[cat],
-        count: distinctSet.size,
-        methods,
+        count: signals.length,
+        signals,
       });
     }
   }
@@ -361,7 +390,7 @@ function updateFingerprintBanner(categories) {
     if (textEl) textEl.textContent = h.label + " detected on this page";
     if (countEl) countEl.textContent = h.count + (h.count === 1 ? " signal" : " signals");
     // Tooltip on the whole banner — hovering anywhere reveals the signal list.
-    banner.setAttribute("title", buildTrackerSignalsTooltip(h.label, h.methods));
+    banner.setAttribute("title", buildTrackerSignalsTooltip(h.label, h.signals));
     if (list) {
       list.classList.remove("active");
       list.classList.remove("scrollable");
@@ -381,7 +410,7 @@ function updateFingerprintBanner(categories) {
         const row = document.createElement("div");
         row.className = "banner-row";
         // Tooltip showing the exact signals for this tracker.
-        row.setAttribute("title", buildTrackerSignalsTooltip(h.label, h.methods));
+        row.setAttribute("title", buildTrackerSignalsTooltip(h.label, h.signals));
         const icon = document.createElement("span");
         icon.className = "banner-row-icon";
         icon.textContent = h.icon;

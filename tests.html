@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -1801,6 +1801,17 @@
           document.head.appendChild(s21);
           setTimeout(() => { try { s21.remove(); } catch (_) {} }, 100);
           results.push("Clarity: clarity global + _clck/_clsk/CLID cookies + clarity.ms URL");
+        } catch (_) { /* noop */ }
+
+        // ── RUM Vision (Core Web Vitals RUM) ──────────────────────
+        try {
+          const s22 = document.createElement("script");
+          // URL-only detection — no globals/cookies set by this library.
+          s22.src = "https://d5yoctgpv4cpx.cloudfront.net/RUM-F9E0E52E38/v4-www.example.com.js";
+          s22.onerror = () => {};
+          document.head.appendChild(s22);
+          setTimeout(() => { try { s22.remove(); } catch (_) {} }, 100);
+          results.push("RUM Vision: CloudFront /RUM-<hex>/v<digit>-<domain>.js path");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

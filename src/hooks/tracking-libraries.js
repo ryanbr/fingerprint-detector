@@ -889,6 +889,26 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "RUM Vision",
+      category: "RUMVisionDetect",
+      // RUM Vision (rumvision.com) — lightweight Real User Monitoring
+      // that measures Core Web Vitals (LCP / FID / CLS / INP / TTFB /
+      // FCP) on top of Google's web-vitals library. Served as
+      // per-site CloudFront builds with a distinctive
+      // /RUM-<hex>/v<digit>-<domain>.js path. No cookies, no
+      // globals, no localStorage — URL-only detection. Beacons to
+      // an AWS API Gateway host (subdomain is per-customer).
+      globals: [],
+      globalPrefixes: [],
+      keyPatterns: [],
+      scriptSrcPatterns: [
+        /\brumvision\.com\b/i,                 // canonical company host
+        /\/RUM-[A-F0-9]{6,}\/v\d+-[^/]+\.js\b/i, // CloudFront per-site build path
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

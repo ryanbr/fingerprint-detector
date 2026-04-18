@@ -99,6 +99,7 @@ const CATEGORY_META = {
   FigPiiDetect: { icon: "🧫", color: "#fb8c00", risk: "medium", desc: "FigPii (ex-Pii) A/B testing + CRO + session recording — FIGPII_* globals, figpii.com hosts (tracking-cdn / api)" },
   IubendaDetect: { icon: "🇮🇹", color: "#fb8c00", risk: "medium", desc: "iubenda privacy / cookie consent (Italian CMP) — _iub/_iub_cs globals, _iub_cs-<id> cookie, cs.iubenda.com + cdn.iubenda.com hosts" },
   AccessiBeDetect: { icon: "♿", color: "#fb8c00", risk: "medium", desc: "accessiBe accessibility overlay widget — accessiBe/acsb globals + acsb* prefix, acsbapp.com + accessibe.com hosts" },
+  UsercentricsDetect: { icon: "🇪🇺", color: "#fb8c00", risk: "medium", desc: "Usercentrics CMP (German/DACH leader) — UC_UI/UC_UI_SUPPRESS_CMP_DISPLAY/__ucCmp globals, usercentrics-cmp cookie, usercentrics.eu + usercentrics.com, /browser-ui/<ver>/loader.js" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -249,6 +250,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   FigPiiDetect:           { label: "FigPii",               icon: "🧫" },
   IubendaDetect:          { label: "iubenda",              icon: "🇮🇹" },
   AccessiBeDetect:        { label: "accessiBe",            icon: "♿" },
+  UsercentricsDetect:     { label: "Usercentrics",         icon: "🇪🇺" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

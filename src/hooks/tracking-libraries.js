@@ -1834,6 +1834,35 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Usercentrics",
+      category: "UsercentricsDetect",
+      // Usercentrics — major CMP, popular in Europe especially
+      // with German / Austrian / DACH sites. Browser UI served at
+      // app.usercentrics.eu/browser-ui/<version>/loader.js and
+      // the module bundle at /browser-ui/<version>/index.module.js.
+      // Consent proxy at privacy-proxy.usercentrics.eu. Like the
+      // other CMPs we detect, deliberately skips __tcfapi / __gpp
+      // / __uspapi IAB-standard globals since every CMP sets those.
+      globals: [
+        "UC_UI",                     // primary API (UC_UI.isInitialized, acceptAllConsents, rejectAllConsents)
+        "UC_UI_SUPPRESS_CMP_DISPLAY", // suppression flag
+        "__ucCmp",                   // internal CMP state
+      ],
+      globalPrefixes: [],
+      keyPatterns: [
+        /^usercentrics-cmp$/,        // primary CMP state cookie (confirmed in loader constant)
+        /^uc_user_interaction$/,     // legacy interaction cookie
+        /^uc_settings$/,             // cached settings
+      ],
+      scriptSrcPatterns: [
+        /\busercentrics\.eu\b/i,     // catches app / consent / privacy-proxy subs
+        /\busercentrics\.com\b/i,    // company / global host
+        /\/browser-ui\/(?:[\w.]+)\/(?:loader|index\.module)\.js\b/i, // distinctive versioned loader + module paths
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

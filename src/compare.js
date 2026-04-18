@@ -145,6 +145,7 @@ const CATEGORY_META = {
   FigPiiDetect: { icon: "\u{1F9EB}", color: "#fb8c00", risk: "medium" },
   IubendaDetect: { icon: "\u{1F1EE}\u{1F1F9}", color: "#fb8c00", risk: "medium" },
   AccessiBeDetect: { icon: "\u{267F}", color: "#fb8c00", risk: "medium" },
+  UsercentricsDetect: { icon: "\u{1F1EA}\u{1F1FA}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

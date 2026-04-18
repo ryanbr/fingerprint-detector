@@ -720,8 +720,9 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
         /^A1$/, /^A1S$/, /^A3$/, // Yahoo ID cookies
         /^B$/,                   // legacy Yahoo bucket cookie (short — exact match only)
         /^ySID$/i,               // Yahoo session ID
-        /^_vuid$/i,              // visit UID localStorage
-        /^_vuidList$/i,
+        // _vuid / _vuidList deliberately removed — too generic,
+        // Listrak also uses _vuid. Yahoo's distinctive GUC /
+        // guce_ / A1 / A1S / ySID cookies are sufficient.
       ],
       scriptSrcPatterns: [
         /\bs\.yimg\.com\b/i,            // Yahoo CDN (serves analytics-*.js + cs_*.js)
@@ -1953,6 +1954,30 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
         /\btruevault\.com\b/i,       // company domain
         /\btruevaultcdn\.com\b/i,    // CDN (polaris.truevaultcdn.com)
         /\/static\/pc\/[A-Z0-9]+\/polaris\.js\b/i, // /static/pc/<privacyCenterId>/polaris.js distinctive path
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
+    {
+      name: "Listrak",
+      category: "ListrakDetect",
+      // Listrak — email marketing + SMS + customer engagement
+      // platform. Popular with US e-commerce retailers. Activity
+      // beacon at at1.listrakbi.com/activity/<hash>, modal
+      // impression tracking at m1.listrakbi.com/ModalImpression.ashx
+      // (.ashx = ASP.NET handler). Sets the _vuid visitor cookie
+      // via its _ltk_util.setCookie helper — this cookie name is
+      // shared with Yahoo so Yahoo's entry no longer uses it as
+      // a signal.
+      globals: [
+        "_ltk_util",                 // core utility namespace (setCookie / getCookie)
+      ],
+      globalPrefixes: ["_ltk"],      // catches _ltk, _ltk_ prefixed internals and ltkCallback* JSONP funcs
+      keyPatterns: [],                // _vuid cookie is too generic across trackers — rely on globals + host
+      scriptSrcPatterns: [
+        /\blistrakbi\.com\b/i,       // catches at1 / m1 / cdn subs
+        /\blistrak\.com\b/i,          // company site
+        /\/ModalImpression\.ashx\b/i, // distinctive modal-impression handler filename
       ],
       domAttributes: [],
       classifyOrigin: true,

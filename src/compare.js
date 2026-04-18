@@ -149,6 +149,7 @@ const CATEGORY_META = {
   SwanDetect: { icon: "\u{1F9A2}", color: "#fb8c00", risk: "medium" },
   GlobalEDetect: { icon: "\u{1F6EB}", color: "#fb8c00", risk: "medium" },
   TrueVaultPolarisDetect: { icon: "\u{1F31F}", color: "#fb8c00", risk: "medium" },
+  ListrakDetect: { icon: "\u{2709}\u{FE0F}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

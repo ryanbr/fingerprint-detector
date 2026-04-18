@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM / Elastic APM / Sentry / Awin / Bazaarvoice / FigPii / iubenda / accessiBe / Usercentrics / Swan / Global-e / TrueVault (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM / Elastic APM / Sentry / Awin / Bazaarvoice / FigPii / iubenda / accessiBe / Usercentrics / Swan / Global-e / TrueVault / Listrak (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -1708,7 +1708,6 @@
           document.cookie = "A1=d=test-a1; path=/; max-age=60";
           document.cookie = "A1S=test-a1s; path=/; max-age=60";
           document.cookie = "ySID=test-ysid; path=/; max-age=60";
-          localStorage.setItem("_vuid", "test-vuid");
           const s16a = document.createElement("script");
           s16a.src = "https://s.yimg.com/ss/analytics-3.78.3.js";
           s16a.onerror = () => {};
@@ -1718,7 +1717,7 @@
           s16b.onerror = () => {};
           document.head.appendChild(s16b);
           setTimeout(() => { try { s16a.remove(); s16b.remove(); } catch (_) {} }, 100);
-          results.push("Yahoo/Oath: YAHOO/YahooCJS globals + GUC/guce_*/A1/A1S/ySID cookies + _vuid storage + s.yimg.com + consent.cmp.oath.com URLs");
+          results.push("Yahoo/Oath: YAHOO/YahooCJS globals + GUC/guce_*/A1/A1S/ySID cookies + s.yimg.com + consent.cmp.oath.com URLs");
         } catch (_) { /* noop */ }
 
         // ── Kameleoon (A/B testing) ───────────────────────────────
@@ -2354,6 +2353,24 @@
           document.head.appendChild(s58);
           setTimeout(() => { try { s58.remove(); } catch (_) {} }, 100);
           results.push("TrueVault Polaris: Polaris/TrueVault/polarisOverrideOptions/__rmuspc globals + polaris.truevaultcdn.com/static/pc/<id>/polaris.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── Listrak (email / SMS / engagement) ────────────────────
+        try {
+          window._ltk_util = window._ltk_util || {
+            setCookie: (name, value) => { document.cookie = name + "=" + value + "; path=/; max-age=60"; },
+            getCookie: () => "",
+            __test: true,
+          };
+          window._ltk = window._ltk || {};
+          window.ltkCallback1 = function () { /* noop JSONP */ };
+          window._ltk_util.setCookie("_vuid", "test-visitor-uid", new Date(Date.now() + 60000));
+          const s59 = document.createElement("script");
+          s59.src = "https://at1.listrakbi.com/activity/N2rGx2tOVzc3";
+          s59.onerror = () => {};
+          document.head.appendChild(s59);
+          setTimeout(() => { try { s59.remove(); } catch (_) {} }, 100);
+          results.push("Listrak: _ltk_util/_ltk/ltkCallback* globals + listrakbi.com/activity + /ModalImpression.ashx URLs");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

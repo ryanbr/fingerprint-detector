@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM / Elastic APM / Sentry / Awin / Bazaarvoice / FigPii / iubenda / accessiBe / Usercentrics / Swan / Global-e / TrueVault / Listrak / TrustedSite / IAS / Adobe Analytics / Dynatrace / Branch (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM / Elastic APM / Sentry / Awin / Bazaarvoice / FigPii / iubenda / accessiBe / Usercentrics / Swan / Global-e / TrueVault / Listrak / TrustedSite / IAS / Adobe Analytics / Dynatrace / Branch / Yotpo (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -2451,6 +2451,21 @@
           document.head.appendChild(s64);
           setTimeout(() => { try { s64.remove(); } catch (_) {} }, 100);
           results.push("Branch: branch/_branch/BranchViewData globals + _branch_session/branch_session_first storage + cdn.branch.io/branch-latest.min.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── Yotpo (e-commerce reviews + UGC + loyalty) ────────────
+        try {
+          window.Yotpo = window.Yotpo || { API: () => ({}), __test: true };
+          window.YotpoAnalytics = window.YotpoAnalytics || { track: () => {}, __test: true };
+          window.yotpoWidgetsContainer = window.yotpoWidgetsContainer || { __test: true };
+          window.yotpo_pixel = { __test: true };
+          window.yotpoapi = { __test: true };
+          const s65 = document.createElement("script");
+          s65.src = "https://staticw2.yotpo.com/widget-assets/yotpo-pixel/2026-03-10_12-14-30/bundle.js";
+          s65.onerror = () => {};
+          document.head.appendChild(s65);
+          setTimeout(() => { try { s65.remove(); } catch (_) {} }, 100);
+          results.push("Yotpo: Yotpo/YotpoAnalytics/yotpoWidgetsContainer/yotpo_pixel/yotpoapi globals + staticw2.yotpo.com/widget-assets/yotpo-pixel/<build>/bundle.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

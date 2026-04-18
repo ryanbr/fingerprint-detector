@@ -2141,6 +2141,30 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Yotpo",
+      category: "YotpoDetect",
+      // Yotpo — e-commerce reviews + UGC + loyalty platform. Major
+      // competitor to Bazaarvoice (also in registry). Popular
+      // especially with Shopify stores. Covers product reviews,
+      // visual UGC, loyalty & referrals, SMS and subscriptions
+      // across the Yotpo "e-commerce marketing" suite. Loader at
+      // staticw2.yotpo.com/widget-assets/yotpo-pixel/<build>/bundle.js.
+      globals: [
+        "Yotpo",                     // primary namespace
+        "YotpoAnalytics",            // analytics module
+        "yotpoWidgetsContainer",     // widget container
+        "yotpo_pixel",               // pixel module
+        "yotpoapi",                  // API module
+      ],
+      globalPrefixes: [],
+      keyPatterns: [],                // no distinctive Yotpo-owned cookies set by the pixel loader
+      scriptSrcPatterns: [
+        /\byotpo\.com\b/i,           // catches staticw2 / w2 / api / cdn subs
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

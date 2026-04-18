@@ -513,6 +513,33 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Media.net",
+      category: "MediaNetDetect",
+      // Media.net Warp — Yahoo-owned ad network tag that bundles
+      // Prebid.js + user-ID modules (UID2, RampID, Criteo, TDID,
+      // Kargo etc.) + Index Exchange / other SSP adapters. Was the
+      // original backing network for Bing contextual ads. Loader
+      // served from warp.media.net/js/tags/clientag.js with bids
+      // and creatives via contextual.media.net / adservetx.media.net.
+      globals: [
+        "mnjs",                  // Media.net duplicate-load guard (distinctive)
+      ],
+      globalPrefixes: [
+        "_mN",                   // catches _mNHandle, _mNDetails etc. across legacy tags
+      ],
+      keyPatterns: [],
+      scriptSrcPatterns: [
+        /\bwarp\.media\.net\b/i,          // primary loader host
+        /\bcontextual\.media\.net\b/i,    // ad backend
+        /\bstatic\.media\.net\b/i,        // CDN
+        /\badservetx\.media\.net\b/i,     // ad serving
+        /\bmedia\.net\b/i,                // generic fallback (catches other media.net subhosts)
+        /\/clientag\.js\b/i,              // distinctive tag filename
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

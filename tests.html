@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -1593,6 +1593,19 @@
           document.head.appendChild(s9);
           setTimeout(() => { try { s9.remove(); } catch (_) {} }, 100);
           results.push("Publift Fuse: fusetag global + cdn.fuseplatform.net URL");
+        } catch (_) { /* noop */ }
+
+        // ── Media.net (Warp / contextual) ─────────────────────────
+        try {
+          window.mnjs = window.mnjs || { __test: true };
+          window._mNHandle = window._mNHandle || { queue: [], __test: true };
+          window._mNDetails = window._mNDetails || { loaded: true };
+          const s10 = document.createElement("script");
+          s10.src = "https://warp.media.net/js/tags/clientag.js?cid=TEST&dn=example.com&version=1";
+          s10.onerror = () => {};
+          document.head.appendChild(s10);
+          setTimeout(() => { try { s10.remove(); } catch (_) {} }, 100);
+          results.push("Media.net: mnjs/_mNHandle/_mNDetails globals + warp.media.net/clientag.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

@@ -100,6 +100,7 @@ const CATEGORY_META = {
   BlockthroughDetect: { icon: "\u{1F9E8}", color: "#e94560", risk: "high" },
   AdmiralDetect: { icon: "\u{2693}", color: "#e94560", risk: "high" },
   PubliftFuseDetect: { icon: "\u{1F3AF}", color: "#fb8c00", risk: "medium" },
+  MediaNetDetect: { icon: "\u{1F310}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

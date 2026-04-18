@@ -54,6 +54,7 @@ const CATEGORY_META = {
   BlockthroughDetect: { icon: "🧨", color: "#e94560", risk: "high", desc: "Blockthrough Ad Recovery (anti-adblock) — __bt_* globals, BT_* storage keys, btloader.com + cdn.btmessage.com + dns-finder.com probes" },
   AdmiralDetect:   { icon: "⚓", color: "#e94560", risk: "high", desc: "Admiral anti-adblock surveillance — admiral global, _awl/_admrla/_alvd cookies, _admrlri storage, rotating disposable loader domains" },
   PubliftFuseDetect: { icon: "🎯", color: "#fb8c00", risk: "medium", desc: "Publift Fuse header-bidding orchestrator — fusetag global, cdn.fuseplatform.net loader, loads Prebid/GPT/Amazon UAM + 23 SSP bidders" },
+  MediaNetDetect:  { icon: "🌐", color: "#fb8c00", risk: "medium", desc: "Media.net (Yahoo) contextual + header-bidding tag — mnjs/_mN* globals, warp.media.net + contextual.media.net + adservetx.media.net hosts, /clientag.js filename" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -159,6 +160,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   BlockthroughDetect:     { label: "Blockthrough",         icon: "🧨" },
   AdmiralDetect:          { label: "Admiral",              icon: "⚓" },
   PubliftFuseDetect:      { label: "Publift Fuse",         icon: "🎯" },
+  MediaNetDetect:         { label: "Media.net",            icon: "🌐" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

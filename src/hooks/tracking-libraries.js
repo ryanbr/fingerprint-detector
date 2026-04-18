@@ -1982,6 +1982,31 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "TrustedSite",
+      category: "TrustedSiteDetect",
+      // TrustedSite (formerly McAfee SECURE) — trust / security
+      // badge provider for e-commerce sites. McAfee divested the
+      // product in 2019 and it was rebranded to TrustedSite, but
+      // the legacy ywxi.net CDN is retained. Shows a trust seal
+      // that claims the site is "verified safe" based on various
+      // checks. Also tracks conversion lifts attributed to badge
+      // display.
+      globals: [
+        "TrustedSite",               // primary namespace (TrustedSite.config, .init, .load_trustmark)
+        "TrustedSiteInline",         // inline-embed variant
+        "TrustedSite_done",          // init-complete sentinel
+      ],
+      globalPrefixes: ["trustedsite_"], // catches trustedsite_inline / _main / _tm_float_seen / _verify_show / _verifyhover_hide / _visit state globals
+      keyPatterns: [],                // no distinctive cookies set by the seal loader itself
+      scriptSrcPatterns: [
+        /\bywxi\.net\b/i,            // legacy McAfee SECURE CDN (still primary host)
+        /\btrustedsite\.com\b/i,     // current branding
+        /\bmcafeesecure\.com\b/i,    // legacy McAfee SECURE host
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

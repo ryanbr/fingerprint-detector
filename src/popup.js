@@ -104,6 +104,7 @@ const CATEGORY_META = {
   GlobalEDetect: { icon: "🛫", color: "#fb8c00", risk: "medium", desc: "Global-e cross-border e-commerce (currency / shipping / duties localization) — GlobalE/GlobalE_Analytics/GlobalE_Analytics_Borderfree globals, global-e.com hosts" },
   TrueVaultPolarisDetect: { icon: "🌟", color: "#fb8c00", risk: "medium", desc: "TrueVault Polaris privacy / consent — Polaris/TrueVault/polarisOverrideOptions/__rmuspc globals, truevault.com + truevaultcdn.com, /static/pc/<id>/polaris.js" },
   ListrakDetect: { icon: "✉️", color: "#fb8c00", risk: "medium", desc: "Listrak email / SMS / customer engagement — _ltk_util global + _ltk* prefix, listrakbi.com + listrak.com hosts, /ModalImpression.ashx" },
+  TrustedSiteDetect: { icon: "🛂", color: "#fb8c00", risk: "medium", desc: "TrustedSite (ex-McAfee SECURE) trust badge — TrustedSite/TrustedSiteInline globals + trustedsite_ prefix, ywxi.net + trustedsite.com + mcafeesecure.com" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -259,6 +260,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   GlobalEDetect:          { label: "Global-e",             icon: "🛫" },
   TrueVaultPolarisDetect: { label: "TrueVault Polaris",    icon: "🌟" },
   ListrakDetect:          { label: "Listrak",              icon: "✉️" },
+  TrustedSiteDetect:      { label: "TrustedSite",          icon: "🛂" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

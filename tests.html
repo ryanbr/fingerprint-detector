@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM / Elastic APM / Sentry / Awin / Bazaarvoice / FigPii / iubenda / accessiBe / Usercentrics / Swan / Global-e / TrueVault / Listrak (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM / Elastic APM / Sentry / Awin / Bazaarvoice / FigPii / iubenda / accessiBe / Usercentrics / Swan / Global-e / TrueVault / Listrak / TrustedSite (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -2371,6 +2371,26 @@
           document.head.appendChild(s59);
           setTimeout(() => { try { s59.remove(); } catch (_) {} }, 100);
           results.push("Listrak: _ltk_util/_ltk/ltkCallback* globals + listrakbi.com/activity + /ModalImpression.ashx URLs");
+        } catch (_) { /* noop */ }
+
+        // ── TrustedSite (ex-McAfee SECURE) trust badge ────────────
+        try {
+          window.TrustedSite = window.TrustedSite || {
+            config: { load_conversion: true },
+            init: () => {},
+            load_trustmark: () => {},
+            __test: true,
+          };
+          window.TrustedSite_done = true;
+          window.TrustedSiteInline = { __test: true };
+          window.trustedsite_visit = 1;
+          window.trustedsite_main = { __test: true };
+          const s60 = document.createElement("script");
+          s60.src = "https://cdn.ywxi.net/js/1.js";
+          s60.onerror = () => {};
+          document.head.appendChild(s60);
+          setTimeout(() => { try { s60.remove(); } catch (_) {} }, 100);
+          results.push("TrustedSite: TrustedSite/TrustedSiteInline/TrustedSite_done globals + trustedsite_* prefix + cdn.ywxi.net/js/1.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

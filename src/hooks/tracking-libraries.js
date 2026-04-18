@@ -668,6 +668,31 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Google Publisher Tag",
+      category: "GoogleGPTDetect",
+      // Google Publisher Tag (GPT) — Google Ad Manager's publisher-
+      // side ad-serving library. Distinct from gtag/GA: GPT requests
+      // ads and renders creatives via googletag.pubads() /
+      // defineSlot() / display(). Doesn't fingerprint itself — the
+      // downstream ad creatives do (canvas / WebGL / audio hooks will
+      // fire independently when they run). Usually seen alongside
+      // GoogleTagDetect on publishers running GA + ads.
+      globals: [
+        "googletag",             // primary API (googletag.cmd, googletag.pubads)
+      ],
+      globalPrefixes: [],
+      keyPatterns: [],             // relies on DoubleClick third-party cookies (IDE/DSID) — not set by GPT itself
+      scriptSrcPatterns: [
+        /\bpagead2\.googlesyndication\.com\b/i,  // primary loader + ad request
+        /\bgoogletagservices\.com\b/i,             // legacy GPT host
+        /\bsecurepubads\.g\.doubleclick\.net\b/i,  // GPT limited-ads mode
+        /\/tag\/js\/gpt\.js\b/i,                   // distinctive GPT path
+        /\/gampad\/ads\b/i,                         // GPT ad request endpoint
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

@@ -59,6 +59,7 @@ const CATEGORY_META = {
   WPComStatsDetect: { icon: "📝", color: "#fb8c00", risk: "medium", desc: "WordPress.com / Jetpack Stats — _stq/wpcom globals, stats.wp.com loader, pixel.wp.com/g.gif beacon, /e-<siteID>.js filename" },
   ScorecardResearchDetect: { icon: "📺", color: "#fb8c00", risk: "medium", desc: "Comscore ScorecardResearch audience measurement — COMSCORE/_comscore globals, _scor_uid cookie, scorecardresearch.com/beacon.js loader" },
   GoogleTagDetect: { icon: "🔎", color: "#fb8c00", risk: "medium", desc: "Google Tag Manager + Google tag (gtag.js) — gtag/dataLayer/google_tag_manager globals, _ga/_ga_*/_gid/_gat cookies, googletagmanager.com + google-analytics.com + doubleclick.net" },
+  GoogleGPTDetect: { icon: "📣", color: "#fb8c00", risk: "medium", desc: "Google Publisher Tag (GPT) ad serving — googletag global, pagead2.googlesyndication.com + googletagservices.com + securepubads.g.doubleclick.net loaders, /tag/js/gpt.js filename" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -169,6 +170,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   WPComStatsDetect:       { label: "WordPress.com Stats",  icon: "📝" },
   ScorecardResearchDetect: { label: "ScorecardResearch",   icon: "📺" },
   GoogleTagDetect:        { label: "Google Tag / GA",      icon: "🔎" },
+  GoogleGPTDetect:        { label: "Google Publisher Tag", icon: "📣" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -1680,6 +1680,23 @@
           document.head.appendChild(s14);
           setTimeout(() => { try { s14.remove(); } catch (_) {} }, 100);
           results.push("Google Tag: gtag/dataLayer/google_tag_manager globals + _ga/_ga_*/_gid/_gat_gtag_* cookies + googletagmanager.com URL");
+        } catch (_) { /* noop */ }
+
+        // ── Google Publisher Tag (GPT) ────────────────────────────
+        try {
+          window.googletag = window.googletag || {
+            cmd: [],
+            pubads: () => ({ enableSingleRequest: () => {} }),
+            defineSlot: () => ({ addService: () => ({}) }),
+            display: () => {},
+            __test: true,
+          };
+          const s15 = document.createElement("script");
+          s15.src = "https://pagead2.googlesyndication.com/tag/js/gpt.js";
+          s15.onerror = () => {};
+          document.head.appendChild(s15);
+          setTimeout(() => { try { s15.remove(); } catch (_) {} }, 100);
+          results.push("Google GPT: googletag global + pagead2.googlesyndication.com/tag/js/gpt.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

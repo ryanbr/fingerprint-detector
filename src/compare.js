@@ -105,6 +105,7 @@ const CATEGORY_META = {
   WPComStatsDetect: { icon: "\u{1F4DD}", color: "#fb8c00", risk: "medium" },
   ScorecardResearchDetect: { icon: "\u{1F4FA}", color: "#fb8c00", risk: "medium" },
   GoogleTagDetect: { icon: "\u{1F50E}", color: "#fb8c00", risk: "medium" },
+  GoogleGPTDetect: { icon: "\u{1F4E3}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

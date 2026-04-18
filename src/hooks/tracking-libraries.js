@@ -661,10 +661,13 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
         /\banalytics\.google\.com\b/i,       // GA4 reporting + some tag paths
         /\bgoogleads\.g\.doubleclick\.net\b/i, // Google Ads conversion
         /\bstats\.g\.doubleclick\.net\b/i,    // GA conversion linker
+        /\bgoogleadservices\.com\b/i,         // standalone Google Ads conversion tracking host
         /\/gtag\/js\b/i,                      // gtag loader path
         /\/gtm\.js\b/i,                       // GTM container
         /\/analytics\.js\b/i,                  // legacy UA loader
         /\/ga\.js\b/i,                         // ancient GA loader
+        /\/pagead\/conversion(?:_async)?\.js\b/i, // standalone conversion.js + conversion_async.js
+        /\/pagead\/conversion\/\d+\b/i,       // /pagead/conversion/<AW-ID> per-conversion loader
       ],
       domAttributes: [],
       classifyOrigin: true,

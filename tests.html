@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -1860,6 +1860,22 @@
           document.head.appendChild(s25);
           setTimeout(() => { try { s25.remove(); } catch (_) {} }, 100);
           results.push("Funding Choices: googlefc/googlefcLoaded/googlefcPresent globals + FCCDCF/FCIDCF/FCNEC cookies + fundingchoicesmessages.google.com/i/pub-<id> URL");
+        } catch (_) { /* noop */ }
+
+        // ── Chartbeat (real-time publisher analytics) ─────────────
+        try {
+          window._sf_async_config = window._sf_async_config || { uid: 12345, domain: "example.com", useCanonical: true };
+          window.pSUPERFLY = window.pSUPERFLY || { virtualPage: () => {}, __test: true };
+          window.pSUPERFLY_mab = window.pSUPERFLY_mab || { __test: true };
+          document.cookie = "cbt=test-chartbeat-token; path=/; max-age=60";
+          document.cookie = "cb_svref=external; path=/; max-age=60";
+          document.cookie = "cbEventId=test-event-id; path=/; max-age=60";
+          const s26 = document.createElement("script");
+          s26.src = "https://static.chartbeat.com/js/chartbeat.js";
+          s26.onerror = () => {};
+          document.head.appendChild(s26);
+          setTimeout(() => { try { s26.remove(); } catch (_) {} }, 100);
+          results.push("Chartbeat: _sf_async_config/pSUPERFLY/pSUPERFLY_mab globals + cbt/cb_svref/cbEventId cookies + static.chartbeat.com/js/chartbeat.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

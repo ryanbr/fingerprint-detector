@@ -116,6 +116,7 @@ const CATEGORY_META = {
   NativoDetect: { icon: "\u{1FAB6}", color: "#fb8c00", risk: "medium" },
   GeniuslinkDetect: { icon: "\u{1F517}", color: "#fb8c00", risk: "medium" },
   GoogleFundingChoicesDetect: { icon: "\u{1F4B0}", color: "#fb8c00", risk: "medium" },
+  ChartbeatDetect: { icon: "\u{1F4E1}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

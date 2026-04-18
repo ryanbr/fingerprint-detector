@@ -989,6 +989,40 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Chartbeat",
+      category: "ChartbeatDetect",
+      // Chartbeat — real-time publisher analytics. Ubiquitous on
+      // news sites (NYT, WSJ, BBC, CNN, Guardian, Washington Post).
+      // The pSUPERFLY global name dates back to Chartbeat's
+      // original internal project name "Superfly" — stable for
+      // 15+ years. Loader at static.chartbeat.com, pings to
+      // ping.chartbeat.net.
+      globals: [
+        "_sf_async_config",          // classic init object (_sf_async_config.uid = "...")
+        "pSUPERFLY",                 // main namespace (legacy codename)
+        "pSUPERFLY_mab",             // multi-arm bandit module
+        "pSUPERFLY_pub",             // publisher data module
+      ],
+      globalPrefixes: [],
+      keyPatterns: [
+        /^cbt$/,
+        /^cb_svref$/,
+        /^cbEventId$/,
+        /^cb_shared$/,
+        /^cb_rec$/,
+        /^cb_ip$/,
+        /^cb_optout$/,
+        /^cb(?:qpush|_test|_ls_test)$/,
+      ],
+      scriptSrcPatterns: [
+        /\bchartbeat\.com\b/i,       // loader hosts (static / www)
+        /\bchartbeat\.net\b/i,        // ping / beacon hosts
+        /\/chartbeat(?:_mab|_video)?\.js\b/i, // distinctive loader filenames
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

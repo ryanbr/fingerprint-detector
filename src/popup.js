@@ -70,6 +70,7 @@ const CATEGORY_META = {
   NativoDetect: { icon: "🪶", color: "#fb8c00", risk: "medium", desc: "Nativo (formerly PostRelease) native advertising — Nativo/nativoSDK/ntv/ntvConfig globals, ntv.io + postrelease.com hosts, /serve/load.js loader" },
   GeniuslinkDetect: { icon: "🔗", color: "#fb8c00", risk: "medium", desc: "Geniuslink affiliate link converter — Genius global with .snippet/.amazon/.google/.itunes/.microsoft, geniuslinkcdn.com + geni.us hosts" },
   GoogleFundingChoicesDetect: { icon: "💰", color: "#fb8c00", risk: "medium", desc: "Google Funding Choices CMP (AdSense/Ad Manager consent) — googlefc globals, FCCDCF/FCIDCF/FCNEC cookies, fundingchoicesmessages.google.com/i/pub-<id>" },
+  ChartbeatDetect: { icon: "📡", color: "#fb8c00", risk: "medium", desc: "Chartbeat real-time publisher analytics — _sf_async_config/pSUPERFLY globals, cb_* cookies, static.chartbeat.com loader + ping.chartbeat.net beacon" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -191,6 +192,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   NativoDetect:           { label: "Nativo",               icon: "🪶" },
   GeniuslinkDetect:       { label: "Geniuslink",           icon: "🔗" },
   GoogleFundingChoicesDetect: { label: "Google Funding Choices", icon: "💰" },
+  ChartbeatDetect:        { label: "Chartbeat",            icon: "📡" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

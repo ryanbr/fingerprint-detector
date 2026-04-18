@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM / Elastic APM / Sentry / Awin / Bazaarvoice / FigPii / iubenda / accessiBe / Usercentrics (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM / Elastic APM / Sentry / Awin / Bazaarvoice / FigPii / iubenda / accessiBe / Usercentrics / Swan (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -2301,6 +2301,23 @@
           document.head.appendChild(s55);
           setTimeout(() => { try { s55.remove(); } catch (_) {} }, 100);
           results.push("Usercentrics: UC_UI/UC_UI_SUPPRESS_CMP_DISPLAY/__ucCmp globals + usercentrics-cmp cookie + app.usercentrics.eu/browser-ui/<ver>/loader.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── Swan (swan.cx omnichannel engagement) ─────────────────
+        try {
+          window.swan = window.swan || { track: () => {}, __test: true };
+          window._swan = window._swan || {};
+          window.swanDeviceId = "test-swan-device";
+          window.swanSessionId = "test-swan-session";
+          window.swanCredentials = { __test: true };
+          localStorage.setItem("swanDeviceId", "test-stored-device");
+          localStorage.setItem("swanCredentials", JSON.stringify({ __test: true }));
+          const s56 = document.createElement("script");
+          s56.src = "https://swan-web-sdk-prod.azureedge.net/trackingjs";
+          s56.onerror = () => {};
+          document.head.appendChild(s56);
+          setTimeout(() => { try { s56.remove(); } catch (_) {} }, 100);
+          results.push("Swan: swan/_swan/swanDeviceId/swanSessionId/swanCredentials globals + swanDeviceId/swanCredentials localStorage + swan-web-sdk-prod.azureedge.net/trackingjs URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

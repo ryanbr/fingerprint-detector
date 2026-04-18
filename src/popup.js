@@ -100,6 +100,7 @@ const CATEGORY_META = {
   IubendaDetect: { icon: "🇮🇹", color: "#fb8c00", risk: "medium", desc: "iubenda privacy / cookie consent (Italian CMP) — _iub/_iub_cs globals, _iub_cs-<id> cookie, cs.iubenda.com + cdn.iubenda.com hosts" },
   AccessiBeDetect: { icon: "♿", color: "#fb8c00", risk: "medium", desc: "accessiBe accessibility overlay widget — accessiBe/acsb globals + acsb* prefix, acsbapp.com + accessibe.com hosts" },
   UsercentricsDetect: { icon: "🇪🇺", color: "#fb8c00", risk: "medium", desc: "Usercentrics CMP (German/DACH leader) — UC_UI/UC_UI_SUPPRESS_CMP_DISPLAY/__ucCmp globals, usercentrics-cmp cookie, usercentrics.eu + usercentrics.com, /browser-ui/<ver>/loader.js" },
+  SwanDetect: { icon: "🦢", color: "#fb8c00", risk: "medium", desc: "Swan (swan.cx) omnichannel engagement — swan/_swan/swanDeviceId/swanSessionId globals + swan* prefix, click.swan.cx + connect.swan.cx + swan-web-sdk-prod.azureedge.net" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -251,6 +252,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   IubendaDetect:          { label: "iubenda",              icon: "🇮🇹" },
   AccessiBeDetect:        { label: "accessiBe",            icon: "♿" },
   UsercentricsDetect:     { label: "Usercentrics",         icon: "🇪🇺" },
+  SwanDetect:             { label: "Swan",                 icon: "🦢" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

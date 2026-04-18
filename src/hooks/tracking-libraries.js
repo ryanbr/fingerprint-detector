@@ -1863,6 +1863,37 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Swan",
+      category: "SwanDetect",
+      // Swan (swan.cx) — omnichannel marketing / on-site
+      // notifications / web-push / e-commerce engagement platform.
+      // SDK delivered via Azure CDN (swan-web-sdk-prod.azureedge.net
+      // /trackingjs) with beacons to click.swan.cx (device + event
+      // tracking) and connect.swan.cx (notifications + SDK
+      // tracking events). Covers swanecomlogin / swanonsitelogin /
+      // swanwebpushlogin flows across e-commerce, on-site notifs
+      // and web push.
+      globals: [
+        "swan",                      // primary namespace
+        "_swan",                     // internal alias
+        "swanDeviceId",              // device identifier
+        "swanSessionId",             // session identifier
+        "swanCredentials",           // stored credentials
+      ],
+      globalPrefixes: ["swan"],      // catches swanOnSiteNotificationTest, swanecomlogin, swanonsitelogin, swanwebpushlogin etc.
+      keyPatterns: [
+        /^swanDeviceId$/,            // localStorage device ID
+        /^swanCredentials$/,         // localStorage credentials
+        /^swanSessionId$/,           // session ID
+      ],
+      scriptSrcPatterns: [
+        /\bswan\.cx\b/i,             // primary brand domain (catches click / connect subs)
+        /\bswan-web-sdk[-\w]*\.azureedge\.net\b/i, // Azure CDN delivery host
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

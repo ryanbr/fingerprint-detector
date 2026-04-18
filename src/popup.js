@@ -52,6 +52,7 @@ const CATEGORY_META = {
   ParselyDetect:   { icon: "📰", color: "#fb8c00", risk: "medium", desc: "Parse.ly content analytics — PARSELY global, _parsely_visitor/_parsely_session cookies, pStore-* storage, cdn.parsely.com loader" },
   NewRelicBrowserDetect: { icon: "📈", color: "#fb8c00", risk: "medium", desc: "New Relic Browser APM agent — NREUM/newrelic globals, NREUM_SESSION_ID storage, bam.nr-data.net beacon, js-agent.newrelic.com loader" },
   BlockthroughDetect: { icon: "🧨", color: "#e94560", risk: "high", desc: "Blockthrough Ad Recovery (anti-adblock) — __bt_* globals, BT_* storage keys, btloader.com + cdn.btmessage.com + dns-finder.com probes" },
+  AdmiralDetect:   { icon: "⚓", color: "#e94560", risk: "high", desc: "Admiral anti-adblock surveillance — admiral global, _awl/_admrla/_alvd cookies, _admrlri storage, rotating disposable loader domains" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -155,6 +156,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   ParselyDetect:          { label: "Parse.ly",             icon: "📰" },
   NewRelicBrowserDetect:  { label: "New Relic Browser",    icon: "📈" },
   BlockthroughDetect:     { label: "Blockthrough",         icon: "🧨" },
+  AdmiralDetect:          { label: "Admiral",              icon: "⚓" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

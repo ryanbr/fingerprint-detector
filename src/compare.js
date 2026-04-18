@@ -98,6 +98,7 @@ const CATEGORY_META = {
   ParselyDetect: { icon: "\u{1F4F0}", color: "#fb8c00", risk: "medium" },
   NewRelicBrowserDetect: { icon: "\u{1F4C8}", color: "#fb8c00", risk: "medium" },
   BlockthroughDetect: { icon: "\u{1F9E8}", color: "#e94560", risk: "high" },
+  AdmiralDetect: { icon: "\u{2693}", color: "#e94560", risk: "high" },
 };
 
 function escapeHtml(str) {

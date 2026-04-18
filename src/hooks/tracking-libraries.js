@@ -453,6 +453,44 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Admiral",
+      category: "AdmiralDetect",
+      // Admiral (getadmiral.com) — anti-adblock surveillance platform.
+      // Uses rotating disposable loader domains (pearpouch.com,
+      // succeedscene.com, merequartz.com, html-load.com,
+      // content-loader.com, error-report.com) to evade filter lists,
+      // so detection relies primarily on stable globals / cookies /
+      // storage keys rather than script URLs. High risk — detects
+      // adblock + VPN + piracy tools and reports to publishers.
+      globals: [
+        "admiral",
+        "4dm1r11545242527",             // hardcoded obfuscated magic global
+        "__cmpGdprAppliesGlobally",     // CMP global (set by many CMPs, but Admiral explicitly sets it)
+      ],
+      globalPrefixes: [],
+      keyPatterns: [
+        /^_awl$/,                        // Admiral cookie
+        /^_admrla$/,                     // Admiral cookie
+        /^_alvd$/,                       // Admiral cookie
+        /^_admrlri$/,                    // obfuscated storage key
+        /^_admlValRec$/,                 // localStorage record
+        /^afsvisits$/,                   // sessionStorage visit history
+      ],
+      scriptSrcPatterns: [
+        /\bgetadmiral\.com\b/i,          // official site + CDN
+        /\bcdn\.admiral\.com\b/i,        // older CDN host
+        // Rotating disposable loader hosts seen in the wild:
+        /\bpearpouch\.com\b/i,
+        /\bsucceedscene\.com\b/i,
+        /\bmerequartz\.com\b/i,
+        /\bhtml-load\.com\b/i,
+        /\bcontent-loader\.com\b/i,
+        /\berror-report\.com\b/i,
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

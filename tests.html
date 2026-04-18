@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -1559,6 +1559,25 @@
           document.head.appendChild(s7);
           setTimeout(() => { try { s7.remove(); } catch (_) {} }, 100);
           results.push("Blockthrough: __bt/__bt_edge_data/__bt_intrnl globals + BT_traceID/BT_sid/BT_EXP_FLAGS/btUserCountry storage + btloader.com URL");
+        } catch (_) { /* noop */ }
+
+        // ── Admiral (anti-adblock) ────────────────────────────────
+        try {
+          window.admiral = window.admiral || function () { /* noop */ };
+          window["4dm1r11545242527"] = window["4dm1r11545242527"] || { __test: true };
+          window.__cmpGdprAppliesGlobally = true;
+          document.cookie = "_awl=test-awl; path=/; max-age=60";
+          document.cookie = "_admrla=test-admrla; path=/; max-age=60";
+          document.cookie = "_alvd=test-alvd; path=/; max-age=60";
+          localStorage.setItem("_admrlri", "test-admrlri");
+          localStorage.setItem("_admlValRec", JSON.stringify({ __test: true }));
+          try { sessionStorage.setItem("afsvisits", JSON.stringify([{ t: Date.now() }])); } catch (_) {}
+          const s8 = document.createElement("script");
+          s8.src = "https://pearpouch.com/v2scxPhRp4mQHfqfTo2MflbnNYJsoKW7ps8kA3ft2iIfl3QdMy";
+          s8.onerror = () => {};
+          document.head.appendChild(s8);
+          setTimeout(() => { try { s8.remove(); } catch (_) {} }, 100);
+          results.push("Admiral: admiral/4dm1r11545242527 globals + _awl/_admrla/_alvd cookies + _admrlri/_admlValRec/afsvisits storage + pearpouch.com URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

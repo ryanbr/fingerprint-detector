@@ -2102,7 +2102,11 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
         /\bjs-cdn\.dynatrace\.com\b/i,   // primary JS CDN
         /\bdynatrace\.com\b/i,            // company / other subs
         /\bruxit\.com\b/i,                // legacy Ruxit product domain
-        /\/jstag\//i,                     // distinctive JS-tag path
+        // /jstag/ path deliberately NOT listed — only 7 chars,
+        // too generic (other tag products could use the same folder
+        // name). Enterprise self-hosted Dynatrace would lose
+        // detection via URL, but the dtrum / dtmObject globals and
+        // the dt* / rx* cookie family will still fire.
       ],
       domAttributes: [],
       classifyOrigin: true,

@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM / Elastic APM / Sentry / Awin / Bazaarvoice / FigPii (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM / Elastic APM / Sentry / Awin / Bazaarvoice / FigPii / iubenda (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -2258,6 +2258,21 @@
           document.head.appendChild(s52);
           setTimeout(() => { try { s52.remove(); } catch (_) {} }, 100);
           results.push("FigPii: FIGPII_DEBUG/FIGPII_MPK/FIGPII_POLL/FIGPII_USAGE_ENDPOINT globals + tracking-cdn.figpii.com/<hash>.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── iubenda (Italian privacy / consent platform) ──────────
+        try {
+          window._iub = window._iub || [];
+          window._iub.csConfiguration = { siteId: 1725527, __test: true };
+          window._iub.googleConsentModeV2 = true;
+          window._iub_cs = window._iub_cs || {};
+          document.cookie = "_iub_cs-1725527=test-iubenda-consent; path=/; max-age=60";
+          const s53 = document.createElement("script");
+          s53.src = "https://cs.iubenda.com/sync/1725527.js";
+          s53.onerror = () => {};
+          document.head.appendChild(s53);
+          setTimeout(() => { try { s53.remove(); } catch (_) {} }, 100);
+          results.push("iubenda: _iub/_iub_cs globals + _iub_cs-<id> cookie + cs.iubenda.com/sync/<id>.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

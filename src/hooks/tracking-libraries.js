@@ -1783,6 +1783,33 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "iubenda",
+      category: "IubendaDetect",
+      // iubenda — Italian privacy compliance platform (CMP +
+      // privacy policies + cookie consent + terms generators).
+      // Popular with European mid-market sites. Sync script at
+      // cs.iubenda.com/sync/<customer-id>.js with TCF 2.0 stubs
+      // at cdn.iubenda.com/cs/tcf/stub-v2.js + safe-tcf-v2.js
+      // and GPP stub at cdn.iubenda.com/cs/gpp/stub.js.
+      // Deliberately skips __tcfapi / __gpp / __uspapi globals
+      // (IAB standard, set by every CMP — would false-positive
+      // across all consent frameworks).
+      globals: [
+        "_iub",                      // primary namespace (_iub.csConfiguration, googleConsentModeV2, ...)
+        "_iub_cs",                   // consent store
+      ],
+      globalPrefixes: [],
+      keyPatterns: [
+        /^_iub_cs-/i,                // _iub_cs-<customer-id> consent cookie / storage
+      ],
+      scriptSrcPatterns: [
+        /\biubenda\.com\b/i,         // catches cs / cdn subs
+        /\/iubenda_cs\.js\b/i,       // legacy loader filename
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

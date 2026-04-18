@@ -93,6 +93,7 @@ const CATEGORY_META = {
   KasadaDetect: { icon: "\u{1F3EF}", color: "#e94560", risk: "high" },
   PianoDetect:  { icon: "\u{1F3B9}", color: "#fb8c00", risk: "medium" },
   HotjarDetect: { icon: "\u{1F525}", color: "#fb8c00", risk: "medium" },
+  MetaPixelDetect: { icon: "\u{1F4D8}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

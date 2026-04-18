@@ -47,6 +47,7 @@ const CATEGORY_META = {
   KasadaDetect:    { icon: "🏯", color: "#e94560", risk: "high", desc: "Kasada — window.KPSDK global, x-kpsdk-* storage, ips.js.kasada.io loader" },
   PianoDetect:     { icon: "🎹", color: "#fb8c00", risk: "medium", desc: "Piano / Tinypass paywall and subscription tracking — window.tp / pn / pdl globals, _pc* / __tp* cookie family, cdn.piano.io loader" },
   HotjarDetect:    { icon: "🔥", color: "#fb8c00", risk: "medium", desc: "Hotjar session recording and heatmaps — window.hj / hjSiteSettings globals, _hj* cookie family, static.hotjar.com loader" },
+  MetaPixelDetect: { icon: "📘", color: "#fb8c00", risk: "medium", desc: "Meta / Facebook Pixel — fbq/_fbq globals, _fbp/_fbc/_fbleid cookies, fbclid URL param, connect.facebook.net loader" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -145,6 +146,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   KasadaDetect:           { label: "Kasada",               icon: "🏯" },
   PianoDetect:            { label: "Piano / Tinypass",     icon: "🎹" },
   HotjarDetect:           { label: "Hotjar",               icon: "🔥" },
+  MetaPixelDetect:        { label: "Meta Pixel",           icon: "📘" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

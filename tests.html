@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -1475,6 +1475,22 @@
           document.head.appendChild(s2);
           setTimeout(() => { try { s2.remove(); } catch (_) {} }, 100);
           results.push("Hotjar: hj/hjSiteSettings globals + _hjSessionUser/_hjFirstSeen cookies + hj-uut storage + static.hotjar.com URL");
+        } catch (_) { /* noop */ }
+
+        // ── Meta Pixel ────────────────────────────────────────────
+        try {
+          window.fbq = window.fbq || function () { (window.fbq.queue = window.fbq.queue || []).push(arguments); };
+          window._fbq = window._fbq || window.fbq;
+          window.__fbeventsModules = window.__fbeventsModules || { __test: true };
+          document.cookie = "_fbp=fb.1.0000000000000.0000000000; path=/; max-age=60";
+          document.cookie = "_fbc=fb.1.0000000000000.IwAR0000; path=/; max-age=60";
+          document.cookie = "_fbleid=test-leid; path=/; max-age=60";
+          const s3 = document.createElement("script");
+          s3.src = "https://connect.facebook.net/en_US/fbevents.js";
+          s3.onerror = () => {};
+          document.head.appendChild(s3);
+          setTimeout(() => { try { s3.remove(); } catch (_) {} }, 100);
+          results.push("Meta Pixel: fbq/_fbq/__fbeventsModules globals + _fbp/_fbc/_fbleid cookies + fbevents.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

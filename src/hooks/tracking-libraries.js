@@ -295,6 +295,35 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: false,
     },
+    {
+      name: "Meta Pixel",
+      category: "MetaPixelDetect",
+      // Meta / Facebook Pixel — first-party ad attribution and
+      // conversion tracking. Thin on fingerprinting (screen dims +
+      // userAgentData.getHighEntropyValues only); main signal is the
+      // _fbp / _fbc first-party cookies plus fbclid URL param.
+      // Signatures confirmed from connect.facebook.net/en_US/fbevents.js.
+      globals: [
+        "fbq",                   // primary pixel fn
+        "_fbq",                  // internal alias / queue
+        "__fbeventsModules",     // plugin/module registry
+      ],
+      globalPrefixes: [],
+      keyPatterns: [
+        /^_fbp$/i,               // browser ID cookie
+        /^_fbc$/i,               // click ID cookie (derived from fbclid)
+        /^_fbleid$/i,            // last event id cookie
+        /^fbclid$/i,              // URL param forwarded into _fbc
+      ],
+      scriptSrcPatterns: [
+        /\bconnect\.facebook\.net\b/i,     // main pixel CDN
+        /\/fbevents\.js\b/i,                 // pixel script filename
+        /\bgw\.conversionsapigateway\.com\b/i, // Conversions API Gateway
+        /\bfbsbx\.com\b/i,                   // fb sandbox CDN
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

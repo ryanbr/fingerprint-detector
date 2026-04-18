@@ -124,6 +124,7 @@ const CATEGORY_META = {
   CriteoDetect: { icon: "\u{1F3AA}", color: "#fb8c00", risk: "medium" },
   OneTrustDetect: { icon: "\u{1F36A}", color: "#fb8c00", risk: "medium" },
   TranscendDetect: { icon: "\u{1F6E1}\u{FE0F}", color: "#fb8c00", risk: "medium" },
+  AkamaiMPulseDetect: { icon: "\u{1FA83}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

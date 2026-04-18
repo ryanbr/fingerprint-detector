@@ -78,6 +78,7 @@ const CATEGORY_META = {
   CriteoDetect: { icon: "🎪", color: "#fb8c00", risk: "medium", desc: "Criteo retargeting / display ads — Criteo/criteo_q globals, cto_bundle/cto_clc/cto_pld/cto_optout cookies, criteo.com + criteo.net (gum.criteo.com identity graph)" },
   OneTrustDetect: { icon: "🍪", color: "#fb8c00", risk: "medium", desc: "OneTrust CMP (#1 globally) — OneTrust/OneTrustStub/Optanon* globals, OptanonConsent/OptanonAlertBoxClosed cookies, cookielaw.org + cdn-*.onetrust.com, otSDKStub.js + otBannerSdk.js" },
   TranscendDetect: { icon: "🛡️", color: "#fb8c00", risk: "medium", desc: "Transcend privacy platform (Airgap) — airgap/transcend globals, transcend-cdn.com/cm/<uuid>/airgap.js loader, covers consent + DSARs + data mapping" },
+  AkamaiMPulseDetect: { icon: "🪃", color: "#fb8c00", risk: "medium", desc: "Akamai mPulse (Boomerang) RUM — BOOMR/BOOMR_* globals, RT/BA/BOOMR cookies, bmr.* storage, s.go-mpulse.net/boomerang/<APIkey>" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -207,6 +208,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   CriteoDetect:           { label: "Criteo",               icon: "🎪" },
   OneTrustDetect:         { label: "OneTrust",             icon: "🍪" },
   TranscendDetect:        { label: "Transcend",            icon: "🛡️" },
+  AkamaiMPulseDetect:     { label: "Akamai mPulse",        icon: "🪃" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

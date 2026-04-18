@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -1989,6 +1989,27 @@
           document.head.appendChild(s33);
           setTimeout(() => { try { s33.remove(); } catch (_) {} }, 100);
           results.push("Transcend: airgap/transcend globals + transcend-cdn.com/cm/<uuid>/airgap.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── Akamai mPulse (Boomerang RUM) ─────────────────────────
+        try {
+          window.BOOMR = window.BOOMR || { version: "1.815.0", __test: true };
+          window.BOOMR_API_key = "V2XR2-2WQLH-RZ9ZE-X2DZR-3UAEU";
+          window.BOOMR_lstart = Date.now();
+          window.BOOMR_onload = Date.now();
+          window.BOOMR_page_ready = true;
+          window.BOOMR_CONFIG_STORE_TIMEOUT = 10;
+          document.cookie = "RT=test-round-trip-data; path=/; max-age=60";
+          document.cookie = "BA=test-bandwidth; path=/; max-age=60";
+          document.cookie = "BOOMR=test-bootstrap; path=/; max-age=60";
+          localStorage.setItem("bmr.si", "test-session-info");
+          localStorage.setItem("bmr.t_other", "test-timing");
+          const s34 = document.createElement("script");
+          s34.src = "https://s.go-mpulse.net/boomerang/V2XR2-2WQLH-RZ9ZE-X2DZR-3UAEU";
+          s34.onerror = () => {};
+          document.head.appendChild(s34);
+          setTimeout(() => { try { s34.remove(); } catch (_) {} }, 100);
+          results.push("Akamai mPulse: BOOMR/BOOMR_API_key/BOOMR_lstart/BOOMR_CONFIG_* globals + RT/BA/BOOMR cookies + bmr.* storage + s.go-mpulse.net/boomerang/<key> URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

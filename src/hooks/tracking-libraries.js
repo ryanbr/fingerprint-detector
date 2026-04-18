@@ -1247,6 +1247,44 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Akamai mPulse",
+      category: "AkamaiMPulseDetect",
+      // Akamai mPulse — Real User Monitoring built on the Boomerang.js
+      // library (originally Yahoo 2011, then Log-Normal, then SOASTA
+      // 2012, acquired by Akamai in 2017). Measures page load timing,
+      // Core Web Vitals, bandwidth, XHR/fetch errors. Loader served
+      // at s.go-mpulse.net/boomerang/<API-KEY> with no .js extension.
+      // The RT cookie (Round Trip) stores page-load metrics and is
+      // the most distinctive first-party signal.
+      globals: [
+        "BOOMR",                     // main namespace (1400+ refs in bundle)
+        "BOOMR_API_key",
+        "BOOMR_lstart",
+        "BOOMR_onload",
+        "BOOMR_page_ready",
+        "BOOMR_addError",
+        "BOOMR_check_doc_domain",
+        "BOOMR_plugins_errors",
+        "BOOMR_configt",
+        "BOOMR_LOGN_always",
+      ],
+      globalPrefixes: ["BOOMR_"],    // catches BOOMR_CONFIG_*, BOOMR_plugins_* and any new plugin globals
+      keyPatterns: [
+        /^RT$/,                      // primary Round-Trip cookie (short — anchored for specificity)
+        /^BA$/,                      // bandwidth cookie
+        /^BOOMR$/,                   // bootstrap cookie
+        /^BOOMR_session$/,
+        /^bmr\./i,                   // Boomerang localStorage prefix (bmr.si, bmr.t_, etc.)
+      ],
+      scriptSrcPatterns: [
+        /\bgo-mpulse\.net\b/i,       // primary host (s.go-mpulse.net, c.go-mpulse.net)
+        /\bakstat\.io\b/i,            // alternate Akamai analytics host
+        /\/boomerang\//i,             // /boomerang/<API-KEY> distinctive path (no .js)
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -1606,6 +1606,25 @@
           document.head.appendChild(s10);
           setTimeout(() => { try { s10.remove(); } catch (_) {} }, 100);
           results.push("Media.net: mnjs/_mNHandle/_mNDetails globals + warp.media.net/clientag.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── Tealium iQ (utag.js) ──────────────────────────────────
+        try {
+          window.utag = window.utag || { loader: {}, handler: {}, data: {}, cfg: { utid: "test/profile/202604021425" }, __test: true };
+          window.utag_data = window.utag_data || { tealium_event: "view", __test: true };
+          window.utag_cfg_ovrd = window.utag_cfg_ovrd || { noview: false };
+          window.utag_condload = true;
+          document.cookie = "utag_main=v_id:test-visitor-id$_sn:1$_ss:1; path=/; max-age=60";
+          document.cookie = "utag_main_v_id=test-visitor-id; path=/; max-age=60";
+          document.cookie = "utag_main__ses_id=1700000000000; path=/; max-age=60";
+          localStorage.setItem("tealium_va", JSON.stringify({ __test: true }));
+          localStorage.setItem("tealium_va_example_main_prod", "{}");
+          const s11 = document.createElement("script");
+          s11.src = "https://tags.tiqcdn.com/utag/example/main/prod/utag.js";
+          s11.onerror = () => {};
+          document.head.appendChild(s11);
+          setTimeout(() => { try { s11.remove(); } catch (_) {} }, 100);
+          results.push("Tealium iQ: utag/utag_data/utag_cfg_ovrd/utag_condload globals + utag_main*/utag_main_v_id cookies + tealium_va storage + tags.tiqcdn.com URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

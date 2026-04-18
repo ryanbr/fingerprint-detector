@@ -540,6 +540,39 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Tealium iQ",
+      category: "TealiumDetect",
+      // Tealium iQ (utag.js) — enterprise tag management system,
+      // competitor to Google Tag Manager and Adobe Launch. Itself
+      // does minimal fingerprinting but orchestrates downstream
+      // trackers (Adobe Analytics, GA4, Facebook Pixel, ClickTale,
+      // OneTrust CMP etc.). Commonly deployed via customer CNAME
+      // (tags.<publisher>.com) to evade adblockers — detection must
+      // catch both the standard tiqcdn.com CDN and /utag/ path +
+      // utag*.js filenames on arbitrary first-party hosts.
+      globals: [
+        "utag",                  // main Tealium object (loader, handler, sender, cfg)
+        "utag_data",             // page data layer
+        "utag_cfg_ovrd",         // config overrides
+        "utag_condload",         // conditional load flag
+        "utag_events",           // legacy event queue
+      ],
+      globalPrefixes: [],
+      keyPatterns: [
+        /^utag_main/i,           // utag_main, utag_main_v_id, utag_main__ss, utag_main__se, utag_main__sn, utag_main__pn, utag_main__st etc.
+        /^utagdb$/i,             // debug-mode cookie
+        /^tealium_va/i,          // localStorage visitor attributes
+      ],
+      scriptSrcPatterns: [
+        /\btags\.tiqcdn\.com\b/i,  // standard Tealium CDN
+        /\btiqcdn\.com\b/i,         // fallback host
+        /\/utag\/[^/]+\/[^/]+\/[^/]+\/utag/i, // /utag/<account>/<profile>/<env>/utag*.js path pattern
+        /\/utag(?:\.sync|\.loader)?\.js\b/i,   // utag.js / utag.sync.js / utag.loader.js filenames
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

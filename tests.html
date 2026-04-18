@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -2010,6 +2010,24 @@
           document.head.appendChild(s34);
           setTimeout(() => { try { s34.remove(); } catch (_) {} }, 100);
           results.push("Akamai mPulse: BOOMR/BOOMR_API_key/BOOMR_lstart/BOOMR_CONFIG_* globals + RT/BA/BOOMR cookies + bmr.* storage + s.go-mpulse.net/boomerang/<key> URL");
+        } catch (_) { /* noop */ }
+
+        // ── LogRocket (session replay + error monitoring) ─────────
+        try {
+          window.LogRocket = window.LogRocket || { init: () => {}, identify: () => {}, __test: true };
+          window.__LRBFCACHE__ = window.__LRBFCACHE__ || {};
+          window.__SDKCONFIG__ = window.__SDKCONFIG__ || { __test: true };
+          window._lr = window._lr || { __test: true };
+          window._lrDebugState = { enabled: false };
+          window._lrMutationObserver = window.MutationObserver;
+          localStorage.setItem("_lr_dat_sync_test", JSON.stringify({ __test: true }));
+          localStorage.setItem("_lr_block_test", "1");
+          const s35 = document.createElement("script");
+          s35.src = "https://cdn.intake-lr.com/logger-1.min.js";
+          s35.onerror = () => {};
+          document.head.appendChild(s35);
+          setTimeout(() => { try { s35.remove(); } catch (_) {} }, 100);
+          results.push("LogRocket: LogRocket/__LRBFCACHE__/__SDKCONFIG__/_lr/_lrDebugState/_lrMutationObserver globals + _lr_dat_sync_*/_lr_block_* storage + cdn.intake-lr.com/logger-<n>.min.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

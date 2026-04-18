@@ -1285,6 +1285,41 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "LogRocket",
+      category: "LogRocketDetect",
+      // LogRocket — session replay + error monitoring + product
+      // analytics. Logger SDK served from cdn.intake-lr.com with
+      // ingest at r.intake-lr.com. Heavy instrumentation: wraps
+      // XHR, MutationObserver, fetch; records DOM / console /
+      // network traffic for session replay. Used by SaaS and app-
+      // like sites for UX debugging and user-support triage.
+      globals: [
+        "LogRocket",                 // primary namespace (LogRocket.init, LogRocket.identify)
+        "LogRocketMobile",           // mobile SDK variant
+        "__LRBFCACHE__",             // bfcache state
+        "__SDKCONFIG__",             // SDK config object
+        "__lr_iframeNodeId",         // cross-frame correlation
+        "LOGROCKET_TEST_ENVIRONMENT_IS_SETUP",
+        "_lr",                       // internal namespace
+        "_lrDebugState",
+        "_lrMutationObserver",       // rrweb-style MO wrapper
+        "_lrName",
+        "_lrXMLHttpRequest",         // wrapped XHR reference
+      ],
+      globalPrefixes: ["_lr"],        // catches future internal globals
+      keyPatterns: [
+        /^_lr_/i,                    // _lr_block_*, _lr_dat_*, _lr_dat_sync_* storage keys
+      ],
+      scriptSrcPatterns: [
+        /\blogrocket\.com\b/i,       // company domain
+        /\bintake-lr\.com\b/i,        // CDN + ingest (cdn / r subs)
+        /\blogrocket-cdn\.com\b/i,    // alternate CDN
+        /\/logger-\d+\.min\.js\b/i,   // loader filename pattern
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

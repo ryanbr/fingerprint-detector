@@ -79,6 +79,7 @@ const CATEGORY_META = {
   OneTrustDetect: { icon: "🍪", color: "#fb8c00", risk: "medium", desc: "OneTrust CMP (#1 globally) — OneTrust/OneTrustStub/Optanon* globals, OptanonConsent/OptanonAlertBoxClosed cookies, cookielaw.org + cdn-*.onetrust.com, otSDKStub.js + otBannerSdk.js" },
   TranscendDetect: { icon: "🛡️", color: "#fb8c00", risk: "medium", desc: "Transcend privacy platform (Airgap) — airgap/transcend globals, transcend-cdn.com/cm/<uuid>/airgap.js loader, covers consent + DSARs + data mapping" },
   AkamaiMPulseDetect: { icon: "🪃", color: "#fb8c00", risk: "medium", desc: "Akamai mPulse (Boomerang) RUM — BOOMR/BOOMR_* globals, RT/BA/BOOMR cookies, bmr.* storage, s.go-mpulse.net/boomerang/<APIkey>" },
+  LogRocketDetect: { icon: "🚀", color: "#fb8c00", risk: "medium", desc: "LogRocket session replay + error monitoring — LogRocket/__LRBFCACHE__/__SDKCONFIG__/_lr* globals, _lr_* storage, logrocket.com + intake-lr.com + logrocket-cdn.com" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -209,6 +210,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   OneTrustDetect:         { label: "OneTrust",             icon: "🍪" },
   TranscendDetect:        { label: "Transcend",            icon: "🛡️" },
   AkamaiMPulseDetect:     { label: "Akamai mPulse",        icon: "🪃" },
+  LogRocketDetect:        { label: "LogRocket",            icon: "🚀" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

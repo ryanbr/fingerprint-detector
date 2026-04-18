@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -2101,6 +2101,22 @@
           document.head.appendChild(s40);
           setTimeout(() => { try { s40.remove(); } catch (_) {} }, 100);
           results.push("Qualtrics: QSI/QSI_TESTING_MODE globals + QSI_S_ZN_*/QSI_HistorySession cookies + siteintercept.qualtrics.com/SIE/?Q_ZID=* URL");
+        } catch (_) { /* noop */ }
+
+        // ── Klaviyo (email + SMS + CDP) ───────────────────────────
+        try {
+          window.klaviyo = window.klaviyo || { push: () => {}, identify: () => {}, track: () => {}, __test: true };
+          window._learnq = window._learnq || [];
+          window._learnq.push(["identify", { $email: "test@example.com" }]);
+          window._klOnsite = window._klOnsite || [];
+          self.webpackChunk_klaviyo_onsite_modules = self.webpackChunk_klaviyo_onsite_modules || [];
+          document.cookie = "__kla_id=eyJ0ZXN0IjoxfQ==; path=/; max-age=60";
+          const s41 = document.createElement("script");
+          s41.src = "https://static-tracking.klaviyo.com/onsite/js/klaviyo.js?company_id=TEST";
+          s41.onerror = () => {};
+          document.head.appendChild(s41);
+          setTimeout(() => { try { s41.remove(); } catch (_) {} }, 100);
+          results.push("Klaviyo: klaviyo/_learnq/_klOnsite/webpackChunk_klaviyo_onsite_modules globals + __kla_id cookie + static-tracking.klaviyo.com/onsite/js/ URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

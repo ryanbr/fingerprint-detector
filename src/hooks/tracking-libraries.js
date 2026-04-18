@@ -1460,6 +1460,33 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Klaviyo",
+      category: "KlaviyoDetect",
+      // Klaviyo — email marketing + SMS + customer data platform,
+      // heavily deployed on Shopify stores and D2C brands. Onsite
+      // tracking, signup forms, reviews, back-in-stock alerts,
+      // personalization, web push. Loader at static.klaviyo.com or
+      // static-tracking.klaviyo.com, API at a.klaviyo.com.
+      // Webpack-bundled SDK (self.webpackChunk_klaviyo_onsite_modules).
+      globals: [
+        "klaviyo",                   // primary API (klaviyo.push, klaviyo.identify, klaviyo.track)
+        "_learnq",                   // legacy "Learn Queue" (still in use)
+        "_klOnsite",                 // onsite-forms queue
+        "webpackChunk_klaviyo_onsite_modules", // webpack chunk loader
+      ],
+      globalPrefixes: [],
+      keyPatterns: [
+        /^__kla_id$/,                // distinctive Klaviyo ID cookie
+      ],
+      scriptSrcPatterns: [
+        /\bklaviyo\.com\b/i,         // catches static / static-tracking / a / fast.a subs
+        /\/onsite\/js\//i,            // distinctive onsite SDK path
+        /\/kla\.js\b/i,               // legacy kla.js filename
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

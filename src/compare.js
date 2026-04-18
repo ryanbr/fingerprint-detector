@@ -131,6 +131,7 @@ const CATEGORY_META = {
   InsiderDetect: { icon: "\u{1F381}", color: "#fb8c00", risk: "medium" },
   BrightEdgeDetect: { icon: "\u{1F9ED}", color: "#fb8c00", risk: "medium" },
   QualtricsDetect: { icon: "\u{1F4CB}", color: "#fb8c00", risk: "medium" },
+  KlaviyoDetect: { icon: "\u{1F4E7}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

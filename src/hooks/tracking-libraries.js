@@ -2074,6 +2074,39 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Dynatrace",
+      category: "DynatraceDetect",
+      // Dynatrace — enterprise APM + RUM platform. Major
+      // competitor to New Relic, Datadog, AppDynamics. Acquired
+      // Ruxit in 2015 — the rxVisitor / rxvt cookie names persist
+      // from that heritage. JS tag served from
+      // js-cdn.dynatrace.com/jstag/<env>/<app>/<hash>_complete.js.
+      // The __dTCookie is a cookie-capability probe (written and
+      // immediately expired during init).
+      globals: [
+        "dtrum",                     // Dynatrace Real User Monitoring API (primary)
+        "dtmObject",                 // session / measurement object
+      ],
+      globalPrefixes: [],
+      keyPatterns: [
+        /^dtCookie$/,                // primary session cookie
+        /^__dTCookie$/,              // cookie capability probe
+        /^dtLatC$/,                  // latency cookie
+        /^dtPC$/,                    // page context
+        /^dtSa$/,                    // session
+        /^rxVisitor$/,               // Ruxit-heritage visitor ID
+        /^rxvt$/,                    // Ruxit-heritage visit
+      ],
+      scriptSrcPatterns: [
+        /\bjs-cdn\.dynatrace\.com\b/i,   // primary JS CDN
+        /\bdynatrace\.com\b/i,            // company / other subs
+        /\bruxit\.com\b/i,                // legacy Ruxit product domain
+        /\/jstag\//i,                     // distinctive JS-tag path
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

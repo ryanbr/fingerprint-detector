@@ -107,6 +107,7 @@ const CATEGORY_META = {
   TrustedSiteDetect: { icon: "🛂", color: "#fb8c00", risk: "medium", desc: "TrustedSite (ex-McAfee SECURE) trust badge — TrustedSite/TrustedSiteInline globals + trustedsite_ prefix, ywxi.net + trustedsite.com + mcafeesecure.com" },
   IntegralAdScienceDetect: { icon: "🔬", color: "#fb8c00", risk: "medium", desc: "Integral Ad Science (IAS) ad verification + viewability + brand safety — __iasPET global, adsafeprotected.com + integralads.com hosts, iasPET.<n>.js" },
   AdobeAnalyticsDetect: { icon: "🅐", color: "#fb8c00", risk: "medium", desc: "Adobe Analytics / AppMeasurement (ex-Omniture SiteCatalyst) — AppMeasurement/s_gi/Visitor globals, s_vi/s_cc/s_sq/AMCV_* cookies, 2o7.net + omtrdc.net hosts, AppMeasurement.min.js" },
+  DynatraceDetect: { icon: "🐉", color: "#fb8c00", risk: "medium", desc: "Dynatrace APM + RUM (ex-Ruxit) — dtrum/dtmObject globals, dtCookie/__dTCookie/dtLatC/rxVisitor cookies, js-cdn.dynatrace.com + ruxit.com + /jstag/ path" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -265,6 +266,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   TrustedSiteDetect:      { label: "TrustedSite",          icon: "🛂" },
   IntegralAdScienceDetect: { label: "Integral Ad Science", icon: "🔬" },
   AdobeAnalyticsDetect:   { label: "Adobe Analytics",      icon: "🅐" },
+  DynatraceDetect:        { label: "Dynatrace",            icon: "🐉" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

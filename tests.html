@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM / Elastic APM / Sentry / Awin / Bazaarvoice / FigPii / iubenda / accessiBe / Usercentrics / Swan / Global-e / TrueVault / Listrak / TrustedSite / IAS / Adobe Analytics (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM / Elastic APM / Sentry / Awin / Bazaarvoice / FigPii / iubenda / accessiBe / Usercentrics / Swan / Global-e / TrueVault / Listrak / TrustedSite / IAS / Adobe Analytics / Dynatrace (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -2419,6 +2419,23 @@
           document.head.appendChild(s62);
           setTimeout(() => { try { s62.remove(); } catch (_) {} }, 100);
           results.push("Adobe Analytics: AppMeasurement/s_gi/Visitor globals + s_vi/s_cc/s_sq/AMCV_* cookies + AppMeasurement.min.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── Dynatrace (APM + RUM, ex-Ruxit) ───────────────────────
+        try {
+          window.dtrum = window.dtrum || { enable: () => {}, identifyUser: () => {}, __test: true };
+          window.dtmObject = window.dtmObject || { __test: true };
+          document.cookie = "dtCookie=v_4_srv_test; path=/; max-age=60";
+          document.cookie = "dtLatC=test-latency; path=/; max-age=60";
+          document.cookie = "dtSa=-; path=/; max-age=60";
+          document.cookie = "rxVisitor=test-ruxit-visitor; path=/; max-age=60";
+          document.cookie = "rxvt=1234567890|0987654321; path=/; max-age=60";
+          const s63 = document.createElement("script");
+          s63.src = "https://dok.js-cdn.dynatrace.com/jstag/18f57b4a680/bf21859hft/f4c2e99ce32f8b27_complete.js";
+          s63.onerror = () => {};
+          document.head.appendChild(s63);
+          setTimeout(() => { try { s63.remove(); } catch (_) {} }, 100);
+          results.push("Dynatrace: dtrum/dtmObject globals + dtCookie/dtLatC/dtSa/rxVisitor/rxvt cookies + js-cdn.dynatrace.com/jstag/... URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

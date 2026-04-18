@@ -153,6 +153,7 @@ const CATEGORY_META = {
   TrustedSiteDetect: { icon: "\u{1F6C2}", color: "#fb8c00", risk: "medium" },
   IntegralAdScienceDetect: { icon: "\u{1F52C}", color: "#fb8c00", risk: "medium" },
   AdobeAnalyticsDetect: { icon: "\u{1F150}", color: "#fb8c00", risk: "medium" },
+  DynatraceDetect: { icon: "\u{1F409}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

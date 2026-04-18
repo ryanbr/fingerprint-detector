@@ -1320,6 +1320,36 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "ThreatMetrix",
+      category: "ThreatMetrixDetect",
+      // ThreatMetrix (LexisNexis Risk Solutions) — heavy-duty device
+      // fingerprinting for fraud detection. Used by banks, insurance
+      // companies and major e-commerce for anti-fraud checks at
+      // login / checkout / account-creation flows. Same category as
+      // FingerprintJS but far more aggressive: canvas, WebGL, audio,
+      // font enumeration, plugin/mime probing, WebRTC IP leak,
+      // behavioural biometrics. Script is XOR-obfuscated (td_5N
+      // decoder function).
+      // HIGH risk — fraud-detection fingerprinter with persistent
+      // cross-site identity graph.
+      globals: [
+        "tmx_profiling_started",     // re-entry guard
+        "tmx_run_page_fingerprinting", // main fingerprint entry
+        "tmx_tags_iframe_marker",    // iframe attribution
+        "tmx_post_session_params_fixed",
+      ],
+      globalPrefixes: ["tmx_"],      // catches all other tmx_ internal globals
+      keyPatterns: [],                // cookies set server-side (TMX_*); no deterministic client-side name
+      scriptSrcPatterns: [
+        /\bonline-metrix\.net\b/i,   // primary host (catches h. and any other subs)
+        /\/fp\/tags\.js\b/i,          // distinctive loader path
+        /\/fp\/check\.js\b/i,         // main fingerprinting script
+        /\/fp\/clear\.png\b/i,        // clear pixel beacon
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

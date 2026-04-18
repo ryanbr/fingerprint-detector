@@ -126,6 +126,7 @@ const CATEGORY_META = {
   TranscendDetect: { icon: "\u{1F6E1}\u{FE0F}", color: "#fb8c00", risk: "medium" },
   AkamaiMPulseDetect: { icon: "\u{1FA83}", color: "#fb8c00", risk: "medium" },
   LogRocketDetect: { icon: "\u{1F680}", color: "#fb8c00", risk: "medium" },
+  ThreatMetrixDetect: { icon: "\u{1F578}\u{FE0F}", color: "#e94560", risk: "high" },
 };
 
 function escapeHtml(str) {

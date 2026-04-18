@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -2028,6 +2028,20 @@
           document.head.appendChild(s35);
           setTimeout(() => { try { s35.remove(); } catch (_) {} }, 100);
           results.push("LogRocket: LogRocket/__LRBFCACHE__/__SDKCONFIG__/_lr/_lrDebugState/_lrMutationObserver globals + _lr_dat_sync_*/_lr_block_* storage + cdn.intake-lr.com/logger-<n>.min.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── ThreatMetrix (fraud-detection fingerprinting) ─────────
+        try {
+          window.tmx_profiling_started = true;
+          window.tmx_run_page_fingerprinting = function () { /* noop */ };
+          window.tmx_tags_iframe_marker = true;
+          window.tmx_post_session_params_fixed = {};
+          const s36 = document.createElement("script");
+          s36.src = "https://h.online-metrix.net/fp/tags.js?org_id=k8vif92e&session_id=test-session";
+          s36.onerror = () => {};
+          document.head.appendChild(s36);
+          setTimeout(() => { try { s36.remove(); } catch (_) {} }, 100);
+          results.push("ThreatMetrix: tmx_profiling_started/tmx_run_page_fingerprinting/tmx_tags_iframe_marker/tmx_post_session_params_fixed globals + online-metrix.net/fp/tags.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

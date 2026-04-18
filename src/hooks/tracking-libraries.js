@@ -1514,6 +1514,32 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Adobe Commerce Storefront Events",
+      category: "AdobeCommerceEventsDetect",
+      // Adobe Commerce Storefront Event Collector — Adobe's official
+      // event-tracking SDK for Magento / Adobe Commerce storefronts.
+      // Snowplow-powered under the hood (the ds.min.js file served
+      // from commerce.adobedtm.com is the same family). Published as
+      // NPM package @adobe/magento-storefront-event-collector.
+      // Related Adobe products alloy (Experience Platform Web SDK)
+      // and adobe (namespace) globals are set too but are too broad
+      // to use as sole signals — we rely on the magento-specific
+      // globals to avoid false-positives on generic Adobe pages.
+      globals: [
+        "magentoStorefrontEvents",   // primary SDK API
+        "magentoStorefrontEventCollector", // UMD export name
+      ],
+      globalPrefixes: [],
+      keyPatterns: [],                // cookies set by the underlying Snowplow integration (_sp_id/_sp_ses) — if Snowplow entry is added those will be caught there
+      scriptSrcPatterns: [
+        /@adobe\/magento-storefront-event/i, // NPM path (jsdelivr / unpkg)
+        /\/magento-storefront-event-collector\b/i, // self-hosted path
+        /\/magento-storefront-events\b/i,    // alternate path name
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

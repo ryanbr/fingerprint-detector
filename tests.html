@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -1458,6 +1458,23 @@
           document.head.appendChild(s);
           setTimeout(() => { try { s.remove(); } catch (_) {} }, 100);
           results.push("Piano: tp/pn/__tpVersion globals + _pcid/__tbc cookies + __tp-* storage + tinypass.min.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── Hotjar ────────────────────────────────────────────────
+        try {
+          window.hj = window.hj || function () { (window.hj.q = window.hj.q || []).push(arguments); };
+          window.hjSiteSettings = window.hjSiteSettings || { site_id: 3736802, __test: true };
+          window.hjBootstrapCalled = window.hjBootstrapCalled || [];
+          document.cookie = "_hjSessionUser_3736802=test-hj-user; path=/; max-age=60";
+          document.cookie = "_hjFirstSeen=1; path=/; max-age=60";
+          localStorage.setItem("_hjAbsoluteSessionInProgress", "1");
+          try { sessionStorage.setItem("hj-uut", "test-hj-uut"); } catch (_) {}
+          const s2 = document.createElement("script");
+          s2.src = "https://static.hotjar.com/c/hotjar-3736802.js?sv=6";
+          s2.onerror = () => {};
+          document.head.appendChild(s2);
+          setTimeout(() => { try { s2.remove(); } catch (_) {} }, 100);
+          results.push("Hotjar: hj/hjSiteSettings globals + _hjSessionUser/_hjFirstSeen cookies + hj-uut storage + static.hotjar.com URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

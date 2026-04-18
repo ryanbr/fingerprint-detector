@@ -198,6 +198,45 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       classifyOrigin: false,
     },
     {
+      name: "Hotjar",
+      category: "HotjarDetect",
+      // Session-replay + heatmap product. Records user interactions,
+      // mouse movements, and scrolls. Rebranded ContentSquare
+      // subsidiary since 2023.
+      // Signatures confirmed from static.hotjar.com/c/hotjar-*.js loader.
+      globals: [
+        "hj",                      // main queue fn (hj('event', ...))
+        "hjSiteSettings",          // config object with site_id
+        "hjBootstrap",             // loader fn
+        "hjBootstrapCalled",       // array of booted instances
+        "hjLazyModules",           // module registry (SURVEY_V2, HEATMAP_RETAKER, etc.)
+      ],
+      globalPrefixes: ["_hj"],     // catches _hj*, _hjSettings, _hjUserAttributesHash, etc.
+      keyPatterns: [
+        /^_hjSession/i,            // _hjSession_*, _hjSessionUser_*
+        /^_hjIncluded/i,           // _hjIncludedInSessionSample_*
+        /^_hjAbsolute/i,           // _hjAbsoluteSessionInProgress
+        /^_hjFirstSeen$/i,
+        /^_hjMinimizedPolls/i,
+        /^_hjShown/i,              // _hjShownFeedback*
+        /^_hjTLDTest$/i,
+        /^hj-uut$/i,               // sessionStorage UUID key
+        /^_hj/i,                   // generic fallback for any _hj* key
+      ],
+      scriptSrcPatterns: [
+        /\bstatic\.hotjar\.com\b/i,
+        /\bscript\.hotjar\.com\b/i,
+        /\bmetrics\.hotjar\.io\b/i,
+        /\binsights\.hotjar\.com\b/i,
+        /\bvoc\.hotjar\.com\b/i,
+        /\bvc\.hotjar\.io\b/i,
+        /\bhotjarians\.net\b/i,           // integration env
+        /\/hotjar-[0-9a-f]+\.js\b/i,       // static.hotjar.com/c/hotjar-3736802.js
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
+    {
       name: "Piano / Tinypass",
       category: "PianoDetect",
       // Piano (formerly Tinypass) is a paywall / subscription platform.

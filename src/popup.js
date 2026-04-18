@@ -46,6 +46,7 @@ const CATEGORY_META = {
   ImpervaDetect:   { icon: "🔒", color: "#fb8c00", risk: "medium", desc: "Imperva / Incapsula — incap_ses/visid_incap/nlbi cookie family" },
   KasadaDetect:    { icon: "🏯", color: "#e94560", risk: "high", desc: "Kasada — window.KPSDK global, x-kpsdk-* storage, ips.js.kasada.io loader" },
   PianoDetect:     { icon: "🎹", color: "#fb8c00", risk: "medium", desc: "Piano / Tinypass paywall and subscription tracking — window.tp / pn / pdl globals, _pc* / __tp* cookie family, cdn.piano.io loader" },
+  HotjarDetect:    { icon: "🔥", color: "#fb8c00", risk: "medium", desc: "Hotjar session recording and heatmaps — window.hj / hjSiteSettings globals, _hj* cookie family, static.hotjar.com loader" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -143,6 +144,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   ImpervaDetect:          { label: "Imperva",              icon: "🔒" },
   KasadaDetect:           { label: "Kasada",               icon: "🏯" },
   PianoDetect:            { label: "Piano / Tinypass",     icon: "🎹" },
+  HotjarDetect:           { label: "Hotjar",               icon: "🔥" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

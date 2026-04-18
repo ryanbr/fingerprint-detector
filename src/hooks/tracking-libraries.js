@@ -2007,6 +2007,30 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Integral Ad Science",
+      category: "IntegralAdScienceDetect",
+      // Integral Ad Science (IAS) — ad verification, viewability
+      // measurement, brand safety and fraud detection platform.
+      // Major competitor to DoubleVerify and Moat (Oracle). The
+      // iasPET script (Publisher Exclusion Targeting) handles
+      // pre-bid ad quality decisions — it inserts targeting
+      // key-values into ad requests so buyers can avoid placing
+      // bids on low-viewability or unsafe inventory. Loader at
+      // cdn.adsafeprotected.com/iasPET.<n>.js.
+      globals: [
+        "__iasPET",                  // primary PET namespace (__iasPET.queue, __iasPET.sessionId)
+      ],
+      globalPrefixes: [],
+      keyPatterns: [],                // IAS uses pixel beacons + ad-request key-values, not cookies
+      scriptSrcPatterns: [
+        /\badsafeprotected\.com\b/i, // primary CDN + pixel host (catches cdn / pixel subs)
+        /\bintegralads\.com\b/i,     // company domain
+        /\/iasPET(?:\.\d+)?\.js\b/i, // iasPET.js / iasPET.<n>.js distinctive filename
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

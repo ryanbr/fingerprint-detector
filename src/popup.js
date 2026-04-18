@@ -105,6 +105,7 @@ const CATEGORY_META = {
   TrueVaultPolarisDetect: { icon: "🌟", color: "#fb8c00", risk: "medium", desc: "TrueVault Polaris privacy / consent — Polaris/TrueVault/polarisOverrideOptions/__rmuspc globals, truevault.com + truevaultcdn.com, /static/pc/<id>/polaris.js" },
   ListrakDetect: { icon: "✉️", color: "#fb8c00", risk: "medium", desc: "Listrak email / SMS / customer engagement — _ltk_util global + _ltk* prefix, listrakbi.com + listrak.com hosts, /ModalImpression.ashx" },
   TrustedSiteDetect: { icon: "🛂", color: "#fb8c00", risk: "medium", desc: "TrustedSite (ex-McAfee SECURE) trust badge — TrustedSite/TrustedSiteInline globals + trustedsite_ prefix, ywxi.net + trustedsite.com + mcafeesecure.com" },
+  IntegralAdScienceDetect: { icon: "🔬", color: "#fb8c00", risk: "medium", desc: "Integral Ad Science (IAS) ad verification + viewability + brand safety — __iasPET global, adsafeprotected.com + integralads.com hosts, iasPET.<n>.js" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -261,6 +262,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   TrueVaultPolarisDetect: { label: "TrueVault Polaris",    icon: "🌟" },
   ListrakDetect:          { label: "Listrak",              icon: "✉️" },
   TrustedSiteDetect:      { label: "TrustedSite",          icon: "🛂" },
+  IntegralAdScienceDetect: { label: "Integral Ad Science", icon: "🔬" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

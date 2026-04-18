@@ -151,6 +151,7 @@ const CATEGORY_META = {
   TrueVaultPolarisDetect: { icon: "\u{1F31F}", color: "#fb8c00", risk: "medium" },
   ListrakDetect: { icon: "\u{2709}\u{FE0F}", color: "#fb8c00", risk: "medium" },
   TrustedSiteDetect: { icon: "\u{1F6C2}", color: "#fb8c00", risk: "medium" },
+  IntegralAdScienceDetect: { icon: "\u{1F52C}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

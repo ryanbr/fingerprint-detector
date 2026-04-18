@@ -134,6 +134,7 @@ const CATEGORY_META = {
   KlaviyoDetect: { icon: "\u{1F4E7}", color: "#fb8c00", risk: "medium" },
   AdobeDTMDetect: { icon: "\u{1F170}\u{FE0F}", color: "#fb8c00", risk: "medium" },
   AdobeCommerceEventsDetect: { icon: "\u{1F6CD}\u{FE0F}", color: "#fb8c00", risk: "medium" },
+  AdobeCommerceRecsDetect: { icon: "\u{2728}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

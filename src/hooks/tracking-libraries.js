@@ -1540,6 +1540,28 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Adobe Commerce Recommendations",
+      category: "AdobeCommerceRecsDetect",
+      // Adobe Commerce Product Recommendations SDK
+      // (@magento/recommendations-js-sdk) — Adobe Sensei-powered
+      // AI product recommendations for Magento / Adobe Commerce
+      // storefronts. Integrates with AdobeCommerceEventsDetect
+      // (reads window.magentoStorefrontEvents) but is a distinct
+      // product — sites can run Events without Recommendations or
+      // vice versa.
+      globals: [
+        "RecommendationsClient",     // distinctive SDK export
+      ],
+      globalPrefixes: [],
+      keyPatterns: [],
+      scriptSrcPatterns: [
+        /\bmagento-recs-sdk\.adobe\.net\b/i,  // distinctive host
+        /@magento\/recommendations-js-sdk/i,  // NPM path
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

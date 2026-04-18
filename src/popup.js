@@ -88,6 +88,7 @@ const CATEGORY_META = {
   KlaviyoDetect: { icon: "📧", color: "#fb8c00", risk: "medium", desc: "Klaviyo email + SMS + CDP (Shopify/D2C) — klaviyo/_learnq/_klOnsite/webpackChunk_klaviyo_onsite_modules globals, __kla_id cookie, klaviyo.com hosts, /onsite/js/ path" },
   AdobeDTMDetect: { icon: "🅰️", color: "#fb8c00", risk: "medium", desc: "Adobe DTM / Launch tag manager (loads Analytics / Target / AAM / Campaign stack) — _satellite/AdobeDataLayer globals, adobedtm.com hosts, launch-<hash>.min.js + satelliteLib-<hash>.js" },
   AdobeCommerceEventsDetect: { icon: "🛍️", color: "#fb8c00", risk: "medium", desc: "Adobe Commerce (Magento) Storefront Events — magentoStorefrontEvents/magentoStorefrontEventCollector globals, @adobe/magento-storefront-event-collector NPM path, Snowplow-powered" },
+  AdobeCommerceRecsDetect: { icon: "✨", color: "#fb8c00", risk: "medium", desc: "Adobe Commerce Product Recommendations (Sensei AI) — RecommendationsClient global, magento-recs-sdk.adobe.net + @magento/recommendations-js-sdk NPM" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -227,6 +228,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   KlaviyoDetect:          { label: "Klaviyo",              icon: "📧" },
   AdobeDTMDetect:         { label: "Adobe DTM / Launch",   icon: "🅰️" },
   AdobeCommerceEventsDetect: { label: "Adobe Commerce Events", icon: "🛍️" },
+  AdobeCommerceRecsDetect: { label: "Adobe Commerce Recs",    icon: "✨" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

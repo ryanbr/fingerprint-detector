@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -2142,6 +2142,17 @@
           document.head.appendChild(s43);
           setTimeout(() => { try { s43.remove(); } catch (_) {} }, 100);
           results.push("Adobe Commerce Events: magentoStorefrontEvents/magentoStorefrontEventCollector globals + @adobe/magento-storefront-event-collector NPM URL");
+        } catch (_) { /* noop */ }
+
+        // ── Adobe Commerce Product Recommendations ────────────────
+        try {
+          window.RecommendationsClient = window.RecommendationsClient || function () { /* noop ctor */ };
+          const s44 = document.createElement("script");
+          s44.src = "https://magento-recs-sdk.adobe.net/v2/index.js";
+          s44.onerror = () => {};
+          document.head.appendChild(s44);
+          setTimeout(() => { try { s44.remove(); } catch (_) {} }, 100);
+          results.push("Adobe Commerce Recs: RecommendationsClient global + magento-recs-sdk.adobe.net/v2/index.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

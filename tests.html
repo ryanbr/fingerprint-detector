@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -1754,6 +1754,20 @@
           document.head.appendChild(s18);
           setTimeout(() => { try { s18.remove(); } catch (_) {} }, 100);
           results.push("Webtrekk/Mapp: webtrekk/webtrekkV3/wtSmart globals + wt_eid/wt_3_eid/wt_nc/wtstp_eid cookies + wt_loadtime_data storage + responder.wt.* /resp/api/get/ URL");
+        } catch (_) { /* noop */ }
+
+        // ── Pushly (push notifications) ───────────────────────────
+        try {
+          window.Pushly = window.Pushly || { subscribe: () => {}, __test: true };
+          window.PushlySDK = window.PushlySDK || window.Pushly;
+          document.cookie = "_pn_abcd1234=test-pushly-id; path=/; max-age=60";
+          localStorage.setItem("pn_ll", "info");
+          const s19 = document.createElement("script");
+          s19.src = "https://cdn.p-n.io/pushly-sw.min.js?domain_key=qmhdz0KFKfsfhQQeCP5Js1NFta1P8jkwbf05";
+          s19.onerror = () => {};
+          document.head.appendChild(s19);
+          setTimeout(() => { try { s19.remove(); } catch (_) {} }, 100);
+          results.push("Pushly: Pushly/PushlySDK globals + _pn_<8char> cookie + pn_ll storage + cdn.p-n.io/pushly-sw.min.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

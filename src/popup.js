@@ -63,6 +63,7 @@ const CATEGORY_META = {
   YahooOathDetect: { icon: "💜", color: "#fb8c00", risk: "medium", desc: "Yahoo / Oath / Verizon Media (Rapid analytics + Oath CMP) — YAHOO/YahooCJS globals, GUC/guce_*/A1/A1S cookies, s.yimg.com + consent.cmp.oath.com + guce.* hosts" },
   KameleoonDetect: { icon: "🧪", color: "#fb8c00", risk: "medium", desc: "Kameleoon A/B testing and personalization — Kameleoon/kameleoonQueue globals, kameleoon* cookies/storage, kameleoon.eu customer-CNAME loader" },
   WebtrekkMappDetect: { icon: "🇩🇪", color: "#fb8c00", risk: "medium", desc: "Webtrekk / Mapp Intelligence (German analytics) — webtrekk/webtrekkV3/wtSmart globals, wt_eid/wtstp_* cookies, /resp/api/ beacons, responder.wt.<publisher> + wt-eu0*.net hosts" },
+  PushlyDetect: { icon: "🔔", color: "#fb8c00", risk: "medium", desc: "Pushly push-notification SaaS — Pushly/PushlySDK globals, _pn* cookies, pn_store IndexedDB + pn_ll storage, cdn.p-n.io/k.p-n.io + pushly-sw.min.js service worker" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -177,6 +178,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   YahooOathDetect:        { label: "Yahoo / Oath",         icon: "💜" },
   KameleoonDetect:        { label: "Kameleoon",            icon: "🧪" },
   WebtrekkMappDetect:     { label: "Webtrekk / Mapp",      icon: "🇩🇪" },
+  PushlyDetect:           { label: "Pushly",               icon: "🔔" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

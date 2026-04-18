@@ -109,6 +109,7 @@ const CATEGORY_META = {
   YahooOathDetect: { icon: "\u{1F49C}", color: "#fb8c00", risk: "medium" },
   KameleoonDetect: { icon: "\u{1F9EA}", color: "#fb8c00", risk: "medium" },
   WebtrekkMappDetect: { icon: "\u{1F1E9}\u{1F1EA}", color: "#fb8c00", risk: "medium" },
+  PushlyDetect: { icon: "\u{1F514}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

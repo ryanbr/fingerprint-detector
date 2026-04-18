@@ -800,6 +800,34 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Pushly",
+      category: "PushlyDetect",
+      // Pushly — push-notification SaaS platform. Page-side loader
+      // (pushly.min.js) registers a background service worker
+      // (pushly-sw.min.js) which handles PushManager subscription,
+      // notification display, and interaction tracking. Beacons to
+      // k.p-n.io/event-stream. Note that the PushSubscription
+      // endpoint itself is a per-device fingerprint — already hooked
+      // via permissions.js pushManager.subscribe.
+      globals: [
+        "Pushly",                // page-side SDK namespace
+        "PushlySDK",             // alternate export name
+      ],
+      globalPrefixes: [],
+      keyPatterns: [
+        /^_pn(?:_[0-9A-Za-z]{8})?$/, // Pushly cookie pattern _pn or _pn_<8chars>
+        /^pn_ll$/,                    // log level localStorage
+        /^pn_store$/,                 // IndexedDB database name
+      ],
+      scriptSrcPatterns: [
+        /\bp-n\.io\b/i,              // CDN (cdn.p-n.io) + API (k.p-n.io)
+        /\bpushly\.com\b/i,           // company site / legacy
+        /\/pushly(?:-sw)?(?:\.min)?\.js\b/i, // pushly.min.js / pushly-sw.min.js
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

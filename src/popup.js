@@ -284,6 +284,21 @@ const TRACKING_LIBRARY_CATEGORIES = {
 //     🕵️ FingerprintJS         3 signals
 //     📊 Matomo                2 signals
 //     🚧 PerimeterX / HUMAN    5 signals
+// Tracker-list collapsed state persisted in chrome.storage.local as
+// trackerBannerCollapsed. Loaded once at popup init (see bottom of
+// file) and kept in sync with the button click below.
+let trackerBannerCollapsed = false;
+
+function applyBannerCollapsedState() {
+  const list = document.getElementById("banner-list");
+  const toggle = document.getElementById("banner-toggle");
+  if (list) list.classList.toggle("collapsed", trackerBannerCollapsed);
+  if (toggle) {
+    toggle.textContent = trackerBannerCollapsed ? "Show" : "Hide";
+    toggle.setAttribute("aria-expanded", String(!trackerBannerCollapsed));
+  }
+}
+
 function updateFingerprintBanner(categories) {
   const banner = document.getElementById("fingerprint-banner");
   if (!banner) return;
@@ -298,6 +313,7 @@ function updateFingerprintBanner(categories) {
   }
   if (hits.length === 0) {
     banner.classList.remove("active");
+    banner.classList.remove("stacked");
     if (list) {
       list.classList.remove("active");
       list.classList.remove("scrollable");
@@ -309,7 +325,8 @@ function updateFingerprintBanner(categories) {
   const textEl = banner.querySelector(".banner-text");
   const countEl = document.getElementById("banner-count");
   if (hits.length === 1) {
-    // Compact single-line layout
+    // Compact single-line layout — no collapse button (nothing to collapse)
+    banner.classList.remove("stacked");
     const h = hits[0];
     if (iconEl) iconEl.textContent = h.icon;
     if (textEl) textEl.textContent = h.label + " detected on this page";
@@ -320,7 +337,8 @@ function updateFingerprintBanner(categories) {
       list.innerHTML = "";
     }
   } else {
-    // Stacked multi-line layout
+    // Stacked multi-line layout — toggle button visible, collapsible
+    banner.classList.add("stacked");
     if (iconEl) iconEl.textContent = "⚠️";
     if (textEl) textEl.textContent = hits.length + " tracking libraries detected";
     if (countEl) countEl.textContent = "";
@@ -348,6 +366,10 @@ function updateFingerprintBanner(categories) {
       // mouse-wheel scrolling. Threshold is 6 because the banner
       // stays tidy up to 5 rows; beyond that it dominates the popup.
       list.classList.toggle("scrollable", hits.length >= 6);
+      // Reapply collapsed state — list.innerHTML rebuild preserves
+      // classes on the element itself, but this also updates the
+      // toggle button label in case it wasn't visible before.
+      applyBannerCollapsedState();
     }
   }
 }
@@ -1146,13 +1168,28 @@ function saveUIState() {
 logFilter.addEventListener("input", saveUIState);
 logAutoscroll.addEventListener("change", saveUIState);
 
+// Tracker-banner collapse toggle — click handler. Flips the persisted
+// state in chrome.storage.local so it survives popup close / reopen
+// and across browser restarts.
+document.getElementById("banner-toggle")?.addEventListener("click", () => {
+  trackerBannerCollapsed = !trackerBannerCollapsed;
+  applyBannerCollapsedState();
+  chrome.storage.local.set({ trackerBannerCollapsed });
+});
+
 // ── Load everything and connect ───────────────────────────────────────
-chrome.storage.local.get(["mutedGlobal", "mutedByDomain"], (localStored) => {
+chrome.storage.local.get(
+  ["mutedGlobal", "mutedByDomain", "trackerBannerCollapsed"],
+  (localStored) => {
   if (localStored.mutedGlobal) {
     mutedGlobal = localStored.mutedGlobal;
   }
   if (localStored.mutedByDomain) {
     mutedByDomain = localStored.mutedByDomain;
+  }
+  if (localStored.trackerBannerCollapsed === true) {
+    trackerBannerCollapsed = true;
+    applyBannerCollapsedState();
   }
 
   sessionStore.get(["uiPaused", "uiFilter", "uiAutoscroll", "uiActivePanel"], (ui) => {

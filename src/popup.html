@@ -457,6 +457,26 @@
     }
     #fingerprint-banner .banner-icon { font-size: 14px; flex-shrink: 0; }
     #fingerprint-banner .banner-text { flex: 1; }
+    #fingerprint-banner .banner-toggle {
+      /* Collapse toggle — only shown in multi-tracker (stacked) mode
+         where the banner-list is expandable. Hidden via CSS in
+         single-tracker mode (no list to collapse). */
+      display: none;
+      background: rgba(255,255,255,0.18);
+      border: 0;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 1;
+      cursor: pointer;
+      padding: 3px 7px;
+      border-radius: 10px;
+      flex-shrink: 0;
+      letter-spacing: 0.3px;
+      transition: background 0.12s ease;
+    }
+    #fingerprint-banner .banner-toggle:hover { background: rgba(255,255,255,0.32); }
+    #fingerprint-banner.stacked .banner-toggle { display: inline-block; }
     #fingerprint-banner .banner-count {
       background: rgba(255,255,255,0.22);
       padding: 2px 8px;
@@ -472,7 +492,9 @@
       gap: 3px;
       padding: 0 12px 8px;
     }
-    .banner-list.active { display: flex; }
+    /* .active sets display, .collapsed forces hide even when active.
+       Collapsed state is persisted in chrome.storage.local. */
+    .banner-list.active:not(.collapsed) { display: flex; }
     /* 6+ trackers: cap height at ~5 rows (the last visible row is cut
        off to signal more content below) and allow mouse-wheel scroll.
        Scrollbar is hidden via vendor rules — users can still scroll
@@ -567,6 +589,7 @@
     <div class="banner-header">
       <span class="banner-icon">🕵️</span>
       <span class="banner-text">FingerprintJS detected on this page</span>
+      <button type="button" class="banner-toggle" id="banner-toggle" aria-expanded="true" aria-controls="banner-list" title="Collapse / expand tracker list">Hide</button>
       <span class="banner-count" id="banner-count">0</span>
     </div>
     <div class="banner-list" id="banner-list"></div>

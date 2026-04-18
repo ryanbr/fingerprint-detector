@@ -473,6 +473,19 @@
       padding: 0 12px 8px;
     }
     .banner-list.active { display: flex; }
+    /* 6+ trackers: cap height at ~5 rows (the last visible row is cut
+       off to signal more content below) and allow mouse-wheel scroll.
+       Scrollbar is hidden via vendor rules — users can still scroll
+       with trackpad / mousewheel / touch. */
+    .banner-list.scrollable {
+      max-height: 125px;
+      overflow-y: auto;
+      scrollbar-width: none;        /* Firefox */
+      -ms-overflow-style: none;     /* legacy Edge */
+    }
+    .banner-list.scrollable::-webkit-scrollbar {
+      display: none;                /* Chrome / Safari / WebKit */
+    }
     .banner-row {
       display: flex;
       align-items: center;

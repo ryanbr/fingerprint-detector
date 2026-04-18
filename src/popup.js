@@ -170,7 +170,10 @@ function updateFingerprintBanner(categories) {
   }
   if (hits.length === 0) {
     banner.classList.remove("active");
-    if (list) list.classList.remove("active");
+    if (list) {
+      list.classList.remove("active");
+      list.classList.remove("scrollable");
+    }
     return;
   }
   banner.classList.add("active");
@@ -185,6 +188,7 @@ function updateFingerprintBanner(categories) {
     if (countEl) countEl.textContent = h.count + (h.count === 1 ? " signal" : " signals");
     if (list) {
       list.classList.remove("active");
+      list.classList.remove("scrollable");
       list.innerHTML = "";
     }
   } else {
@@ -212,6 +216,10 @@ function updateFingerprintBanner(categories) {
         list.appendChild(row);
       }
       list.classList.add("active");
+      // 6+ trackers: cap list height and enable hidden-scrollbar
+      // mouse-wheel scrolling. Threshold is 6 because the banner
+      // stays tidy up to 5 rows; beyond that it dominates the popup.
+      list.classList.toggle("scrollable", hits.length >= 6);
     }
   }
 }

@@ -324,6 +324,41 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Bing UET",
+      category: "BingUETDetect",
+      // Microsoft Bing Ads UET (Universal Event Tracking) — conversion
+      // tracking and audience analytics pixel. First-party cookies
+      // (_uetsid / _uetvid / _uetmsclkid) plus a randomised
+      // window.ueto_XXXXXXXXXX global. Signatures confirmed from
+      // bat.bing.com/bat.js.
+      globals: [
+        "UET",                   // constructor
+        "UET_init",              // init fn
+        "UET_push",              // push fn
+        "uetq",                  // event queue
+      ],
+      globalPrefixes: [
+        "_uetq",                 // queue aliases
+        "ueto_",                 // randomised per-tag global (ueto_ + 10 chars)
+      ],
+      keyPatterns: [
+        /^_uetsid$/i,            // session id (24h)
+        /^_uetvid$/i,            // visitor id (~390d)
+        /^_uetmsclkid$/i,        // Microsoft Click ID (from msclkid URL param)
+        /^_uetuid$/i,            // user id
+        /^_uetdbg$/i,            // debug cookie
+        /^_uetmsdns$/i,          // MS DNS indicator
+        /^_uet[a-z]+_exp$/i,     // localStorage expiry fallback (_uetsid_exp etc.)
+      ],
+      scriptSrcPatterns: [
+        /\bbat\.bing\.com\b/i,   // primary loader + beacon host
+        /\bbat\.bing\.net\b/i,   // no-cookie consent host
+        /\/bat\.js\b/i,            // script filename
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

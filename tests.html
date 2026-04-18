@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -1491,6 +1491,24 @@
           document.head.appendChild(s3);
           setTimeout(() => { try { s3.remove(); } catch (_) {} }, 100);
           results.push("Meta Pixel: fbq/_fbq/__fbeventsModules globals + _fbp/_fbc/_fbleid cookies + fbevents.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── Bing UET ──────────────────────────────────────────────
+        try {
+          window.UET = window.UET || function () { /* noop ctor */ };
+          window.UET_init = window.UET_init || function () { /* noop */ };
+          window.uetq = window.uetq || [];
+          window["ueto_AbCdEfGhIj"] = window["ueto_AbCdEfGhIj"] || { __test: true };
+          document.cookie = "_uetsid=0123456789abcdef0123456789abcdef; path=/; max-age=60";
+          document.cookie = "_uetvid=fedcba9876543210fedcba9876543210; path=/; max-age=60";
+          document.cookie = "_uetmsclkid=0123456789abcdef0123456789abcdef-C; path=/; max-age=60";
+          localStorage.setItem("_uetsid_exp", String(Date.now() + 60000));
+          const s4 = document.createElement("script");
+          s4.src = "https://bat.bing.com/bat.js";
+          s4.onerror = () => {};
+          document.head.appendChild(s4);
+          setTimeout(() => { try { s4.remove(); } catch (_) {} }, 100);
+          results.push("Bing UET: UET/UET_init/uetq/ueto_* globals + _uetsid/_uetvid/_uetmsclkid cookies + _uetsid_exp storage + bat.bing.com URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

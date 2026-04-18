@@ -48,6 +48,7 @@ const CATEGORY_META = {
   PianoDetect:     { icon: "🎹", color: "#fb8c00", risk: "medium", desc: "Piano / Tinypass paywall and subscription tracking — window.tp / pn / pdl globals, _pc* / __tp* cookie family, cdn.piano.io loader" },
   HotjarDetect:    { icon: "🔥", color: "#fb8c00", risk: "medium", desc: "Hotjar session recording and heatmaps — window.hj / hjSiteSettings globals, _hj* cookie family, static.hotjar.com loader" },
   MetaPixelDetect: { icon: "📘", color: "#fb8c00", risk: "medium", desc: "Meta / Facebook Pixel — fbq/_fbq globals, _fbp/_fbc/_fbleid cookies, fbclid URL param, connect.facebook.net loader" },
+  BingUETDetect:   { icon: "🅱️", color: "#fb8c00", risk: "medium", desc: "Microsoft Bing UET — UET/UET_init globals, _uetsid/_uetvid/_uetmsclkid cookies, bat.bing.com/bat.js loader" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -147,6 +148,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   PianoDetect:            { label: "Piano / Tinypass",     icon: "🎹" },
   HotjarDetect:           { label: "Hotjar",               icon: "🔥" },
   MetaPixelDetect:        { label: "Meta Pixel",           icon: "📘" },
+  BingUETDetect:          { label: "Bing UET",             icon: "🅱️" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

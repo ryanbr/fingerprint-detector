@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -2053,6 +2053,25 @@
           document.head.appendChild(s37);
           setTimeout(() => { try { s37.remove(); } catch (_) {} }, 100);
           results.push("SpeedCurve LUX: LUX global (with .customerid/.samplerate) + cdn.speedcurve.com/js/lux.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── Insider (marketing automation + personalization) ──────
+        try {
+          window.Insider = window.Insider || { boot: () => {}, campaign: {}, eventManager: {}, __test: true };
+          window.InsiderQueue = window.InsiderQueue || [];
+          window.insider_object = window.insider_object || { user: {}, page: {} };
+          window.insiderFlow = window.insiderFlow || {};
+          window.__INSIDER_SCRIPT_VERSION_testcustomer__ = "2.4.7";
+          document.cookie = "ins_iid=test-installation-id; path=/; max-age=60";
+          document.cookie = "ins_sr=test-session-record; path=/; max-age=60";
+          localStorage.setItem("ins-ls", JSON.stringify({ __test: true }));
+          localStorage.setItem("ins-ghost", "1");
+          const s38 = document.createElement("script");
+          s38.src = "https://testcustomer.api.useinsider.com/ins.js?id=10012586";
+          s38.onerror = () => {};
+          document.head.appendChild(s38);
+          setTimeout(() => { try { s38.remove(); } catch (_) {} }, 100);
+          results.push("Insider: Insider/InsiderQueue/insider_object/insiderFlow/__INSIDER_SCRIPT_VERSION_* globals + ins_iid/ins_sr cookies + ins-ls/ins-ghost storage + <customer>.api.useinsider.com URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

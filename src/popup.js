@@ -82,6 +82,7 @@ const CATEGORY_META = {
   LogRocketDetect: { icon: "🚀", color: "#fb8c00", risk: "medium", desc: "LogRocket session replay + error monitoring — LogRocket/__LRBFCACHE__/__SDKCONFIG__/_lr* globals, _lr_* storage, logrocket.com + intake-lr.com + logrocket-cdn.com" },
   ThreatMetrixDetect: { icon: "🕸️", color: "#e94560", risk: "high", desc: "ThreatMetrix (LexisNexis) fraud-detection fingerprinting — tmx_profiling_started/tmx_run_page_fingerprinting globals, online-metrix.net, /fp/tags.js + /fp/check.js paths" },
   SpeedCurveLUXDetect: { icon: "⚡", color: "#fb8c00", risk: "medium", desc: "SpeedCurve LUX Real User Monitoring — LUX global (LUX.customerid), speedcurve.com hosts (cdn/lux/assets), /lux.js loader" },
+  InsiderDetect: { icon: "🎁", color: "#fb8c00", risk: "medium", desc: "Insider marketing automation + personalization — Insider/InsiderQueue/insider_object globals, ins_* cookies + ins-ghost/ins-ls storage, <customer>.api.useinsider.com CNAMEs" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -215,6 +216,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   LogRocketDetect:        { label: "LogRocket",            icon: "🚀" },
   ThreatMetrixDetect:     { label: "ThreatMetrix",         icon: "🕸️" },
   SpeedCurveLUXDetect:    { label: "SpeedCurve LUX",       icon: "⚡" },
+  InsiderDetect:          { label: "Insider",              icon: "🎁" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

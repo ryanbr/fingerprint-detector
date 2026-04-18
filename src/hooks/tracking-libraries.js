@@ -1370,6 +1370,40 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Insider",
+      category: "InsiderDetect",
+      // Insider (useinsider.com) — marketing automation +
+      // personalization + segmentation platform. Covers cross-
+      // channel campaigns, predictive analytics, onsite
+      // personalization, web push, SMS, WhatsApp. Used heavily by
+      // retail / e-commerce brands. Deployed via customer CNAME
+      // pattern <customer>.api.useinsider.com/ins.js. Extensive
+      // runtime: Insider global has 15+ sub-namespaces
+      // (.campaign, .segmentModules, .targetingModules, etc.).
+      globals: [
+        "Insider",                   // primary namespace
+        "InsiderQueue",              // event queue
+        "insider_object",            // data layer
+        "insiderFlow",               // flow engine
+        "insPageShow",               // page-show handler
+        "ActionBuilderSettings",     // action builder config
+      ],
+      globalPrefixes: [
+        "__INSIDER_",                // catches __INSIDER_SCRIPT_VERSION_<customer>__
+      ],
+      keyPatterns: [
+        /^ins_/i,                    // ins_eu, ins_iid, ins_mr, ins_sr, ins_sr_out cookies
+        /^ins-(?:ghost|ls|sms|wa)$/i, // distinctive localStorage keys
+      ],
+      scriptSrcPatterns: [
+        /\buseinsider\.com\b/i,      // catches customer CNAMEs (<customer>.api.useinsider.com)
+        /\binsider-cdn\.com\b/i,      // legacy CDN host if still used
+        /\/ins\.js\b/i,               // distinctive loader filename
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

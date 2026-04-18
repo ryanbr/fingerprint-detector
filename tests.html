@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -1539,6 +1539,26 @@
           document.head.appendChild(s6);
           setTimeout(() => { try { s6.remove(); } catch (_) {} }, 100);
           results.push("New Relic: NREUM/newrelic globals + NREUM_SESSION_ID sessionStorage + js-agent.newrelic.com URL");
+        } catch (_) { /* noop */ }
+
+        // ── Blockthrough Ad Recovery (anti-adblock) ───────────────
+        try {
+          window.__bt = window.__bt || { disableRecovery: false, __test: true };
+          window.__bt_edge_data = window.__bt_edge_data || { extensionsSignals: { xAcceptableAdsHeader: null, dnt: null } };
+          window.__bt_tag_d = window.__bt_tag_d || { orgID: "5067096939560960", version: "2.1.186" };
+          window.__bt_intrnl = window.__bt_intrnl || { traceID: "test-trace", sessionID: "test-sid" };
+          window.__bt_already_invoked = true;
+          try { sessionStorage.setItem("BT_traceID", "test-trace-id"); } catch (_) {}
+          try { sessionStorage.setItem("BT_sid", "test-session-id"); } catch (_) {}
+          localStorage.setItem("BT_EXP_FLAGS", JSON.stringify({ __test: true }));
+          localStorage.setItem("btUserCountry", "US");
+          localStorage.setItem("BT_AA_DETECTION", "1");
+          const s7 = document.createElement("script");
+          s7.src = "https://btloader.com/tag?o=5067096939560960&upapi=true";
+          s7.onerror = () => {};
+          document.head.appendChild(s7);
+          setTimeout(() => { try { s7.remove(); } catch (_) {} }, 100);
+          results.push("Blockthrough: __bt/__bt_edge_data/__bt_intrnl globals + BT_traceID/BT_sid/BT_EXP_FLAGS/btUserCountry storage + btloader.com URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

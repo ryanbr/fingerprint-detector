@@ -415,6 +415,44 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Blockthrough Ad Recovery",
+      category: "BlockthroughDetect",
+      // Blockthrough Ad Recovery — anti-adblock / ad-recovery loader.
+      // Detects blockers via bait elements + image pixels + CSP
+      // violation events, probes network-level filters via DNS
+      // lookups to dns-finder.com, harvests TCF consent data, and
+      // re-serves ads from cdn.btmessage.com/script/rlink.js when
+      // conditions allow. High risk — actively circumvents user
+      // intent (adblock). Signatures confirmed from btloader.com/tag.
+      globals: [
+        "__bt",                       // public API
+        "__bt_edge_data",             // X-Acceptable-Ads + DNT signals from edge worker
+        "__bt_tag_d",                 // tag metadata (orgID, siteInfo, version)
+        "__bt_rlink_loaded_from_tag", // rlink recovery flag
+        "__bt_intrnl",                // internal state (traceID, tcData, aaDetection)
+        "__bt_already_invoked",       // re-entry guard
+      ],
+      globalPrefixes: ["__bt_"],
+      keyPatterns: [
+        /^BT_traceID$/,
+        /^BT_EXP_FLAGS$/,
+        /^BT_SESSION_ACTIONS$/,
+        /^BT_sid$/,
+        /^BT_BUNDLE_VERSION_/,        // BT_BUNDLE_VERSION_<siteID>
+        /^BT_DIGEST_VERSION_/,        // BT_DIGEST_VERSION_<siteID>
+        /^BT_AA_DETECTION$/,
+        /^btUserCountry/i,            // btUserCountry, btUserCountryExpiry, btUserIsFromRestrictedCountry
+      ],
+      scriptSrcPatterns: [
+        /\bbtloader\.com\b/i,           // primary loader + trusted iframe
+        /\bapi\.btloader\.com\b/i,      // API + beacon host
+        /\bcdn\.btmessage\.com\b/i,     // rlink.js recovery CDN
+        /\b(?:ab|wb)\.dns-finder\.com\b/i, // NLF (network-level filter) DNS probe
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

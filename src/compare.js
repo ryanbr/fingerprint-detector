@@ -141,6 +141,7 @@ const CATEGORY_META = {
   ElasticAPMDetect: { icon: "\u{1F50C}", color: "#fb8c00", risk: "medium" },
   SentryDetect: { icon: "\u{1FAB2}", color: "#fb8c00", risk: "medium" },
   AwinDetect: { icon: "\u{1FA9F}", color: "#fb8c00", risk: "medium" },
+  BazaarvoiceDetect: { icon: "\u{2B50}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

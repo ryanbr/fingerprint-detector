@@ -1732,6 +1732,30 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Bazaarvoice",
+      category: "BazaarvoiceDetect",
+      // Bazaarvoice — product reviews / ratings / Q&A / UGC platform
+      // used by large e-commerce brands (Best Buy, Macy's, Home
+      // Depot, Sephora, Target). Tracks review engagement, Q&A
+      // interactions and visual UGC. Analytics loader at
+      // analytics-static.ugc.bazaarvoice.com/prod/static/<n>/bv-analytics.js
+      // with display widgets at display.ugc.bazaarvoice.com and
+      // app APIs at apps.bazaarvoice.com.
+      globals: [
+        "BV",                        // primary namespace (BV.cookie, BV.cookieConsent, BV.privacy)
+        "BVBRANDID",                 // brand identifier
+      ],
+      globalPrefixes: [],
+      keyPatterns: [],                // cookies managed via BV.cookie namespace rather than distinct top-level names
+      scriptSrcPatterns: [
+        /\bbazaarvoice\.com\b/i,     // catches analytics-static.ugc / apps / display.ugc subs
+        /\bbazaarvoice\.net\b/i,     // CDN host variant
+        /\/bv-analytics\.js\b/i,      // distinctive analytics filename
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

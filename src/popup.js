@@ -95,6 +95,7 @@ const CATEGORY_META = {
   ElasticAPMDetect: { icon: "🔌", color: "#fb8c00", risk: "medium", desc: "Elastic APM RUM (ELK stack) — elasticApm global, @elastic/apm-rum NPM path, elastic-apm-rum.umd.min.js bundle, .apm.<region>.cloud.es.io Elastic Cloud" },
   SentryDetect: { icon: "🪲", color: "#fb8c00", risk: "medium", desc: "Sentry error monitoring + performance + session replay — Sentry/__SENTRY__/SENTRY_RELEASE globals, sentry-cdn.com + sentry.io (regional ingest)" },
   AwinDetect: { icon: "🪟", color: "#fb8c00", risk: "medium", desc: "Awin (ex-Affiliate Window/Zanox) affiliate network — AWIN/D9v globals, AWC/aw_* cookies, dwin1.com + dwin2.com + awin1.com + sciencebehindecommerce.com" },
+  BazaarvoiceDetect: { icon: "⭐", color: "#fb8c00", risk: "medium", desc: "Bazaarvoice product reviews / ratings / UGC — BV/BVBRANDID globals, bazaarvoice.com hosts (analytics-static.ugc / apps / display.ugc), /bv-analytics.js loader" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -241,6 +242,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   ElasticAPMDetect:       { label: "Elastic APM",          icon: "🔌" },
   SentryDetect:           { label: "Sentry",               icon: "🪲" },
   AwinDetect:             { label: "Awin",                 icon: "🪟" },
+  BazaarvoiceDetect:      { label: "Bazaarvoice",          icon: "⭐" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

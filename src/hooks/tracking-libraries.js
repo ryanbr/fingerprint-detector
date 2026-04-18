@@ -859,6 +859,36 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Microsoft Clarity",
+      category: "ClarityDetect",
+      // Microsoft Clarity — free session-replay + heatmap tool,
+      // competitor to Hotjar. Loader stub (/tag/<projectID>) ~707
+      // bytes, injects the real script from scripts.clarity.ms.
+      // Records mouse / scroll / keystroke / DOM mutations for
+      // session playback. Deliberately avoids MUID / MR / ANONCHK
+      // / SM cookies since those are Microsoft's broader ad cookies
+      // (Bing, LinkedIn) — using Clarity-specific _clck / _clsk /
+      // CLID only.
+      globals: [
+        "clarity",               // primary global (clarity.q async queue)
+      ],
+      globalPrefixes: [],
+      keyPatterns: [
+        /^_clck$/,               // Clarity client ID
+        /^_clsk$/,               // Clarity session
+        /^CLID$/,                // Clarity internal ID
+      ],
+      scriptSrcPatterns: [
+        // Host-only match: clarity.ms covers all subs (www, scripts, c,
+        // j, k, l). Not matching the bare /tag/<projectID> path
+        // separately because "/tag/<alphanumeric>" is too generic and
+        // would false-positive on unrelated sites.
+        /\bclarity\.ms\b/i,
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

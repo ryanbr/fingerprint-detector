@@ -65,6 +65,7 @@ const CATEGORY_META = {
   WebtrekkMappDetect: { icon: "🇩🇪", color: "#fb8c00", risk: "medium", desc: "Webtrekk / Mapp Intelligence (German analytics) — webtrekk/webtrekkV3/wtSmart globals, wt_eid/wtstp_* cookies, /resp/api/ beacons, responder.wt.<publisher> + wt-eu0*.net hosts" },
   PushlyDetect: { icon: "🔔", color: "#fb8c00", risk: "medium", desc: "Pushly push-notification SaaS — Pushly/PushlySDK globals, _pn* cookies, pn_store IndexedDB + pn_ll storage, cdn.p-n.io/k.p-n.io + pushly-sw.min.js service worker" },
   QuantcastDetect: { icon: "📐", color: "#fb8c00", risk: "medium", desc: "Quantcast Measure + Choice CMP — __qc/_qevents/quantserve globals, __qca/_qcses_* cookies, quantserve.com + quantcount.com hosts, quant.js + rules-<pcode>.js" },
+  ClarityDetect: { icon: "🎥", color: "#fb8c00", risk: "medium", desc: "Microsoft Clarity session replay + heatmaps — clarity global, _clck/_clsk/CLID cookies, clarity.ms loader (www/scripts/c/j/k/l subs)" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -181,6 +182,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   WebtrekkMappDetect:     { label: "Webtrekk / Mapp",      icon: "🇩🇪" },
   PushlyDetect:           { label: "Pushly",               icon: "🔔" },
   QuantcastDetect:        { label: "Quantcast",            icon: "📐" },
+  ClarityDetect:          { label: "Microsoft Clarity",    icon: "🎥" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

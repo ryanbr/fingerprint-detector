@@ -111,6 +111,7 @@ const CATEGORY_META = {
   WebtrekkMappDetect: { icon: "\u{1F1E9}\u{1F1EA}", color: "#fb8c00", risk: "medium" },
   PushlyDetect: { icon: "\u{1F514}", color: "#fb8c00", risk: "medium" },
   QuantcastDetect: { icon: "\u{1F4D0}", color: "#fb8c00", risk: "medium" },
+  ClarityDetect: { icon: "\u{1F3A5}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

@@ -299,6 +299,29 @@ function applyBannerCollapsedState() {
   }
 }
 
+// Build a plain-text tooltip listing the distinct signals that fired
+// for a tracker. Signals come straight from event.method — examples:
+//   "global:fbq", "cookie:_fbp", "script-url:connect.facebook.net/...",
+//   "global-pattern:_fbq", "anomaly:Date.prototype.getTimeAlias".
+// Long URLs are truncated and the list is capped to keep the native
+// title tooltip readable.
+function buildTrackerSignalsTooltip(label, methods) {
+  const MAX_METHODS = 15;
+  const MAX_METHOD_LEN = 90;
+  const lines = [label + " — detected signals:"];
+  const shown = methods.slice(0, MAX_METHODS);
+  for (const m of shown) {
+    const truncated = m.length > MAX_METHOD_LEN
+      ? m.slice(0, MAX_METHOD_LEN - 1) + "…"
+      : m;
+    lines.push("• " + truncated);
+  }
+  if (methods.length > MAX_METHODS) {
+    lines.push("…and " + (methods.length - MAX_METHODS) + " more");
+  }
+  return lines.join("\n");
+}
+
 function updateFingerprintBanner(categories) {
   const banner = document.getElementById("fingerprint-banner");
   if (!banner) return;
@@ -307,13 +330,19 @@ function updateFingerprintBanner(categories) {
   for (const cat of Object.keys(TRACKING_LIBRARY_CATEGORIES)) {
     const events = categories && categories[cat];
     if (events && events.length > 0) {
-      const distinct = new Set(events.map(e => e.method)).size;
-      hits.push({ ...TRACKING_LIBRARY_CATEGORIES[cat], count: distinct });
+      const distinctSet = new Set(events.map(e => e.method));
+      const methods = Array.from(distinctSet).sort();
+      hits.push({
+        ...TRACKING_LIBRARY_CATEGORIES[cat],
+        count: distinctSet.size,
+        methods,
+      });
     }
   }
   if (hits.length === 0) {
     banner.classList.remove("active");
     banner.classList.remove("stacked");
+    banner.removeAttribute("title");
     if (list) {
       list.classList.remove("active");
       list.classList.remove("scrollable");
@@ -331,6 +360,8 @@ function updateFingerprintBanner(categories) {
     if (iconEl) iconEl.textContent = h.icon;
     if (textEl) textEl.textContent = h.label + " detected on this page";
     if (countEl) countEl.textContent = h.count + (h.count === 1 ? " signal" : " signals");
+    // Tooltip on the whole banner — hovering anywhere reveals the signal list.
+    banner.setAttribute("title", buildTrackerSignalsTooltip(h.label, h.methods));
     if (list) {
       list.classList.remove("active");
       list.classList.remove("scrollable");
@@ -342,11 +373,15 @@ function updateFingerprintBanner(categories) {
     if (iconEl) iconEl.textContent = "⚠️";
     if (textEl) textEl.textContent = hits.length + " tracking libraries detected";
     if (countEl) countEl.textContent = "";
+    // Clear any single-tracker tooltip — each row owns its own title in stacked mode.
+    banner.removeAttribute("title");
     if (list) {
       list.innerHTML = "";
       for (const h of hits) {
         const row = document.createElement("div");
         row.className = "banner-row";
+        // Tooltip showing the exact signals for this tracker.
+        row.setAttribute("title", buildTrackerSignalsTooltip(h.label, h.methods));
         const icon = document.createElement("span");
         icon.className = "banner-row-icon";
         icon.textContent = h.icon;

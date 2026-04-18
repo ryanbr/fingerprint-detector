@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -1509,6 +1509,23 @@
           document.head.appendChild(s4);
           setTimeout(() => { try { s4.remove(); } catch (_) {} }, 100);
           results.push("Bing UET: UET/UET_init/uetq/ueto_* globals + _uetsid/_uetvid/_uetmsclkid cookies + _uetsid_exp storage + bat.bing.com URL");
+        } catch (_) { /* noop */ }
+
+        // ── Parse.ly ──────────────────────────────────────────────
+        try {
+          window.PARSELY = window.PARSELY || { config: {}, beacon: {}, __test: true };
+          window._parselyIsTest = true;
+          document.cookie = "_parsely_visitor=test-parsely-visitor; path=/; max-age=60";
+          document.cookie = "_parsely_session=test-parsely-session; path=/; max-age=60";
+          document.cookie = "parsely_uuid=test-legacy-uuid; path=/; max-age=60";
+          localStorage.setItem("pStore-_parsely_visitor", "test-stored-visitor");
+          localStorage.setItem("pStore-_parsely_session", "test-stored-session");
+          const s5 = document.createElement("script");
+          s5.src = "https://cdn.parsely.com/keys/example.com/p.js";
+          s5.onerror = () => {};
+          document.head.appendChild(s5);
+          setTimeout(() => { try { s5.remove(); } catch (_) {} }, 100);
+          results.push("Parse.ly: PARSELY/_parselyIsTest globals + _parsely_visitor/_parsely_session/parsely_uuid cookies + pStore-* storage + cdn.parsely.com URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

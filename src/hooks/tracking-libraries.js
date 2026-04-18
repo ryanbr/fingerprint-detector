@@ -359,6 +359,35 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Parse.ly",
+      category: "ParselyDetect",
+      // Parse.ly (owned by Automattic) — content analytics platform
+      // tracking pageviews, engagement time, scroll depth, video
+      // consumption and conversions. First-party cookies plus
+      // pStore-* localStorage mirrors. Signatures confirmed from
+      // cdn.parsely.com/keys/*/p.js.
+      globals: [
+        "PARSELY",               // primary object
+        "_parselyIsTest",        // test-mode flag
+      ],
+      globalPrefixes: [],
+      keyPatterns: [
+        /^_parsely_visitor$/i,      // visitor id (~395d)
+        /^_parsely_session$/i,      // session (30min)
+        /^_parsely_tpa_blocked$/i,  // third-party analytics blocked flag
+        /^_parsely_slot_click$/i,   // slot click tracking
+        /^parsely_uuid$/i,          // legacy visitor id
+        /^pStore-_?parsely/i,       // localStorage mirrors (pStore-_parsely_visitor etc.)
+      ],
+      scriptSrcPatterns: [
+        /\bcdn\.parsely\.com\b/i,   // primary loader CDN
+        /\bp1\.parsely\.com\b/i,    // beacon host
+        /\/keys\/[^/]+\/p\.js\b/i,  // script path pattern: /keys/<site>/p.js
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

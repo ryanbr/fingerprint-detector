@@ -129,6 +129,7 @@ const CATEGORY_META = {
   ThreatMetrixDetect: { icon: "\u{1F578}\u{FE0F}", color: "#e94560", risk: "high" },
   SpeedCurveLUXDetect: { icon: "\u{26A1}", color: "#fb8c00", risk: "medium" },
   InsiderDetect: { icon: "\u{1F381}", color: "#fb8c00", risk: "medium" },
+  BrightEdgeDetect: { icon: "\u{1F9ED}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

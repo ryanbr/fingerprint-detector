@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -2072,6 +2072,21 @@
           document.head.appendChild(s38);
           setTimeout(() => { try { s38.remove(); } catch (_) {} }, 100);
           results.push("Insider: Insider/InsiderQueue/insider_object/insiderFlow/__INSIDER_SCRIPT_VERSION_* globals + ins_iid/ins_sr cookies + ins-ls/ins-ghost storage + <customer>.api.useinsider.com URL");
+        } catch (_) { /* noop */ }
+
+        // ── BrightEdge Autopilot (SEO platform) ───────────────────
+        try {
+          window.BEIXF = window.BEIXF || function () { /* noop module loader */ };
+          window.BEJSSDK = window.BEJSSDK || { init: () => {}, __test: true };
+          window.BEJSSDKObserver = window.BEJSSDKObserver || { observe: () => {} };
+          window.BELinkBlockGenerator = window.BELinkBlockGenerator || {};
+          window.jsElementReady = true;
+          const s39 = document.createElement("script");
+          s39.src = "https://cdn.bc0a.com/autopilot/f00000000310591/autopilot_sdk.js";
+          s39.onerror = () => {};
+          document.head.appendChild(s39);
+          setTimeout(() => { try { s39.remove(); } catch (_) {} }, 100);
+          results.push("BrightEdge: BEIXF/BEJSSDK/BEJSSDKObserver/BELinkBlockGenerator/jsElementReady globals + cdn.bc0a.com/autopilot/f<id>/autopilot_sdk.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

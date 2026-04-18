@@ -1404,6 +1404,35 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "BrightEdge",
+      category: "BrightEdgeDetect",
+      // BrightEdge Autopilot (legacy name "BC0A") — enterprise SEO
+      // platform that injects optimised content, link blocks and
+      // structured data server-side via an edge-worker model, then
+      // runs an autopilot SDK client-side to measure attribution
+      // and recommend further SEO optimisations. Less
+      // surveillance-focused than typical trackers, but still
+      // third-party code running on publisher pages.
+      globals: [
+        "BEIXF",                     // BrightEdge Instant eXperience Framework (primary)
+        "BEJSSDK",                   // main SDK
+        "BEJSSDKObserver",           // MutationObserver wrapper
+        "BELinkBlockGenerator",      // link-block generator
+        "jsElementReady",            // element-ready signal (distinctive in this context)
+        "nonceForBEScripts",         // CSP nonce passthrough
+      ],
+      globalPrefixes: [],
+      keyPatterns: [],                // no cookies / storage set by the SDK
+      scriptSrcPatterns: [
+        /\bbc0a\.com\b/i,            // legacy / primary CDN (cdn.bc0a.com)
+        /\bbrightedge\.com\b/i,      // company domain
+        /\/autopilot_sdk\.js\b/i,    // distinctive SDK filename
+        /\/autopilot\/f\d+\//i,      // /autopilot/f<customer-id>/ path pattern
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

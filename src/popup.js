@@ -83,6 +83,7 @@ const CATEGORY_META = {
   ThreatMetrixDetect: { icon: "🕸️", color: "#e94560", risk: "high", desc: "ThreatMetrix (LexisNexis) fraud-detection fingerprinting — tmx_profiling_started/tmx_run_page_fingerprinting globals, online-metrix.net, /fp/tags.js + /fp/check.js paths" },
   SpeedCurveLUXDetect: { icon: "⚡", color: "#fb8c00", risk: "medium", desc: "SpeedCurve LUX Real User Monitoring — LUX global (LUX.customerid), speedcurve.com hosts (cdn/lux/assets), /lux.js loader" },
   InsiderDetect: { icon: "🎁", color: "#fb8c00", risk: "medium", desc: "Insider marketing automation + personalization — Insider/InsiderQueue/insider_object globals, ins_* cookies + ins-ghost/ins-ls storage, <customer>.api.useinsider.com CNAMEs" },
+  BrightEdgeDetect: { icon: "🧭", color: "#fb8c00", risk: "medium", desc: "BrightEdge Autopilot SEO platform — BEIXF/BEJSSDK/BELinkBlockGenerator globals, bc0a.com + brightedge.com hosts, /autopilot/f<id>/autopilot_sdk.js" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -217,6 +218,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   ThreatMetrixDetect:     { label: "ThreatMetrix",         icon: "🕸️" },
   SpeedCurveLUXDetect:    { label: "SpeedCurve LUX",       icon: "⚡" },
   InsiderDetect:          { label: "Insider",              icon: "🎁" },
+  BrightEdgeDetect:       { label: "BrightEdge",           icon: "🧭" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

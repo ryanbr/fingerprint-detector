@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM / Elastic APM (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -2193,6 +2193,17 @@
           document.head.appendChild(s47);
           setTimeout(() => { try { s47.remove(); } catch (_) {} }, 100);
           results.push("Adobe Helix RUM: hlx/RUM_BASE/RUM_PARAMS/SAMPLE_PAGEVIEWS_AT_RATE globals + rum.hlx.page/.rum/@adobe/helix-rum-js@<ver>/rum-standalone.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── Elastic APM RUM ───────────────────────────────────────
+        try {
+          window.elasticApm = window.elasticApm || { init: () => {}, captureError: () => {}, __test: true };
+          const s48 = document.createElement("script");
+          s48.src = "https://unpkg.com/@elastic/apm-rum@5.16.0/dist/bundles/elastic-apm-rum.umd.min.js";
+          s48.onerror = () => {};
+          document.head.appendChild(s48);
+          setTimeout(() => { try { s48.remove(); } catch (_) {} }, 100);
+          results.push("Elastic APM: elasticApm global + @elastic/apm-rum NPM + elastic-apm-rum.umd.min.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

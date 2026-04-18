@@ -1646,6 +1646,30 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Elastic APM RUM",
+      category: "ElasticAPMDetect",
+      // Elastic APM Real User Monitoring — the browser agent from
+      // Elastic (part of the ELK stack). Open-source APM
+      // alternative to New Relic / Datadog. Published as NPM
+      // package @elastic/apm-rum. The APM server endpoint is
+      // customer-configured (self-hosted Elastic or Elastic Cloud
+      // at <apm-id>.apm.<region>.cloud.es.io) so URL-only
+      // detection relies on the distinctive NPM package path +
+      // bundle filename.
+      globals: [
+        "elasticApm",                // primary agent global
+      ],
+      globalPrefixes: [],
+      keyPatterns: [],                // Elastic APM uses trace IDs in request headers, not cookies
+      scriptSrcPatterns: [
+        /@elastic\/apm-rum/i,        // NPM path (unpkg / jsdelivr / cdnjs)
+        /\/elastic-apm-rum(?:\.umd)?(?:\.min)?\.js\b/i, // distinctive bundle filename
+        /\.apm\.[a-z0-9-]+\.cloud\.es\.io\b/i, // Elastic Cloud APM host pattern
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

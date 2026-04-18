@@ -102,6 +102,7 @@ const CATEGORY_META = {
   UsercentricsDetect: { icon: "🇪🇺", color: "#fb8c00", risk: "medium", desc: "Usercentrics CMP (German/DACH leader) — UC_UI/UC_UI_SUPPRESS_CMP_DISPLAY/__ucCmp globals, usercentrics-cmp cookie, usercentrics.eu + usercentrics.com, /browser-ui/<ver>/loader.js" },
   SwanDetect: { icon: "🦢", color: "#fb8c00", risk: "medium", desc: "Swan (swan.cx) omnichannel engagement — swan/_swan/swanDeviceId/swanSessionId globals + swan* prefix, click.swan.cx + connect.swan.cx + swan-web-sdk-prod.azureedge.net" },
   GlobalEDetect: { icon: "🛫", color: "#fb8c00", risk: "medium", desc: "Global-e cross-border e-commerce (currency / shipping / duties localization) — GlobalE/GlobalE_Analytics/GlobalE_Analytics_Borderfree globals, global-e.com hosts" },
+  TrueVaultPolarisDetect: { icon: "🌟", color: "#fb8c00", risk: "medium", desc: "TrueVault Polaris privacy / consent — Polaris/TrueVault/polarisOverrideOptions/__rmuspc globals, truevault.com + truevaultcdn.com, /static/pc/<id>/polaris.js" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -255,6 +256,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   UsercentricsDetect:     { label: "Usercentrics",         icon: "🇪🇺" },
   SwanDetect:             { label: "Swan",                 icon: "🦢" },
   GlobalEDetect:          { label: "Global-e",             icon: "🛫" },
+  TrueVaultPolarisDetect: { label: "TrueVault Polaris",    icon: "🌟" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

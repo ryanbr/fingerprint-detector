@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM / Elastic APM / Sentry / Awin / Bazaarvoice / FigPii / iubenda / accessiBe / Usercentrics / Swan / Global-e (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM / Elastic APM / Sentry / Awin / Bazaarvoice / FigPii / iubenda / accessiBe / Usercentrics / Swan / Global-e / TrueVault (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -2334,6 +2334,26 @@
           document.head.appendChild(s57);
           setTimeout(() => { try { s57.remove(); } catch (_) {} }, 100);
           results.push("Global-e: GlobalE/GlobalE_Analytics/GlobalE_Analytics_Borderfree/GlobalE_Analytics_GoogleAds/GlobalE_Analytics_Queue/GlobalE_Analytics_UTMs globals + globale-analytics-sdk.global-e.com/PROD/bundle.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── TrueVault Polaris (privacy / consent) ─────────────────
+        try {
+          window.Polaris = window.Polaris || { init: () => {}, __test: true };
+          window.TrueVault = window.TrueVault || { __test: true };
+          window.polarisOverrideOptions = {
+            orgName: "Test Brand",
+            privacyCenterId: "AO7DGPNKJ",
+            doesSell: false,
+            doesShare: true,
+            __test: true,
+          };
+          window.__rmuspc = window.__rmuspc || function () { /* noop */ };
+          const s58 = document.createElement("script");
+          s58.src = "https://polaris.truevaultcdn.com/static/pc/AO7DGPNKJ/polaris.js";
+          s58.onerror = () => {};
+          document.head.appendChild(s58);
+          setTimeout(() => { try { s58.remove(); } catch (_) {} }, 100);
+          results.push("TrueVault Polaris: Polaris/TrueVault/polarisOverrideOptions/__rmuspc globals + polaris.truevaultcdn.com/static/pc/<id>/polaris.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

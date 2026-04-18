@@ -148,6 +148,7 @@ const CATEGORY_META = {
   UsercentricsDetect: { icon: "\u{1F1EA}\u{1F1FA}", color: "#fb8c00", risk: "medium" },
   SwanDetect: { icon: "\u{1F9A2}", color: "#fb8c00", risk: "medium" },
   GlobalEDetect: { icon: "\u{1F6EB}", color: "#fb8c00", risk: "medium" },
+  TrueVaultPolarisDetect: { icon: "\u{1F31F}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

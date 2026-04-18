@@ -1929,6 +1929,34 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "TrueVault Polaris",
+      category: "TrueVaultPolarisDetect",
+      // TrueVault Polaris — privacy compliance / consent management
+      // platform. TrueVault originally a HIPAA-compliant healthcare
+      // data platform, pivoted to privacy rights management. The
+      // Polaris product covers CCPA / CPRA / GDPR consent,
+      // do-not-sell / do-not-share flags, sensitive data handling
+      // and data-subject-rights automation. SDK at
+      // polaris.truevaultcdn.com/static/pc/<privacyCenterId>/polaris.js.
+      // Intercepts gtag / fbq / dataLayer for consent-gating like
+      // other CMPs.
+      globals: [
+        "Polaris",                   // primary namespace
+        "TrueVault",                 // company namespace
+        "polarisOverrideOptions",    // distinctive config object (orgName, privacyCenterId, doesSell, doesShare flags)
+        "__rmuspc",                  // TrueVault's USPrivacy variant
+      ],
+      globalPrefixes: [],
+      keyPatterns: [],                // consent state stored via standard TCF / USP / GPP APIs rather than distinct named cookies
+      scriptSrcPatterns: [
+        /\btruevault\.com\b/i,       // company domain
+        /\btruevaultcdn\.com\b/i,    // CDN (polaris.truevaultcdn.com)
+        /\/static\/pc\/[A-Z0-9]+\/polaris\.js\b/i, // /static/pc/<privacyCenterId>/polaris.js distinctive path
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

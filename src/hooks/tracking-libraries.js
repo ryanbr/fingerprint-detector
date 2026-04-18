@@ -1903,6 +1903,32 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Global-e",
+      category: "GlobalEDetect",
+      // Global-e — international e-commerce localization platform
+      // covering currency conversion, cross-border shipping, local
+      // payments, taxes / duties. Used by major brands for
+      // internationalised checkouts. Acquired Borderfree in 2018 —
+      // the GlobalE_Analytics_Borderfree global is a vestige of
+      // that integration. Analytics SDK served from
+      // globale-analytics-sdk.global-e.com/PROD/bundle.js.
+      globals: [
+        "GlobalE",                   // primary namespace
+        "GlobalE_Analytics",         // analytics module
+        "GlobalE_Analytics_Borderfree", // Borderfree integration (legacy acquisition)
+        "GlobalE_Analytics_GoogleAds",
+        "GlobalE_Analytics_Queue",
+        "GlobalE_Analytics_UTMs",
+      ],
+      globalPrefixes: [],
+      keyPatterns: [],                // uses GlobalE_Analytics_Queue runtime state rather than named cookies
+      scriptSrcPatterns: [
+        /\bglobal-e\.com\b/i,        // catches globale-analytics-sdk / web / checkout subs
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

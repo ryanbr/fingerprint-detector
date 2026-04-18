@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM / Elastic APM / Sentry / Awin / Bazaarvoice / FigPii / iubenda / accessiBe / Usercentrics / Swan (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM / Elastic APM / Sentry / Awin / Bazaarvoice / FigPii / iubenda / accessiBe / Usercentrics / Swan / Global-e (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -2318,6 +2318,22 @@
           document.head.appendChild(s56);
           setTimeout(() => { try { s56.remove(); } catch (_) {} }, 100);
           results.push("Swan: swan/_swan/swanDeviceId/swanSessionId/swanCredentials globals + swanDeviceId/swanCredentials localStorage + swan-web-sdk-prod.azureedge.net/trackingjs URL");
+        } catch (_) { /* noop */ }
+
+        // ── Global-e (cross-border e-commerce localization) ───────
+        try {
+          window.GlobalE = window.GlobalE || { __test: true };
+          window.GlobalE_Analytics = window.GlobalE_Analytics || { track: () => {}, __test: true };
+          window.GlobalE_Analytics_Queue = window.GlobalE_Analytics_Queue || [];
+          window.GlobalE_Analytics_Borderfree = { __test: true };
+          window.GlobalE_Analytics_GoogleAds = { __test: true };
+          window.GlobalE_Analytics_UTMs = { __test: true };
+          const s57 = document.createElement("script");
+          s57.src = "https://globale-analytics-sdk.global-e.com/PROD/bundle.js";
+          s57.onerror = () => {};
+          document.head.appendChild(s57);
+          setTimeout(() => { try { s57.remove(); } catch (_) {} }, 100);
+          results.push("Global-e: GlobalE/GlobalE_Analytics/GlobalE_Analytics_Borderfree/GlobalE_Analytics_GoogleAds/GlobalE_Analytics_Queue/GlobalE_Analytics_UTMs globals + globale-analytics-sdk.global-e.com/PROD/bundle.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

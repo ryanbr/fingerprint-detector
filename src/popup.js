@@ -93,6 +93,7 @@ const CATEGORY_META = {
   SalesforceMCDetect: { icon: "🌩️", color: "#fb8c00", risk: "medium", desc: "Salesforce Marketing Cloud (ex-ExactTarget/iGoDigital) — _etmc global, igodigital.com + exacttarget.com + marketingcloud.com + exct.net hosts" },
   AdobeHelixRUMDetect: { icon: "🌲", color: "#fb8c00", risk: "medium", desc: "Adobe Helix / AEM Edge Delivery RUM — hlx/RUM_BASE globals, hlx.page + hlx.live + aem.page + aem.live hosts, /helix-rum-js@<ver>/rum-standalone.js" },
   ElasticAPMDetect: { icon: "🔌", color: "#fb8c00", risk: "medium", desc: "Elastic APM RUM (ELK stack) — elasticApm global, @elastic/apm-rum NPM path, elastic-apm-rum.umd.min.js bundle, .apm.<region>.cloud.es.io Elastic Cloud" },
+  SentryDetect: { icon: "🪲", color: "#fb8c00", risk: "medium", desc: "Sentry error monitoring + performance + session replay — Sentry/__SENTRY__/SENTRY_RELEASE globals, sentry-cdn.com + sentry.io (regional ingest)" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -237,6 +238,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   SalesforceMCDetect:     { label: "Salesforce MC",        icon: "🌩️" },
   AdobeHelixRUMDetect:    { label: "Adobe Helix RUM",      icon: "🌲" },
   ElasticAPMDetect:       { label: "Elastic APM",          icon: "🔌" },
+  SentryDetect:           { label: "Sentry",               icon: "🪲" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

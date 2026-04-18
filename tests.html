@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM / Elastic APM (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM / Elastic APM / Sentry (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -2204,6 +2204,19 @@
           document.head.appendChild(s48);
           setTimeout(() => { try { s48.remove(); } catch (_) {} }, 100);
           results.push("Elastic APM: elasticApm global + @elastic/apm-rum NPM + elastic-apm-rum.umd.min.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── Sentry (error monitoring + replay) ────────────────────
+        try {
+          window.Sentry = window.Sentry || { init: () => {}, captureException: () => {}, __test: true };
+          window.__SENTRY__ = window.__SENTRY__ || { version: "9.47.1" };
+          window.SENTRY_RELEASE = { id: "test-release" };
+          const s49 = document.createElement("script");
+          s49.src = "https://browser.sentry-cdn.com/9.47.1/bundle.tracing.replay.min.js";
+          s49.onerror = () => {};
+          document.head.appendChild(s49);
+          setTimeout(() => { try { s49.remove(); } catch (_) {} }, 100);
+          results.push("Sentry: Sentry/__SENTRY__/SENTRY_RELEASE globals + sentry-cdn.com/<ver>/bundle.*.min.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

@@ -1670,6 +1670,35 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Sentry",
+      category: "SentryDetect",
+      // Sentry — major error monitoring + performance tracing +
+      // session replay platform. Open-source, both SaaS and
+      // self-hostable. Loader-script pattern uses customer DSN
+      // hashes (<dsn-hash>.min.js); full SDK comes as feature
+      // bundles (bundle.tracing.replay.min.js with tracing + replay,
+      // bundle.min.js base-only, etc.). Session replay is
+      // rrweb-based (same __rrMutationObserver global as LogRocket
+      // and Noibu). Regional CDN variants: browser.sentry-cdn.com,
+      // js-de.sentry-cdn.com, js-us.sentry-cdn.com.
+      globals: [
+        "Sentry",                    // primary API (Sentry.init, captureException, etc.)
+        "__SENTRY__",                // internal state carrier (has .version, per-version sub-objects)
+        "SENTRY_RELEASE",            // release-version injection target
+      ],
+      globalPrefixes: [],
+      keyPatterns: [],                // Sentry transmits via fetch / sendBeacon — no cookies or localStorage identifiers
+      scriptSrcPatterns: [
+        /\bsentry-cdn\.com\b/i,      // browser / js-de / js-us regional subs
+        /\bsentry\.io\b/i,            // SaaS app + o<id>.ingest.<region>.sentry.io
+        // /bundle*.min.js filename deliberately NOT listed — too
+        // generic on its own (common webpack output name). The
+        // Sentry global + CDN host matches are sufficient.
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

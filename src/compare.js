@@ -139,6 +139,7 @@ const CATEGORY_META = {
   SalesforceMCDetect: { icon: "\u{1F329}\u{FE0F}", color: "#fb8c00", risk: "medium" },
   AdobeHelixRUMDetect: { icon: "\u{1F332}", color: "#fb8c00", risk: "medium" },
   ElasticAPMDetect: { icon: "\u{1F50C}", color: "#fb8c00", risk: "medium" },
+  SentryDetect: { icon: "\u{1FAB2}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

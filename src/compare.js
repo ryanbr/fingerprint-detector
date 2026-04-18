@@ -110,6 +110,7 @@ const CATEGORY_META = {
   KameleoonDetect: { icon: "\u{1F9EA}", color: "#fb8c00", risk: "medium" },
   WebtrekkMappDetect: { icon: "\u{1F1E9}\u{1F1EA}", color: "#fb8c00", risk: "medium" },
   PushlyDetect: { icon: "\u{1F514}", color: "#fb8c00", risk: "medium" },
+  QuantcastDetect: { icon: "\u{1F4D0}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

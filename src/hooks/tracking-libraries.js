@@ -828,6 +828,37 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Quantcast",
+      category: "QuantcastDetect",
+      // Quantcast — combined analytics (Quantcast Measure, served via
+      // quant.js) and CMP (Quantcast Choice, TCF 2.0 / GPP / USP).
+      // One of the oldest publisher trackers on the web. Classic
+      // _qevents.push({qacct:"..."}) tag pattern plus the __qca
+      // first-party cookie with 30-year TTL. Beacons to
+      // pixel.quantcount.com / pixel.quantserve.com, rules engine
+      // at rules.quantcount.com.
+      globals: [
+        "__qc",                  // main API object
+        "_qevents",              // event queue
+        "quantserve",            // legacy alias
+        "_qmeta",                // metadata carrier
+      ],
+      globalPrefixes: [],
+      keyPatterns: [
+        /^__qca$/,               // primary 30-year ID cookie
+        /^_qcses_/i,             // _qcses_<pcode> session
+        /^__qcdbgc$/,            // debug flag
+      ],
+      scriptSrcPatterns: [
+        /\bquantserve\.com\b/i,  // main host family (secure / pixel / legacy)
+        /\bquantcount\.com\b/i,  // pixel + rules hosts
+        /\/quant\.js\b/i,         // distinctive tag filename
+        /\/rules-[^/]+\.js\b/i,   // dynamic rule loader filename
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

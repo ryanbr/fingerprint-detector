@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -1768,6 +1768,23 @@
           document.head.appendChild(s19);
           setTimeout(() => { try { s19.remove(); } catch (_) {} }, 100);
           results.push("Pushly: Pushly/PushlySDK globals + _pn_<8char> cookie + pn_ll storage + cdn.p-n.io/pushly-sw.min.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── Quantcast (Measure + Choice CMP) ──────────────────────
+        try {
+          window._qevents = window._qevents || [];
+          window._qevents.push({ qacct: "p-TESTACCOUNT" });
+          window.__qc = window.__qc || { __test: true };
+          window.quantserve = window.quantserve || function () { /* noop */ };
+          document.cookie = "__qca=P0-123456789-1700000000000; path=/; max-age=60";
+          document.cookie = "_qcses_p-TESTACCOUNT=test-session; path=/; max-age=60";
+          localStorage.setItem("__qca", "P0-123456789-1700000000000");
+          const s20 = document.createElement("script");
+          s20.src = "https://secure.quantserve.com/quant.js";
+          s20.onerror = () => {};
+          document.head.appendChild(s20);
+          setTimeout(() => { try { s20.remove(); } catch (_) {} }, 100);
+          results.push("Quantcast: _qevents/__qc/quantserve globals + __qca/_qcses_* cookies + __qca localStorage + secure.quantserve.com/quant.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -1908,6 +1908,24 @@
           document.head.appendChild(s28);
           setTimeout(() => { try { s28.remove(); } catch (_) {} }, 100);
           results.push("HubSpot: _hsq/hbspt/hsVars globals + __hstc/__hssc/__hsfp/hubspotutk cookies + js.hscta.net/cta/current.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── LinkedIn Insight Tag ──────────────────────────────────
+        try {
+          window._linkedin_data_partner_ids = window._linkedin_data_partner_ids || [];
+          window._linkedin_data_partner_ids.push("1234567");
+          window._linkedin_partner_id = "1234567";
+          window.lintrk = window.lintrk || function () { (window.lintrk.q = window.lintrk.q || []).push(arguments); };
+          window._lintrk = window._lintrk || {};
+          window._already_called_lintrk = true;
+          document.cookie = "li_fat_id=test-linkedin-fat; path=/; max-age=60";
+          document.cookie = "li_gc=test-guest-consent; path=/; max-age=60";
+          const s29 = document.createElement("script");
+          s29.src = "https://snap.licdn.com/li.lms-analytics/insight.min.js";
+          s29.onerror = () => {};
+          document.head.appendChild(s29);
+          setTimeout(() => { try { s29.remove(); } catch (_) {} }, 100);
+          results.push("LinkedIn: lintrk/_lintrk/_linkedin_data_partner_ids globals + li_fat_id/li_gc cookies + snap.licdn.com/li.lms-analytics/insight.min.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

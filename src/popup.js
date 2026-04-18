@@ -73,6 +73,7 @@ const CATEGORY_META = {
   ChartbeatDetect: { icon: "📡", color: "#fb8c00", risk: "medium", desc: "Chartbeat real-time publisher analytics — _sf_async_config/pSUPERFLY globals, cb_* cookies, static.chartbeat.com loader + ping.chartbeat.net beacon" },
   ZiffDavisDetect: { icon: "🗞️", color: "#fb8c00", risk: "medium", desc: "Ziff Davis consent wrapper (ZDNet, PCMag, IGN, Mashable, Speedtest) — zdconsent/_ZDCABADML/_ZDCCOMSCORE globals, ziffstatic.com + ziffdavis.com hosts, /zdconsent.js" },
   HubSpotDetect: { icon: "🧲", color: "#fb8c00", risk: "medium", desc: "HubSpot CRM + marketing automation — _hsq/hbspt globals, __hstc/__hssc/__hsfp/hubspotutk cookies, hubspot.com + hscta.net + hsforms.net + hs-scripts.com + hs-analytics.net hosts" },
+  LinkedInInsightDetect: { icon: "💼", color: "#fb8c00", risk: "medium", desc: "LinkedIn Insight Tag (B2B retargeting) — lintrk/_linkedin_data_partner_id* globals, li_fat_id/li_gc/li_mc cookies, snap.licdn.com + px.ads.linkedin.com + dc.ads.linkedin.com" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -197,6 +198,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   ChartbeatDetect:        { label: "Chartbeat",            icon: "📡" },
   ZiffDavisDetect:        { label: "Ziff Davis",           icon: "🗞️" },
   HubSpotDetect:          { label: "HubSpot",              icon: "🧲" },
+  LinkedInInsightDetect:  { label: "LinkedIn Insight",     icon: "💼" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

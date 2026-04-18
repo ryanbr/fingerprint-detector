@@ -1094,6 +1094,41 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "LinkedIn Insight Tag",
+      category: "LinkedInInsightDetect",
+      // LinkedIn Insight Tag — LinkedIn's marketing analytics and
+      // retargeting pixel. Used by B2B marketers for website-visitor
+      // tracking, audience building and conversion measurement on
+      // LinkedIn ad campaigns. Loader at
+      // snap.licdn.com/li.lms-analytics/insight.min.js, pixel/beacon
+      // traffic to px.ads.linkedin.com and dc.ads.linkedin.com.
+      globals: [
+        "lintrk",                    // public event API (window.lintrk('track', {...}))
+        "_lintrk",                   // internal queue
+        "_linkedin_data_partner_id", // legacy single partner ID
+        "_linkedin_data_partner_ids", // newer multi-partner array
+        "_already_called_lintrk",
+        "_wait_for_lintrk",
+        "ORIBILI",                   // internal LinkedIn namespace
+      ],
+      globalPrefixes: [],
+      keyPatterns: [
+        /^li_fat_id$/i,              // primary first-party ID (also forwarded by Meta Pixel)
+        /^li_gc$/i,                  // guest consent
+        /^li_mc$/i,                  // member consent
+      ],
+      scriptSrcPatterns: [
+        /\bsnap\.licdn\.com\b/i,     // primary CDN loader host
+        /\blicdn\.com\b/i,            // fallback
+        /\bpx\.ads\.linkedin\.com\b/i, // pixel beacon
+        /\bdc\.ads\.linkedin\.com\b/i, // data collection
+        /\/li\.lms-analytics\//i,     // distinctive tag path
+        /\/insight(?:\.min)?\.js\b/i, // insight.min.js filename
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

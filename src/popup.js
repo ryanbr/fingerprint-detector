@@ -67,6 +67,7 @@ const CATEGORY_META = {
   QuantcastDetect: { icon: "📐", color: "#fb8c00", risk: "medium", desc: "Quantcast Measure + Choice CMP — __qc/_qevents/quantserve globals, __qca/_qcses_* cookies, quantserve.com + quantcount.com hosts, quant.js + rules-<pcode>.js" },
   ClarityDetect: { icon: "🎥", color: "#fb8c00", risk: "medium", desc: "Microsoft Clarity session replay + heatmaps — clarity global, _clck/_clsk/CLID cookies, clarity.ms loader (www/scripts/c/j/k/l subs)" },
   RUMVisionDetect: { icon: "👁️", color: "#fb8c00", risk: "medium", desc: "RUM Vision Core Web Vitals monitoring — no cookies/globals, URL-only: rumvision.com + /RUM-<hex>/v<digit>-<domain>.js CloudFront build path" },
+  NativoDetect: { icon: "🪶", color: "#fb8c00", risk: "medium", desc: "Nativo (formerly PostRelease) native advertising — Nativo/nativoSDK/ntv/ntvConfig globals, ntv.io + postrelease.com hosts, /serve/load.js loader" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -185,6 +186,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   QuantcastDetect:        { label: "Quantcast",            icon: "📐" },
   ClarityDetect:          { label: "Microsoft Clarity",    icon: "🎥" },
   RUMVisionDetect:        { label: "RUM Vision",           icon: "👁️" },
+  NativoDetect:           { label: "Nativo",               icon: "🪶" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

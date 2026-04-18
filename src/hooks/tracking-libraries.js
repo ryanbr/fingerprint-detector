@@ -909,6 +909,34 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Nativo",
+      category: "NativoDetect",
+      // Nativo (formerly PostRelease) — native advertising platform
+      // used by major publishers (Forbes, Time, NBC, CBS, etc.).
+      // Primary loader at s.ntv.io/serve/load.js (~900KB bundle
+      // including jQuery 2.1.1). Tracks ad viewability, impressions,
+      // clicks; integrates with header-bidding stacks.
+      globals: [
+        "Nativo",                    // main namespace
+        "nativoSDK",                 // SDK entry
+        "ntv",                       // short alias
+        "ntvConfig",
+        "ntvArticleTracker",
+        "ntvToutAds",
+        "ntvViewableImpressionTracker",
+        "PostRelease",               // legacy pre-rebrand global
+      ],
+      globalPrefixes: [],
+      keyPatterns: [],                // Nativo relies on header-bidding partner cookies, doesn't set distinctive first-party cookies
+      scriptSrcPatterns: [
+        /\bntv\.io\b/i,              // all subs (s / serve / cache / static)
+        /\bpostrelease\.com\b/i,     // legacy company domain
+        /\/serve\/load\.js\b/i,      // distinctive loader path
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

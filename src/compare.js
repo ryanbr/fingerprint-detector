@@ -113,6 +113,7 @@ const CATEGORY_META = {
   QuantcastDetect: { icon: "\u{1F4D0}", color: "#fb8c00", risk: "medium" },
   ClarityDetect: { icon: "\u{1F3A5}", color: "#fb8c00", risk: "medium" },
   RUMVisionDetect: { icon: "\u{1F441}\u{FE0F}", color: "#fb8c00", risk: "medium" },
+  NativoDetect: { icon: "\u{1FAB6}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

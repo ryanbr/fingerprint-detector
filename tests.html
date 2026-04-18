@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -1812,6 +1812,21 @@
           document.head.appendChild(s22);
           setTimeout(() => { try { s22.remove(); } catch (_) {} }, 100);
           results.push("RUM Vision: CloudFront /RUM-<hex>/v<digit>-<domain>.js path");
+        } catch (_) { /* noop */ }
+
+        // ── Nativo (native advertising) ───────────────────────────
+        try {
+          window.Nativo = window.Nativo || { __test: true };
+          window.nativoSDK = window.nativoSDK || { __test: true };
+          window.ntv = window.ntv || {};
+          window.ntvConfig = window.ntvConfig || { __test: true };
+          window.PostRelease = window.PostRelease || { Start: () => {}, __test: true };
+          const s23 = document.createElement("script");
+          s23.src = "https://s.ntv.io/serve/load.js";
+          s23.onerror = () => {};
+          document.head.appendChild(s23);
+          setTimeout(() => { try { s23.remove(); } catch (_) {} }, 100);
+          results.push("Nativo: Nativo/nativoSDK/ntv/ntvConfig/PostRelease globals + s.ntv.io/serve/load.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

@@ -1590,6 +1590,34 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Salesforce Marketing Cloud",
+      category: "SalesforceMCDetect",
+      // Salesforce Marketing Cloud — email + customer journey +
+      // personalization platform. Heritage: iGoDigital (acquired
+      // 2012 by ExactTarget) → ExactTarget (acquired 2013 by
+      // Salesforce) → now SFMC. The _etmc global (ExactTarget
+      // Marketing Cloud) persisted across all rebrands and is the
+      // stable detection signal. collect.js served from a
+      // customer-prefixed igodigital.com subdomain (legacy brand
+      // still used for the collection endpoint).
+      globals: [
+        "_etmc",                     // ExactTarget Marketing Cloud queue (_etmc.push([...]))
+      ],
+      globalPrefixes: [],
+      keyPatterns: [],                // cookies set server-side by the collect endpoint; no deterministic client-side name
+      scriptSrcPatterns: [
+        /\bigodigital\.com\b/i,      // legacy iGoDigital host (customer <id>.collect.igodigital.com)
+        /\bexacttarget\.com\b/i,     // ExactTarget legacy host
+        /\bmarketingcloud\.com\b/i,  // SFMC main domain (mc.*, pub.*)
+        /\bexct\.net\b/i,            // ExactTarget click-tracking host
+        // Note: /collect.js filename is deliberately NOT listed —
+        // too generic (also used by Noibu at cdn.noibu.com). Host
+        // patterns + the _etmc global are enough.
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

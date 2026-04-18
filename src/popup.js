@@ -90,6 +90,7 @@ const CATEGORY_META = {
   AdobeCommerceEventsDetect: { icon: "🛍️", color: "#fb8c00", risk: "medium", desc: "Adobe Commerce (Magento) Storefront Events — magentoStorefrontEvents/magentoStorefrontEventCollector globals, @adobe/magento-storefront-event-collector NPM path, Snowplow-powered" },
   AdobeCommerceRecsDetect: { icon: "✨", color: "#fb8c00", risk: "medium", desc: "Adobe Commerce Product Recommendations (Sensei AI) — RecommendationsClient global, magento-recs-sdk.adobe.net + @magento/recommendations-js-sdk NPM" },
   OsanoDetect: { icon: "🥠", color: "#fb8c00", risk: "medium", desc: "Osano cookie consent platform — Osano global (Osano.cm/.data), osano_consentmanager cookie + osano-cm-* markers, cmp.osano.com/osano.js" },
+  SalesforceMCDetect: { icon: "🌩️", color: "#fb8c00", risk: "medium", desc: "Salesforce Marketing Cloud (ex-ExactTarget/iGoDigital) — _etmc global, igodigital.com + exacttarget.com + marketingcloud.com + exct.net hosts" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -231,6 +232,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   AdobeCommerceEventsDetect: { label: "Adobe Commerce Events", icon: "🛍️" },
   AdobeCommerceRecsDetect: { label: "Adobe Commerce Recs",    icon: "✨" },
   OsanoDetect:            { label: "Osano",                icon: "🥠" },
+  SalesforceMCDetect:     { label: "Salesforce MC",        icon: "🌩️" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -2166,6 +2166,19 @@
           document.head.appendChild(s45);
           setTimeout(() => { try { s45.remove(); } catch (_) {} }, 100);
           results.push("Osano: Osano global (Osano.cm/Osano.data) + osano_consentmanager cookie + osano-cm-initialized storage + cmp.osano.com/<cust>/<uuid>/osano.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── Salesforce Marketing Cloud (ex-ExactTarget/iGoDigital) ─
+        try {
+          window._etmc = window._etmc || [];
+          window._etmc.push(["setOrgId", "526003215"]);
+          window._etmc.push(["trackPageView"]);
+          const s46 = document.createElement("script");
+          s46.src = "https://526003215.collect.igodigital.com/collect.js";
+          s46.onerror = () => {};
+          document.head.appendChild(s46);
+          setTimeout(() => { try { s46.remove(); } catch (_) {} }, 100);
+          results.push("Salesforce MC: _etmc global + <customerID>.collect.igodigital.com/collect.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

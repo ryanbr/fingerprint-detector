@@ -127,6 +127,7 @@ const CATEGORY_META = {
   AkamaiMPulseDetect: { icon: "\u{1FA83}", color: "#fb8c00", risk: "medium" },
   LogRocketDetect: { icon: "\u{1F680}", color: "#fb8c00", risk: "medium" },
   ThreatMetrixDetect: { icon: "\u{1F578}\u{FE0F}", color: "#e94560", risk: "high" },
+  SpeedCurveLUXDetect: { icon: "\u{26A1}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

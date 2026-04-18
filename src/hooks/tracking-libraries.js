@@ -1350,6 +1350,26 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "SpeedCurve LUX",
+      category: "SpeedCurveLUXDetect",
+      // SpeedCurve LUX — Real User Monitoring for performance
+      // (competitor to Akamai mPulse / New Relic Browser / RUM
+      // Vision). Very small loader (~11KB), minimal surface. Pairs
+      // with SpeedCurve's synthetic monitoring service for full-
+      // funnel performance visibility.
+      globals: [
+        "LUX",                       // primary namespace (LUX.customerid, LUX.samplerate, LUX.init)
+      ],
+      globalPrefixes: [],
+      keyPatterns: [],                // no cookies set by the loader
+      scriptSrcPatterns: [
+        /\bspeedcurve\.com\b/i,      // catches cdn / lux / assets subs
+        /\/lux\.js\b/i,               // distinctive loader filename
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

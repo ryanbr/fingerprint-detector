@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -2042,6 +2042,17 @@
           document.head.appendChild(s36);
           setTimeout(() => { try { s36.remove(); } catch (_) {} }, 100);
           results.push("ThreatMetrix: tmx_profiling_started/tmx_run_page_fingerprinting/tmx_tags_iframe_marker/tmx_post_session_params_fixed globals + online-metrix.net/fp/tags.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── SpeedCurve LUX (RUM) ──────────────────────────────────
+        try {
+          window.LUX = window.LUX || { customerid: "53932250", samplerate: 1, init: () => {}, __test: true };
+          const s37 = document.createElement("script");
+          s37.src = "https://cdn.speedcurve.com/js/lux.js?id=53932250";
+          s37.onerror = () => {};
+          document.head.appendChild(s37);
+          setTimeout(() => { try { s37.remove(); } catch (_) {} }, 100);
+          results.push("SpeedCurve LUX: LUX global (with .customerid/.samplerate) + cdn.speedcurve.com/js/lux.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

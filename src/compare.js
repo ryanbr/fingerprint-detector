@@ -104,6 +104,7 @@ const CATEGORY_META = {
   TealiumDetect: { icon: "\u{1F3F7}\u{FE0F}", color: "#fb8c00", risk: "medium" },
   WPComStatsDetect: { icon: "\u{1F4DD}", color: "#fb8c00", risk: "medium" },
   ScorecardResearchDetect: { icon: "\u{1F4FA}", color: "#fb8c00", risk: "medium" },
+  GoogleTagDetect: { icon: "\u{1F50E}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

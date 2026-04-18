@@ -58,6 +58,7 @@ const CATEGORY_META = {
   TealiumDetect:   { icon: "🏷️", color: "#fb8c00", risk: "medium", desc: "Tealium iQ (utag.js) tag manager — utag/utag_data globals, utag_main_* cookies, tealium_va storage, tiqcdn.com + /utag/ path + customer CNAME deployments" },
   WPComStatsDetect: { icon: "📝", color: "#fb8c00", risk: "medium", desc: "WordPress.com / Jetpack Stats — _stq/wpcom globals, stats.wp.com loader, pixel.wp.com/g.gif beacon, /e-<siteID>.js filename" },
   ScorecardResearchDetect: { icon: "📺", color: "#fb8c00", risk: "medium", desc: "Comscore ScorecardResearch audience measurement — COMSCORE/_comscore globals, _scor_uid cookie, scorecardresearch.com/beacon.js loader" },
+  GoogleTagDetect: { icon: "🔎", color: "#fb8c00", risk: "medium", desc: "Google Tag Manager + Google tag (gtag.js) — gtag/dataLayer/google_tag_manager globals, _ga/_ga_*/_gid/_gat cookies, googletagmanager.com + google-analytics.com + doubleclick.net" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -167,6 +168,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   TealiumDetect:          { label: "Tealium iQ",           icon: "🏷️" },
   WPComStatsDetect:       { label: "WordPress.com Stats",  icon: "📝" },
   ScorecardResearchDetect: { label: "ScorecardResearch",   icon: "📺" },
+  GoogleTagDetect:        { label: "Google Tag / GA",      icon: "🔎" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

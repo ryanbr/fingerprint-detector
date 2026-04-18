@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -1662,6 +1662,24 @@
           document.head.appendChild(s13);
           setTimeout(() => { try { s13.remove(); } catch (_) {} }, 100);
           results.push("Comscore: COMSCORE/_comscore globals + _scor_uid cookie + scorecardresearch.com/beacon.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── Google Tag / GA4 ──────────────────────────────────────
+        try {
+          window.dataLayer = window.dataLayer || [];
+          window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
+          window.google_tag_manager = window.google_tag_manager || { "GTM-TESTEST": { __test: true } };
+          window.google_tag_data = window.google_tag_data || { __test: true };
+          document.cookie = "_ga=GA1.2.1234567890.1700000000; path=/; max-age=60";
+          document.cookie = "_ga_TESTSTREAM=GS1.1.1700000000.1.0.1700000000.0.0.0; path=/; max-age=60";
+          document.cookie = "_gid=GA1.2.9876543210.1700000000; path=/; max-age=60";
+          document.cookie = "_gat_gtag_UA_12345_1=1; path=/; max-age=60";
+          const s14 = document.createElement("script");
+          s14.src = "https://www.googletagmanager.com/gtag/js?id=G-TESTSTREAM";
+          s14.onerror = () => {};
+          document.head.appendChild(s14);
+          setTimeout(() => { try { s14.remove(); } catch (_) {} }, 100);
+          results.push("Google Tag: gtag/dataLayer/google_tag_manager globals + _ga/_ga_*/_gid/_gat_gtag_* cookies + googletagmanager.com URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

@@ -626,6 +626,48 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Google Tag / Analytics",
+      category: "GoogleTagDetect",
+      // Google Tag Manager (gtm.js) + Google tag (gtag.js) — the
+      // most widely deployed tag loader on the web. Covers Google
+      // Analytics 4, Universal Analytics (legacy), Google Ads,
+      // Campaign Manager / Floodlight, and serves as the loader
+      // for the dataLayer + gtag() API. First-party cookies + UA
+      // hints, not an entropy collector. Beacons to /g/collect
+      // (GA4) and /collect (UA legacy).
+      globals: [
+        "gtag",                  // GA4 API function
+        "dataLayer",             // tag event queue (array)
+        "google_tag_manager",    // GTM container object (keyed by GTM-XXXX)
+        "google_tag_data",       // GTM runtime state
+        "ga",                    // legacy Universal Analytics
+        "_gaq",                  // very legacy ga.js queue
+      ],
+      globalPrefixes: [],
+      keyPatterns: [
+        /^_ga$/i,                // GA client ID
+        /^_ga_/i,                // _ga_<stream-id> GA4 session
+        /^_gid$/i,               // UA session
+        /^_gat$/i,                // UA throttle
+        /^_gat_gtag_/i,           // gtag throttle
+        /^_gac_/i,                // Google Ads conversion linker
+        /^_dc_gtm_/i,             // GTM debug counter
+      ],
+      scriptSrcPatterns: [
+        /\bgoogletagmanager\.com\b/i,        // gtm.js + gtag loader
+        /\bgoogle-analytics\.com\b/i,        // legacy GA endpoints (/collect, /analytics.js)
+        /\banalytics\.google\.com\b/i,       // GA4 reporting + some tag paths
+        /\bgoogleads\.g\.doubleclick\.net\b/i, // Google Ads conversion
+        /\bstats\.g\.doubleclick\.net\b/i,    // GA conversion linker
+        /\/gtag\/js\b/i,                      // gtag loader path
+        /\/gtm\.js\b/i,                       // GTM container
+        /\/analytics\.js\b/i,                  // legacy UA loader
+        /\/ga\.js\b/i,                         // ancient GA loader
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

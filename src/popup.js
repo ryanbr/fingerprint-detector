@@ -94,6 +94,7 @@ const CATEGORY_META = {
   AdobeHelixRUMDetect: { icon: "🌲", color: "#fb8c00", risk: "medium", desc: "Adobe Helix / AEM Edge Delivery RUM — hlx/RUM_BASE globals, hlx.page + hlx.live + aem.page + aem.live hosts, /helix-rum-js@<ver>/rum-standalone.js" },
   ElasticAPMDetect: { icon: "🔌", color: "#fb8c00", risk: "medium", desc: "Elastic APM RUM (ELK stack) — elasticApm global, @elastic/apm-rum NPM path, elastic-apm-rum.umd.min.js bundle, .apm.<region>.cloud.es.io Elastic Cloud" },
   SentryDetect: { icon: "🪲", color: "#fb8c00", risk: "medium", desc: "Sentry error monitoring + performance + session replay — Sentry/__SENTRY__/SENTRY_RELEASE globals, sentry-cdn.com + sentry.io (regional ingest)" },
+  AwinDetect: { icon: "🪟", color: "#fb8c00", risk: "medium", desc: "Awin (ex-Affiliate Window/Zanox) affiliate network — AWIN/D9v globals, AWC/aw_* cookies, dwin1.com + dwin2.com + awin1.com + sciencebehindecommerce.com" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -239,6 +240,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   AdobeHelixRUMDetect:    { label: "Adobe Helix RUM",      icon: "🌲" },
   ElasticAPMDetect:       { label: "Elastic APM",          icon: "🔌" },
   SentryDetect:           { label: "Sentry",               icon: "🪲" },
+  AwinDetect:             { label: "Awin",                 icon: "🪟" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

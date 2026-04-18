@@ -1699,6 +1699,39 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Awin",
+      category: "AwinDetect",
+      // Awin — major affiliate network, dominant in Europe / UK.
+      // Heritage: Affiliate Window → Zanox → merged as Awin in
+      // 2017. The dwin1.com host ("Digital Window 1") dates back to
+      // the Affiliate Window era and is still the primary tracking
+      // domain. Publisher tag served at www.dwin1.com/<advertiser
+      // -id>.js. Includes Device9 fraud-detection integration
+      // (window.D9v, loaded from the.sciencebehindecommerce.com —
+      // an Awin-owned subsidiary).
+      globals: [
+        "AWIN",                      // primary namespace (AWIN.Tracking.*)
+        "D9v",                       // Device9 fraud-detection integration
+        "AwinCustomEvent",           // custom event constructor
+      ],
+      globalPrefixes: [],
+      keyPatterns: [
+        /^AWC$/,                     // Awin Click Cookie (primary)
+        /^aw_affid$/,                // advertiser ID
+        /^aw_basket$/,               // basket tracking
+        /^aw_publisherid$/,          // publisher ID
+      ],
+      scriptSrcPatterns: [
+        /\bdwin1\.com\b/i,           // primary tracking host (www.dwin1.com/<id>.js)
+        /\bdwin2\.com\b/i,           // secondary
+        /\bawin1\.com\b/i,            // click-redirector (/cread.php)
+        /\bawin\.com\b/i,             // company site
+        /\bsciencebehindecommerce\.com\b/i, // Device9 fraud-detection subsidiary
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

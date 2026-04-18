@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM / Elastic APM / Sentry (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM / Elastic APM / Sentry / Awin (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -2217,6 +2217,21 @@
           document.head.appendChild(s49);
           setTimeout(() => { try { s49.remove(); } catch (_) {} }, 100);
           results.push("Sentry: Sentry/__SENTRY__/SENTRY_RELEASE globals + sentry-cdn.com/<ver>/bundle.*.min.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── Awin (affiliate network, ex-Affiliate Window / Zanox) ─
+        try {
+          window.AWIN = window.AWIN || { Tracking: { metadata: {}, setFlag: () => {}, getFlag: () => true }, __test: true };
+          window.D9v = window.D9v || { __test: true };
+          document.cookie = "AWC=test-awin-click; path=/; max-age=60";
+          document.cookie = "aw_affid=123836; path=/; max-age=60";
+          document.cookie = "aw_publisherid=test-pub; path=/; max-age=60";
+          const s50 = document.createElement("script");
+          s50.src = "https://www.dwin1.com/123836.js";
+          s50.onerror = () => {};
+          document.head.appendChild(s50);
+          setTimeout(() => { try { s50.remove(); } catch (_) {} }, 100);
+          results.push("Awin: AWIN/D9v globals + AWC/aw_affid/aw_publisherid cookies + www.dwin1.com/<advertiserID>.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

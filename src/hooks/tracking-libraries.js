@@ -1810,6 +1810,30 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "accessiBe",
+      category: "AccessiBeDetect",
+      // accessiBe — accessibility overlay widget. Controversial in
+      // the accessibility community (many disability advocates and
+      // screen-reader users argue overlays don't meaningfully
+      // improve accessibility and can actively interfere with
+      // assistive tech), but still widely deployed across SMBs and
+      // e-commerce. Worth flagging so users can see when a site is
+      // relying on an automated overlay rather than building
+      // accessibility in. Also has its own telemetry back-channel.
+      globals: [
+        "accessiBe",                 // primary namespace
+        "acsb",                      // short-form alias (848 refs in the bundle)
+      ],
+      globalPrefixes: ["acsb"],      // catches hundreds of acsb* state / event globals
+      keyPatterns: [],                // no distinctive cookies set by the loader itself
+      scriptSrcPatterns: [
+        /\bacsbapp\.com\b/i,         // app CDN
+        /\baccessibe\.com\b/i,       // company domain
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

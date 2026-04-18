@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM / Elastic APM / Sentry / Awin / Bazaarvoice / FigPii / iubenda (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM / Elastic APM / Sentry / Awin / Bazaarvoice / FigPii / iubenda / accessiBe (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -2273,6 +2273,20 @@
           document.head.appendChild(s53);
           setTimeout(() => { try { s53.remove(); } catch (_) {} }, 100);
           results.push("iubenda: _iub/_iub_cs globals + _iub_cs-<id> cookie + cs.iubenda.com/sync/<id>.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── accessiBe (accessibility overlay) ─────────────────────
+        try {
+          window.accessiBe = window.accessiBe || { __test: true };
+          window.acsb = window.acsb || { init: () => {}, __test: true };
+          window.acsbDefault = { __test: true };
+          window.acsbContent = { __test: true };
+          const s54 = document.createElement("script");
+          s54.src = "https://acsbapp.com/apps/app/dist/js/app.js";
+          s54.onerror = () => {};
+          document.head.appendChild(s54);
+          setTimeout(() => { try { s54.remove(); } catch (_) {} }, 100);
+          results.push("accessiBe: accessiBe/acsb/acsbDefault/acsbContent globals + acsbapp.com/apps/app/dist/js/app.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

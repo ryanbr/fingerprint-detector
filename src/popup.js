@@ -98,6 +98,7 @@ const CATEGORY_META = {
   BazaarvoiceDetect: { icon: "⭐", color: "#fb8c00", risk: "medium", desc: "Bazaarvoice product reviews / ratings / UGC — BV/BVBRANDID globals, bazaarvoice.com hosts (analytics-static.ugc / apps / display.ugc), /bv-analytics.js loader" },
   FigPiiDetect: { icon: "🧫", color: "#fb8c00", risk: "medium", desc: "FigPii (ex-Pii) A/B testing + CRO + session recording — FIGPII_* globals, figpii.com hosts (tracking-cdn / api)" },
   IubendaDetect: { icon: "🇮🇹", color: "#fb8c00", risk: "medium", desc: "iubenda privacy / cookie consent (Italian CMP) — _iub/_iub_cs globals, _iub_cs-<id> cookie, cs.iubenda.com + cdn.iubenda.com hosts" },
+  AccessiBeDetect: { icon: "♿", color: "#fb8c00", risk: "medium", desc: "accessiBe accessibility overlay widget — accessiBe/acsb globals + acsb* prefix, acsbapp.com + accessibe.com hosts" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -247,6 +248,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   BazaarvoiceDetect:      { label: "Bazaarvoice",          icon: "⭐" },
   FigPiiDetect:           { label: "FigPii",               icon: "🧫" },
   IubendaDetect:          { label: "iubenda",              icon: "🇮🇹" },
+  AccessiBeDetect:        { label: "accessiBe",            icon: "♿" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

@@ -96,6 +96,7 @@ const CATEGORY_META = {
   MetaPixelDetect: { icon: "\u{1F4D8}", color: "#fb8c00", risk: "medium" },
   BingUETDetect: { icon: "\u{1F171}\u{FE0F}", color: "#fb8c00", risk: "medium" },
   ParselyDetect: { icon: "\u{1F4F0}", color: "#fb8c00", risk: "medium" },
+  NewRelicBrowserDetect: { icon: "\u{1F4C8}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

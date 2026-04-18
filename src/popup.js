@@ -50,6 +50,7 @@ const CATEGORY_META = {
   MetaPixelDetect: { icon: "📘", color: "#fb8c00", risk: "medium", desc: "Meta / Facebook Pixel — fbq/_fbq globals, _fbp/_fbc/_fbleid cookies, fbclid URL param, connect.facebook.net loader" },
   BingUETDetect:   { icon: "🅱️", color: "#fb8c00", risk: "medium", desc: "Microsoft Bing UET — UET/UET_init globals, _uetsid/_uetvid/_uetmsclkid cookies, bat.bing.com/bat.js loader" },
   ParselyDetect:   { icon: "📰", color: "#fb8c00", risk: "medium", desc: "Parse.ly content analytics — PARSELY global, _parsely_visitor/_parsely_session cookies, pStore-* storage, cdn.parsely.com loader" },
+  NewRelicBrowserDetect: { icon: "📈", color: "#fb8c00", risk: "medium", desc: "New Relic Browser APM agent — NREUM/newrelic globals, NREUM_SESSION_ID storage, bam.nr-data.net beacon, js-agent.newrelic.com loader" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -151,6 +152,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   MetaPixelDetect:        { label: "Meta Pixel",           icon: "📘" },
   BingUETDetect:          { label: "Bing UET",             icon: "🅱️" },
   ParselyDetect:          { label: "Parse.ly",             icon: "📰" },
+  NewRelicBrowserDetect:  { label: "New Relic Browser",    icon: "📈" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

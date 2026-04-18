@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -1526,6 +1526,19 @@
           document.head.appendChild(s5);
           setTimeout(() => { try { s5.remove(); } catch (_) {} }, 100);
           results.push("Parse.ly: PARSELY/_parselyIsTest globals + _parsely_visitor/_parsely_session/parsely_uuid cookies + pStore-* storage + cdn.parsely.com URL");
+        } catch (_) { /* noop */ }
+
+        // ── New Relic Browser Agent ───────────────────────────────
+        try {
+          window.NREUM = window.NREUM || { init: {}, info: { beacon: "bam.nr-data.net" }, loader_config: {}, __test: true };
+          window.newrelic = window.newrelic || { addPageAction: () => {}, __test: true };
+          try { sessionStorage.setItem("NREUM_SESSION_ID", "0123456789abcdef"); } catch (_) {}
+          const s6 = document.createElement("script");
+          s6.src = "https://js-agent.newrelic.com/nr-spa-1226.min.js";
+          s6.onerror = () => {};
+          document.head.appendChild(s6);
+          setTimeout(() => { try { s6.remove(); } catch (_) {} }, 100);
+          results.push("New Relic: NREUM/newrelic globals + NREUM_SESSION_ID sessionStorage + js-agent.newrelic.com URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

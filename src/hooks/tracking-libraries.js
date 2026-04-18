@@ -388,6 +388,33 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "New Relic Browser",
+      category: "NewRelicBrowserDetect",
+      // New Relic Browser Agent — APM/observability script that
+      // wraps XHR, fetch, Promise, timers, MutationObserver and
+      // history.pushState and ships session-scoped telemetry (errors,
+      // performance metrics, user interactions) to bam.nr-data.net.
+      // Not an ad tracker, but worth flagging for transparency: the
+      // agent instruments the page extensively. Many sites self-host
+      // the loader (hence the /newrelic.js path pattern).
+      globals: [
+        "NREUM",                 // primary agent namespace
+        "newrelic",              // public API alias
+      ],
+      globalPrefixes: [],
+      keyPatterns: [
+        /^NREUM_SESSION_ID$/,    // 16-char hex session id in sessionStorage
+      ],
+      scriptSrcPatterns: [
+        /\bjs-agent\.newrelic\.com\b/i,   // official CDN
+        /\bbam(?:-cell)?\.nr-data\.net\b/i, // beacon (sometimes fetched)
+        /\bnr-data\.net\b/i,                 // fallback host match
+        /\/newrelic\.js\b/i,                 // common self-hosted filename
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

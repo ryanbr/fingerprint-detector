@@ -465,8 +465,7 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       // adblock + VPN + piracy tools and reports to publishers.
       globals: [
         "admiral",
-        "4dm1r11545242527",             // hardcoded obfuscated magic global
-        "__cmpGdprAppliesGlobally",     // CMP global (set by many CMPs, but Admiral explicitly sets it)
+        "4dm1r11545242527",             // hardcoded obfuscated magic global — distinctive enough on its own
       ],
       globalPrefixes: [],
       keyPatterns: [

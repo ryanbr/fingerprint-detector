@@ -1565,7 +1565,6 @@
         try {
           window.admiral = window.admiral || function () { /* noop */ };
           window["4dm1r11545242527"] = window["4dm1r11545242527"] || { __test: true };
-          window.__cmpGdprAppliesGlobally = true;
           document.cookie = "_awl=test-awl; path=/; max-age=60";
           document.cookie = "_admrla=test-admrla; path=/; max-age=60";
           document.cookie = "_alvd=test-alvd; path=/; max-age=60";
@@ -1577,7 +1576,7 @@
           s8.onerror = () => {};
           document.head.appendChild(s8);
           setTimeout(() => { try { s8.remove(); } catch (_) {} }, 100);
-          results.push("Admiral: admiral/4dm1r11545242527 globals + _awl/_admrla/_alvd cookies + _admrlri/_admlValRec/afsvisits storage + pearpouch.com URL");
+          results.push("Admiral: admiral/4dm1r1* globals + _awl/_admrla/_alvd cookies + _admrlri/_admlValRec/afsvisits storage + pearpouch.com URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

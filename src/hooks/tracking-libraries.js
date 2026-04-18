@@ -1223,6 +1223,30 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Transcend",
+      category: "TranscendDetect",
+      // Transcend — privacy-tech platform covering consent management
+      // (Airgap), DSAR automation, data mapping and pixel
+      // auto-remediation. Airgap SDK served from
+      // transcend-cdn.com/cm/<customer-uuid>/airgap.js. Minimal
+      // global pollution — main signals are the airgap / transcend
+      // globals and the distinctive customer-UUID path.
+      globals: [
+        "airgap",                    // primary SDK namespace (self.airgap)
+        "transcend",                 // secondary namespace (self.transcend)
+      ],
+      globalPrefixes: [],
+      keyPatterns: [],                // Transcend manages other vendors' cookies rather than setting its own
+      scriptSrcPatterns: [
+        /\btranscend-cdn\.com\b/i,   // primary CDN
+        /\btranscend\.io\b/i,         // company + regional APIs (app / us / etc.)
+        /\/cm\/[0-9a-f-]{36}\/airgap\.js\b/i, // customer-UUID airgap.js path
+        /\/airgap\.js\b/i,            // generic fallback filename
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

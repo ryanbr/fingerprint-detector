@@ -137,6 +137,7 @@ const CATEGORY_META = {
   AdobeCommerceRecsDetect: { icon: "\u{2728}", color: "#fb8c00", risk: "medium" },
   OsanoDetect: { icon: "\u{1F960}", color: "#fb8c00", risk: "medium" },
   SalesforceMCDetect: { icon: "\u{1F329}\u{FE0F}", color: "#fb8c00", risk: "medium" },
+  AdobeHelixRUMDetect: { icon: "\u{1F332}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

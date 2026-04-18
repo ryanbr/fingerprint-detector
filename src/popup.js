@@ -91,6 +91,7 @@ const CATEGORY_META = {
   AdobeCommerceRecsDetect: { icon: "✨", color: "#fb8c00", risk: "medium", desc: "Adobe Commerce Product Recommendations (Sensei AI) — RecommendationsClient global, magento-recs-sdk.adobe.net + @magento/recommendations-js-sdk NPM" },
   OsanoDetect: { icon: "🥠", color: "#fb8c00", risk: "medium", desc: "Osano cookie consent platform — Osano global (Osano.cm/.data), osano_consentmanager cookie + osano-cm-* markers, cmp.osano.com/osano.js" },
   SalesforceMCDetect: { icon: "🌩️", color: "#fb8c00", risk: "medium", desc: "Salesforce Marketing Cloud (ex-ExactTarget/iGoDigital) — _etmc global, igodigital.com + exacttarget.com + marketingcloud.com + exct.net hosts" },
+  AdobeHelixRUMDetect: { icon: "🌲", color: "#fb8c00", risk: "medium", desc: "Adobe Helix / AEM Edge Delivery RUM — hlx/RUM_BASE globals, hlx.page + hlx.live + aem.page + aem.live hosts, /helix-rum-js@<ver>/rum-standalone.js" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -233,6 +234,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   AdobeCommerceRecsDetect: { label: "Adobe Commerce Recs",    icon: "✨" },
   OsanoDetect:            { label: "Osano",                icon: "🥠" },
   SalesforceMCDetect:     { label: "Salesforce MC",        icon: "🌩️" },
+  AdobeHelixRUMDetect:    { label: "Adobe Helix RUM",      icon: "🌲" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

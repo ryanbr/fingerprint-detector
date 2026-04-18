@@ -1618,6 +1618,34 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Adobe Helix RUM",
+      category: "AdobeHelixRUMDetect",
+      // Adobe Helix / AEM Edge Delivery Services RUM — Real User
+      // Monitoring for Adobe's edge-first CMS (originally
+      // codenamed "Franklin", now rebranded as AEM Edge Delivery).
+      // Built on GitHub + Cloudflare Workers. Completely separate
+      // product from Adobe DTM (tag manager) and Adobe Commerce
+      // (Magento) — this is the performance-monitoring layer for
+      // the new CMS. Loader served at
+      // rum.hlx.page/.rum/@adobe/helix-rum-js@<ver>/dist/rum-standalone.js.
+      globals: [
+        "hlx",                       // primary namespace (hlx.rum, hlx.RUM_MASK_URL)
+        "RUM_BASE",                  // configurable RUM endpoint override
+        "RUM_PARAMS",
+        "SAMPLE_PAGEVIEWS_AT_RATE",
+      ],
+      globalPrefixes: [],
+      keyPatterns: [],                // RUM beacon is fire-and-forget — no cookies or storage
+      scriptSrcPatterns: [
+        /\bhlx\.(?:page|live)\b/i,   // Helix preview + production hosts
+        /\baem\.(?:page|live)\b/i,   // newer AEM Edge Delivery branding
+        /\/helix-rum-js@/i,           // NPM path @adobe/helix-rum-js
+        /\/rum-standalone\.js\b/i,    // distinctive bundle filename
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

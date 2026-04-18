@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -2179,6 +2179,20 @@
           document.head.appendChild(s46);
           setTimeout(() => { try { s46.remove(); } catch (_) {} }, 100);
           results.push("Salesforce MC: _etmc global + <customerID>.collect.igodigital.com/collect.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── Adobe Helix / AEM Edge Delivery RUM ───────────────────
+        try {
+          window.hlx = window.hlx || { rum: { generation: "test", checkpoint: () => {} }, __test: true };
+          window.RUM_BASE = "https://rum.hlx.page/";
+          window.RUM_PARAMS = { __test: true };
+          window.SAMPLE_PAGEVIEWS_AT_RATE = "high";
+          const s47 = document.createElement("script");
+          s47.src = "https://rum.hlx.page/.rum/@adobe/helix-rum-js@^2/dist/rum-standalone.js";
+          s47.onerror = () => {};
+          document.head.appendChild(s47);
+          setTimeout(() => { try { s47.remove(); } catch (_) {} }, 100);
+          results.push("Adobe Helix RUM: hlx/RUM_BASE/RUM_PARAMS/SAMPLE_PAGEVIEWS_AT_RATE globals + rum.hlx.page/.rum/@adobe/helix-rum-js@<ver>/rum-standalone.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

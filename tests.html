@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM / Elastic APM / Sentry / Awin / Bazaarvoice / FigPii / iubenda / accessiBe / Usercentrics / Swan / Global-e / TrueVault / Listrak / TrustedSite / IAS / Adobe Analytics / Dynatrace / Branch / Yotpo (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM / Elastic APM / Sentry / Awin / Bazaarvoice / FigPii / iubenda / accessiBe / Usercentrics / Swan / Global-e / TrueVault / Listrak / TrustedSite / IAS / Adobe Analytics / Dynatrace / Branch / Cloudflare Analytics / Yotpo (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -2451,6 +2451,19 @@
           document.head.appendChild(s64);
           setTimeout(() => { try { s64.remove(); } catch (_) {} }, 100);
           results.push("Branch: branch/_branch/BranchViewData globals + _branch_session/branch_session_first storage + cdn.branch.io/branch-latest.min.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── Cloudflare Web Analytics (ex-Insights) ────────────────
+        try {
+          window.__cfBeacon = window.__cfBeacon || { token: "test-cf-token", spa: true, __test: true };
+          window.__cfQR = window.__cfQR || { qrt: Date.now() };
+          window.__cfRl = window.__cfRl || { __test: true };
+          const s66 = document.createElement("script");
+          s66.src = "https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516";
+          s66.onerror = () => {};
+          document.head.appendChild(s66);
+          setTimeout(() => { try { s66.remove(); } catch (_) {} }, 100);
+          results.push("Cloudflare Analytics: __cfBeacon/__cfQR/__cfRl globals + static.cloudflareinsights.com/beacon.min.js/v<hash> URL");
         } catch (_) { /* noop */ }
 
         // ── Yotpo (e-commerce reviews + UGC + loyalty) ────────────

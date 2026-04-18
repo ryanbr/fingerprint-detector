@@ -2142,6 +2142,31 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       classifyOrigin: true,
     },
     {
+      name: "Cloudflare Web Analytics",
+      category: "CloudflareAnalyticsDetect",
+      // Cloudflare Web Analytics (successor to "Cloudflare Insights")
+      // — Cloudflare's page-view + Core Web Vitals analytics loaded
+      // on sites behind Cloudflare's edge. Distinct from
+      // CloudflareBotManagementDetect (which is the security / bot
+      // product). Loader at
+      // static.cloudflareinsights.com/beacon.min.js/v<hash>, beacons
+      // posted to a same-origin /cdn-cgi/rum endpoint proxied through
+      // the Cloudflare edge.
+      globals: [
+        "__cfBeacon",                // primary beacon config object
+        "__cfQR",                    // event queue / request marker
+        "__cfRl",                    // Rocket Loader integration bridge
+      ],
+      globalPrefixes: [],
+      keyPatterns: [],                // no distinctive client-side cookies set by this script
+      scriptSrcPatterns: [
+        /\bcloudflareinsights\.com\b/i, // primary CDN (catches static. and any future subs)
+        /\/beacon\.min\.js\/v/i,        // distinctive versioned-beacon path
+      ],
+      domAttributes: [],
+      classifyOrigin: false,
+    },
+    {
       name: "Yotpo",
       category: "YotpoDetect",
       // Yotpo — e-commerce reviews + UGC + loyalty platform. Major

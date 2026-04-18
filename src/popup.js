@@ -86,6 +86,7 @@ const CATEGORY_META = {
   BrightEdgeDetect: { icon: "🧭", color: "#fb8c00", risk: "medium", desc: "BrightEdge Autopilot SEO platform — BEIXF/BEJSSDK/BELinkBlockGenerator globals, bc0a.com + brightedge.com hosts, /autopilot/f<id>/autopilot_sdk.js" },
   QualtricsDetect: { icon: "📋", color: "#fb8c00", risk: "medium", desc: "Qualtrics SiteIntercept (survey pop-ups) — QSI/QSI_TESTING_MODE globals + QSI_ prefix, QSI_S_ZN_* cookies, qualtrics.com hosts, /SIE/?Q_ZID=* path" },
   KlaviyoDetect: { icon: "📧", color: "#fb8c00", risk: "medium", desc: "Klaviyo email + SMS + CDP (Shopify/D2C) — klaviyo/_learnq/_klOnsite/webpackChunk_klaviyo_onsite_modules globals, __kla_id cookie, klaviyo.com hosts, /onsite/js/ path" },
+  AdobeDTMDetect: { icon: "🅰️", color: "#fb8c00", risk: "medium", desc: "Adobe DTM / Launch tag manager (loads Analytics / Target / AAM / Campaign stack) — _satellite/AdobeDataLayer globals, adobedtm.com hosts, launch-<hash>.min.js + satelliteLib-<hash>.js" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -223,6 +224,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   BrightEdgeDetect:       { label: "BrightEdge",           icon: "🧭" },
   QualtricsDetect:        { label: "Qualtrics",            icon: "📋" },
   KlaviyoDetect:          { label: "Klaviyo",              icon: "📧" },
+  AdobeDTMDetect:         { label: "Adobe DTM / Launch",   icon: "🅰️" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

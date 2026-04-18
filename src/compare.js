@@ -132,6 +132,7 @@ const CATEGORY_META = {
   BrightEdgeDetect: { icon: "\u{1F9ED}", color: "#fb8c00", risk: "medium" },
   QualtricsDetect: { icon: "\u{1F4CB}", color: "#fb8c00", risk: "medium" },
   KlaviyoDetect: { icon: "\u{1F4E7}", color: "#fb8c00", risk: "medium" },
+  AdobeDTMDetect: { icon: "\u{1F170}\u{FE0F}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

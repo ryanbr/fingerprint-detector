@@ -1487,6 +1487,33 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Adobe DTM / Launch",
+      category: "AdobeDTMDetect",
+      // Adobe Dynamic Tag Management (DTM) — rebranded to Adobe
+      // Launch, then Adobe Experience Platform Tags. The tag
+      // manager that loads Adobe's enterprise stack: Analytics
+      // (Omniture / SiteCatalyst / AppMeasurement), Target
+      // (personalization + testing), Audience Manager (DMP),
+      // Campaign (email), Visitor ID Service (MCID). The
+      // _satellite global is stable across DTM and Launch eras.
+      // Loaded from *.adobedtm.com — commerce.adobedtm.com is
+      // Adobe Commerce / Magento's CDN, assets.adobedtm.com is the
+      // standard Launch property host.
+      globals: [
+        "_satellite",                // primary DTM/Launch global (stable since DTM v1)
+        "AdobeDataLayer",            // XDM data layer (Launch-era)
+      ],
+      globalPrefixes: [],
+      keyPatterns: [],                // Adobe stack sets cookies via individual products (s_vi, AMCV_* etc. belong to Analytics / Visitor API — caught by AdobeAnalyticsDetect when added)
+      scriptSrcPatterns: [
+        /\badobedtm\.com\b/i,        // catches assets / commerce / all subs
+        /\/launch-[a-f0-9]+(?:-[a-z]+)?\.min\.js\b/i, // /launch-<hash>[-env].min.js Launch property
+        /\/satelliteLib-[a-f0-9]+\.js\b/i, // classic DTM satellite library
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

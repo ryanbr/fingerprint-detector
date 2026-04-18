@@ -4,6 +4,8 @@
 
 Fingerprint Detector is a Chrome/Firefox extension that detects browser fingerprinting techniques in real-time. It hooks 300+ browser APIs via 22 modular hook files, bundles them with esbuild into a single minified `dist/inject.js` (MAIN world), relays events through `bridge.js` (ISOLATED world) to a `background.js` service worker, and displays results in a `popup.js` UI with a tracking-library banner. A separate `compare.html` page lets users diff two exported fingerprint reports side-by-side. A `tests.html` test harness exercises every hook for manual verification.
 
+In addition to primitive fingerprinting hooks, a data-driven tracker registry identifies 70+ named third-party libraries (analytics, ad-tech, CMPs, anti-bot, session replay, APM/RUM, marketing automation etc.) and surfaces them in a dedicated popup banner that's collapsible with persisted state.
+
 ## Architecture
 
 ```
@@ -27,11 +29,11 @@ tests.html (project root) — standalone test harness, manually opened
 ## Key files
 
 - `manifest.json` — Chrome MV3 manifest. Includes `browser_specific_settings.gecko` with `data_collection_permissions: { required: ["none"] }` for Firefox/AMO. Chrome ignores unrecognized top-level keys, so one manifest works for both browsers.
-- `src/inject.js` — Entry point (~380 lines): core infrastructure (batching, mute state, rate limiting, record/recordHot, hook helpers, anti-tamper spoofing: `fnWrapperMap` + `copyFnIdentity` + descriptor spoof). Imports all 22 hook modules.
+- `src/inject.js` — Entry point (~490 lines): core infrastructure (batching, mute state, rate limiting, record/recordHot, hook helpers, anti-tamper spoofing: `fnWrapperMap` + `copyFnIdentity` + descriptor spoof). Imports all 22 hook modules.
 - `src/hooks/*.js` — 22 modular hook files, each exporting a `register(helpers)` function.
 - `src/bridge.js` — Bridges page events to extension, syncs mute state (global + per-domain).
 - `src/background.js` — Stores per-tab detections in memory + `chrome.storage.session` (survives service worker restart). Per-tab dirty tracking with 1s debounced gzip-compressed writes.
-- `src/popup.js` / `src/popup.html` — Summary + debug log UI, mute system, export, tracking-library banner (stacked multi-line for 2+ detections), Compare button.
+- `src/popup.js` / `src/popup.html` — Summary + debug log UI, mute system, export, tracking-library banner (stacked multi-line for 2+ detections, collapsible with persisted state for 2+), expanded-category preservation across Summary re-renders, Compare button.
 - `src/compare.js` / `src/compare.html` — Standalone compare page: side-by-side diff of two exported summaries, method-level diff, light/dark mode, domain comparison, diff export.
 - `tests.html` — Standalone manual test harness at repo root, 39 sections covering every detection. Open locally or via GitHub Pages / raw.githack.com to exercise every hook.
 - `dist/inject.js` — Auto-generated bundle (gitignored). Built by `npm run build` (minified) or `npm run watch` (unminified, for dev).
@@ -68,13 +70,13 @@ tests.html (project root) — standalone test harness, manually opened
 | `hooks/misc.js` | Credentials (access), ClientRects, Plugins, Touch, Math, Architecture (Float32Array NaN bit), Apple Pay, Private Click (attributionSourceId), document.referrer/name/hasFocus, SubtleCrypto.digest, WebAssembly constructors + compile/instantiate |
 | `hooks/behavior.js` | MouseEvent/KeyboardEvent/PointerEvent/Touch property-read hooks (cursor coords, keystrokes, pressure, tilt, touch hardware) |
 | `hooks/permissions.js` | Notification API, ServiceWorkerRegistration (showNotification/getNotifications/pushManager), Clipboard, Geolocation, WakeLock, IdleDetector, Navigator badging, MediaDevices (getUserMedia/getDisplayMedia), File System Access, PublicKeyCredential, PaymentRequest, DeviceOrientation/DeviceMotion.requestPermission, requestMIDIAccess |
-| `hooks/tracking-libraries.js` | FingerprintJS, Matomo/Piwik, Akamai Bot Manager, Cloudflare Bot Management, DataDome, PerimeterX/HUMAN, Imperva/Incapsula, Kasada, Piano/Tinypass — registry-driven |
+| `hooks/tracking-libraries.js` | 70+ named tracking / ad-tech / CMP / anti-bot / session-replay / APM / marketing-automation libraries — registry-driven (see "Tracking-library detection" section). Core categories: anti-bot (Akamai BM, Cloudflare BM, DataDome, PerimeterX, Kasada, Imperva, Blockthrough, Admiral, ThreatMetrix), fingerprinting (FingerprintJS), analytics (Google Tag, Adobe Analytics, Matomo, Comscore, Chartbeat, Parse.ly, Webtrekk/Mapp, WP.com Stats, Quantcast), APM/RUM (New Relic, Dynatrace, Elastic APM, Sentry, mPulse, RUM Vision, SpeedCurve LUX, Adobe Helix RUM), session replay (Hotjar, Clarity, LogRocket, Noibu), tag managers (GTM, Tealium, Adobe DTM/Launch), CMPs (OneTrust, Usercentrics, iubenda, Osano, Transcend, Quantcast Choice, Google Funding Choices, TrueVault, Ziff Davis), ad networks (Meta Pixel, Bing UET, LinkedIn Insight, Criteo, Nativo, Media.net, Publift Fuse, Google Publisher Tag, IAS), e-commerce (Klaviyo, Yotpo, Bazaarvoice, Insider, Awin, Geniuslink, Adobe Commerce, Global-e), marketing automation (HubSpot, Salesforce MC, Listrak, Kameleoon, FigPii, BrightEdge, Pushly, Swan), misc (Qualtrics SiteIntercept, Branch, TrustedSite, accessiBe) |
 
 See `fingerprint_table.md` for the full reference of every hook and what it detects.
 
 ## Tracking-library detection
 
-`hooks/tracking-libraries.js` uses a data-driven registry (LIBRARIES array) to detect 9 major anti-bot / fingerprinting / analytics platforms through a shared scan pipeline. One PerformanceObserver + one MutationObserver + one set of scheduled scans (DOMContentLoaded / +2s / window.load) processes all libraries in each pass.
+`hooks/tracking-libraries.js` uses a data-driven registry (LIBRARIES array) to detect **70+ named tracking / ad-tech / CMP / analytics / session-replay / APM / marketing-automation libraries** through a shared scan pipeline. One PerformanceObserver + one MutationObserver + one set of scheduled scans (DOMContentLoaded / +2s / window.load) processes all libraries in each pass — new entries add almost no runtime cost.
 
 Each library entry describes:
 - Explicit `globals` names + `globalPrefixes` for pattern matching
@@ -84,12 +86,27 @@ Each library entry describes:
 - Optional `anomaly` for library-specific quirks (e.g. Matomo's `Date.prototype.getTimeAlias`)
 - Optional `classifyOrigin: true` for 1p-vs-3p-vs-custom-subdomain URL classification
 
-Each detection fires a distinct category in the Debug Log (`FingerprintJSDetect`, `MatomoDetect`, `AkamaiBotManagerDetect`, etc.). The popup shows a prominent banner above the tabs:
+Each detection fires a distinct category in the Debug Log (`FingerprintJSDetect`, `MatomoDetect`, `OneTrustDetect`, `AdobeAnalyticsDetect`, etc. — one per entry). The popup shows a prominent banner above the tabs:
 
-- 1 library detected: compact one-line layout
-- 2+ libraries: stacked multi-line layout, one row per detected library with icon + name + signal count
+- **1 library detected**: compact one-line layout with icon + name + signal count
+- **2+ libraries**: stacked multi-line layout, one row per detected library with icon + name + signal count. A `Hide` / `Show` button in the banner header collapses the list; the collapsed state is persisted in `chrome.storage.local.trackerBannerCollapsed`
+- **6+ libraries**: the stacked list caps at ~125px height and becomes mouse-wheel scrollable with a hidden scrollbar
 
-The Summary JSON export includes a top-level `trackingLibraries` array rolling up per-library signal counts and distinct signals. Adding a new tracker is a ~15-line registry entry — no new timers, observers, or iterations needed.
+The Summary JSON export includes a top-level `trackingLibraries` array rolling up per-library signal counts and distinct signals. Adding a new tracker is a ~15–30 line registry entry — no new timers, observers, or iterations needed.
+
+### Registry authoring conventions
+
+Lessons accumulated while growing the registry:
+
+- **Prefer distinctive globals over generic prefixes.** Short prefixes like `swan` or `s` false-positive on unrelated code. Listing 5–8 specific multi-word globals is safer than a 3-char prefix catch-all.
+- **Avoid IAB-standard globals in CMP entries.** `__tcfapi` / `__gpp` / `__uspapi` / `__cmpGdprAppliesGlobally` are set by *every* CMP (OneTrust, iubenda, Usercentrics, Osano, Quantcast Choice, etc.) — using them as detection signals would cross-match every entry. Use vendor-specific globals (`OneTrust`, `UC_UI`, `_iub`) and cookies instead.
+- **Skip too-generic filenames.** Things like `/collect.js`, `/bundle.min.js`, `/index.js`, or 32-hex-char webpack hashes match unrelated webpack output on arbitrary sites. Host match + distinctive globals are enough.
+- **Watch for cookie collisions between vendors.** `_vuid` is set by both Yahoo Rapid and Listrak — neither entry uses it as a signal any more (caught during review).
+- **Heritage / acquisition artefacts are stable signals.** Legacy cookie / global / domain names persist for years after rebrands and are often the most reliable detection surface: `_etmc` (ExactTarget inside Salesforce MC), `rxVisitor`/`rxvt` (Ruxit inside Dynatrace), `ywxi.net` (McAfee SECURE inside TrustedSite), `GlobalE_Analytics_Borderfree` (Borderfree inside Global-e), `pSUPERFLY` (Chartbeat's 15+ year old codename), `2o7.net` (Omniture inside Adobe Analytics), `bnc.lt` (pre-rebrand Branch).
+
+### Known perf note
+
+`scanStorage` currently loops `cookies × libraries × keyPatterns` — roughly O(n × 70 × avg 3) regex tests per scan. Acceptable today (50–200ms on heavy pages) but a future optimisation would invert this into a precomputed Map lookup at registration time. Not urgent.
 
 ## Anti-tamper spoofing
 
@@ -115,7 +132,7 @@ npm run lint:all      # runs both ESLint and web-ext lint
 ```
 
 - esbuild bundles all modules into a single IIFE in `dist/inject.js`
-- Production build is minified (`--minify --legal-comments=none`) — ~65kb; watch mode is unminified (~120kb) for easier dev
+- Production build is minified (`--minify --legal-comments=none`) — ~87kb (grew from ~65kb as the tracker registry expanded from 9 → 70+ entries); watch mode is unminified (~160kb) for easier dev
 - `dist/` and `build-tmp/` are gitignored — built locally for dev, built in CI for releases
 - manifest.json points to `dist/inject.js`, not `src/inject.js`
 - To test locally: run `npm run build`, then load unpacked in Chrome
@@ -218,7 +235,7 @@ example(helpers);
 
 ### Storage
 
-- `chrome.storage.local` — persistent across browser restarts: mutes (global + per-domain), compare theme preference
+- `chrome.storage.local` — persistent across browser restarts: mutes (global + per-domain), compare theme preference, tracker-banner collapsed state (`trackerBannerCollapsed`)
 - `chrome.storage.session` — survives service worker restarts but clears on browser close: tabData (per-tab keys, gzip-compressed), UI state (pause, filter, active panel), compareLeftData (current tab summary passed to compare page)
 - `tabData` in background.js is the primary store, persisted with per-tab dirty tracking + 1s debounce + gzip compression
 - SW wake restore path MERGES (not overwrites) in-flight detections that arrived during the async restore window
@@ -239,7 +256,8 @@ Two layers: global mutes and per-domain mutes, merged at runtime.
 - Debug Log DOM capped at 500 nodes; buffer holds up to 3000 entries
 - Precomputed `_hay` (filter haystack) + `_muteKey` per log entry so refilter-on-keystroke is O(N) property reads instead of O(N) string rebuilds
 - Fast-path in `addLogBatch` skips buildLogNode for events that would be immediately trimmed (giant initial batch on popup open)
-- Tracking-library banner stacks when 2+ libraries detected (see Tracking-library detection section)
+- Tracking-library banner stacks when 2+ libraries detected (see Tracking-library detection section). Collapsible via the `Hide`/`Show` button in the header when in stacked mode; state persists via `chrome.storage.local.trackerBannerCollapsed`.
+- `renderSummary` is NOT called on every event batch — only on popup open and after mute-button clicks. Per-batch port messages only update the Debug Log + set the banner `.active` flag, never the Summary panel. Before rebuilding `content.innerHTML`, the set of currently-expanded category names (keyed off `data-cat`) is snapshotted and reapplied afterwards so muting doesn't collapse other open categories.
 
 ### Compare view
 
@@ -322,7 +340,7 @@ Run the "Build and Release CRX" workflow from the Actions tab:
 - `chrome.tabs.sendMessage` to tabs without content scripts (chrome://, extension pages) triggers `runtime.lastError` — always consume it in callbacks
 - Setters can't return values — `no-setter-return` ESLint rule catches this (use `setter(val); return;` pattern)
 - Adding a new category requires updating: `popup.js` CATEGORY_META + `compare.js` CATEGORY_META + `fingerprint_table.md`
-- Adding a new tracking library requires updating: `hooks/tracking-libraries.js` LIBRARIES array + `popup.js` CATEGORY_META + TRACKING_LIBRARY_CATEGORIES + `compare.js` CATEGORY_META + `tests.html`
+- Adding a new tracking library requires updating: `hooks/tracking-libraries.js` LIBRARIES array + `popup.js` CATEGORY_META + TRACKING_LIBRARY_CATEGORIES + `compare.js` CATEGORY_META + `tests.html`. Also check the icon isn't already used elsewhere (collisions have caught us multiple times — e.g. 🛡️ was in use by GPC / Akamai BM / Transcend, 🌐 by Network / Media.net, ⭐ by Bazaarvoice, ☁️ by Cloudflare).
 - `hookMethodHot` self-unwraps after first fire — if you combine it with a manual wrap of the same method, the identity check in the wrapper prevents clobbering your wrap
 - Wrappers must preserve `this` via `.apply(this, arguments)` or Web IDL methods throw "Illegal invocation" when called on valid instances
 - `hookMethodViaAccess` is preferred for promise-returning methods so our frame stays out of rejection stacks (e.g. permission denials, network errors)

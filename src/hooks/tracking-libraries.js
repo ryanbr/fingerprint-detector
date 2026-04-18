@@ -601,6 +601,31 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Comscore ScorecardResearch",
+      category: "ScorecardResearchDetect",
+      // Comscore ScorecardResearch — audience measurement beacon
+      // used by publishers and broadcasters for Comscore's panel +
+      // census measurement service. First-party persistent _scor_uid
+      // UUID cookie with ~33-year TTL. Consent-aware (TCF 2.0 / GPP
+      // 1.1 / USP v1). Lightweight fingerprinting surface.
+      globals: [
+        "COMSCORE",              // main export function
+        "_comscore",             // queue array (_comscore.push([...]))
+        "ns_p",                  // Image beacon reference
+      ],
+      globalPrefixes: [],
+      keyPatterns: [
+        /^_scor_uid$/i,          // first-party 33-year UUID cookie
+      ],
+      scriptSrcPatterns: [
+        /\bscorecardresearch\.com\b/i,   // primary host (sb / b / www subs)
+        /\bcomscore\.com\b/i,              // parent company CDN
+        /\/beacon\.js\b/i,                 // distinctive loader filename
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

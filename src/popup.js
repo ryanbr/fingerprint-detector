@@ -57,6 +57,7 @@ const CATEGORY_META = {
   MediaNetDetect:  { icon: "🌐", color: "#fb8c00", risk: "medium", desc: "Media.net (Yahoo) contextual + header-bidding tag — mnjs/_mN* globals, warp.media.net + contextual.media.net + adservetx.media.net hosts, /clientag.js filename" },
   TealiumDetect:   { icon: "🏷️", color: "#fb8c00", risk: "medium", desc: "Tealium iQ (utag.js) tag manager — utag/utag_data globals, utag_main_* cookies, tealium_va storage, tiqcdn.com + /utag/ path + customer CNAME deployments" },
   WPComStatsDetect: { icon: "📝", color: "#fb8c00", risk: "medium", desc: "WordPress.com / Jetpack Stats — _stq/wpcom globals, stats.wp.com loader, pixel.wp.com/g.gif beacon, /e-<siteID>.js filename" },
+  ScorecardResearchDetect: { icon: "📺", color: "#fb8c00", risk: "medium", desc: "Comscore ScorecardResearch audience measurement — COMSCORE/_comscore globals, _scor_uid cookie, scorecardresearch.com/beacon.js loader" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -165,6 +166,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   MediaNetDetect:         { label: "Media.net",            icon: "🌐" },
   TealiumDetect:          { label: "Tealium iQ",           icon: "🏷️" },
   WPComStatsDetect:       { label: "WordPress.com Stats",  icon: "📝" },
+  ScorecardResearchDetect: { label: "ScorecardResearch",   icon: "📺" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

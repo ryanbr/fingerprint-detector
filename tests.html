@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -1648,6 +1648,20 @@
           document.head.appendChild(s12);
           setTimeout(() => { try { s12.remove(); } catch (_) {} }, 100);
           results.push("WordPress.com Stats: _stq/wpcom globals + stats.wp.com/e-<siteID>.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── Comscore ScorecardResearch ────────────────────────────
+        try {
+          window.COMSCORE = window.COMSCORE || function () { /* noop */ };
+          window._comscore = window._comscore || [];
+          window._comscore.push({ c1: "2", c2: "8568956", __test: true });
+          document.cookie = "_scor_uid=test-scor-uuid-4321; path=/; max-age=60";
+          const s13 = document.createElement("script");
+          s13.src = "https://sb.scorecardresearch.com/internal-cs/8568956/beacon.js";
+          s13.onerror = () => {};
+          document.head.appendChild(s13);
+          setTimeout(() => { try { s13.remove(); } catch (_) {} }, 100);
+          results.push("Comscore: COMSCORE/_comscore globals + _scor_uid cookie + scorecardresearch.com/beacon.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

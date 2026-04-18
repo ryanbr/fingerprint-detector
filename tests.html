@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -1736,6 +1736,24 @@
           document.head.appendChild(s17);
           setTimeout(() => { try { s17.remove(); } catch (_) {} }, 100);
           results.push("Kameleoon: Kameleoon/kameleoonQueue globals + kameleoonVisitorCode cookie + kameleoonData/kameleoonExperiment-*/kameleoonTabId storage + kameleoon.eu URL");
+        } catch (_) { /* noop */ }
+
+        // ── Webtrekk / Mapp Intelligence ──────────────────────────
+        try {
+          window.webtrekk = window.webtrekk || { __test: true };
+          window.webtrekkV3 = window.webtrekkV3 || { __test: true };
+          window.wtSmart = window.wtSmart || { __test: true };
+          document.cookie = "wt_eid=test-everest-id; path=/; max-age=60";
+          document.cookie = "wt_3_eid=test-v3-eid; path=/; max-age=60";
+          document.cookie = "wt_nc=1; path=/; max-age=60";
+          document.cookie = "wtstp_eid=test-stp-eid; path=/; max-age=60";
+          localStorage.setItem("wt_loadtime_data", JSON.stringify({ __test: true }));
+          const s18 = document.createElement("script");
+          s18.src = "https://responder.wt.example.de/resp/api/get/288689636920174";
+          s18.onerror = () => {};
+          document.head.appendChild(s18);
+          setTimeout(() => { try { s18.remove(); } catch (_) {} }, 100);
+          results.push("Webtrekk/Mapp: webtrekk/webtrekkV3/wtSmart globals + wt_eid/wt_3_eid/wt_nc/wtstp_eid cookies + wt_loadtime_data storage + responder.wt.* /resp/api/get/ URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

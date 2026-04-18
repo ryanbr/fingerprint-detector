@@ -766,6 +766,40 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Webtrekk / Mapp Intelligence",
+      category: "WebtrekkMappDetect",
+      // Webtrekk (acquired by Mapp Digital in 2019, now branded
+      // "Mapp Intelligence") — German-founded analytics platform
+      // heavily used by DACH publishers (heise, Zeit Online, Der
+      // Spiegel) and European e-commerce. Beacons to a distinctive
+      // /resp/api/(get|v4|v5)/ path on customer CNAMEs like
+      // responder.wt.<publisher>.de, with Mapp's EU infrastructure
+      // at wt-eu01.net / wt-eu02.net. Everest visitor IDs in the
+      // wt_eid / wtstp_eid cookie family.
+      globals: [
+        "webtrekk",
+        "webtrekkV3",
+        "wtSmart",
+        "mappIntelligence",
+      ],
+      globalPrefixes: [],
+      keyPatterns: [
+        /^wt_/i,                         // wt_eid, wt_3_eid, wt_mmie, wt_nc, wt_rla etc.
+        /^wtstp_/i,                      // wtstp_eid and related
+        /^wtCB_/i,                       // callback-related localStorage
+        /^wt_loadtime/i,
+      ],
+      scriptSrcPatterns: [
+        /\/resp\/api\/(?:get|v\d+)\b/i,  // distinctive beacon / tag endpoint path
+        /\bwt-eu\d+\.net\b/i,            // Mapp EU infrastructure hosts
+        /\bwebtrekk\.(?:com|de|net)\b/i,
+        /\bmapp\.com\/mapp-intelligence\b/i,
+        /\bresponder\.wt\.[^/]+\b/i,     // customer CNAME pattern responder.wt.<publisher>.(de|com)
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

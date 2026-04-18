@@ -62,6 +62,7 @@ const CATEGORY_META = {
   GoogleGPTDetect: { icon: "📣", color: "#fb8c00", risk: "medium", desc: "Google Publisher Tag (GPT) ad serving — googletag global, pagead2.googlesyndication.com + googletagservices.com + securepubads.g.doubleclick.net loaders, /tag/js/gpt.js filename" },
   YahooOathDetect: { icon: "💜", color: "#fb8c00", risk: "medium", desc: "Yahoo / Oath / Verizon Media (Rapid analytics + Oath CMP) — YAHOO/YahooCJS globals, GUC/guce_*/A1/A1S cookies, s.yimg.com + consent.cmp.oath.com + guce.* hosts" },
   KameleoonDetect: { icon: "🧪", color: "#fb8c00", risk: "medium", desc: "Kameleoon A/B testing and personalization — Kameleoon/kameleoonQueue globals, kameleoon* cookies/storage, kameleoon.eu customer-CNAME loader" },
+  WebtrekkMappDetect: { icon: "🇩🇪", color: "#fb8c00", risk: "medium", desc: "Webtrekk / Mapp Intelligence (German analytics) — webtrekk/webtrekkV3/wtSmart globals, wt_eid/wtstp_* cookies, /resp/api/ beacons, responder.wt.<publisher> + wt-eu0*.net hosts" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -175,6 +176,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   GoogleGPTDetect:        { label: "Google Publisher Tag", icon: "📣" },
   YahooOathDetect:        { label: "Yahoo / Oath",         icon: "💜" },
   KameleoonDetect:        { label: "Kameleoon",            icon: "🧪" },
+  WebtrekkMappDetect:     { label: "Webtrekk / Mapp",      icon: "🇩🇪" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

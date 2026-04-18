@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM / Elastic APM / Sentry / Awin / Bazaarvoice (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM / Elastic APM / Sentry / Awin / Bazaarvoice / FigPii (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -2244,6 +2244,20 @@
           document.head.appendChild(s51);
           setTimeout(() => { try { s51.remove(); } catch (_) {} }, 100);
           results.push("Bazaarvoice: BV/BVBRANDID globals + analytics-static.ugc.bazaarvoice.com/bv-analytics.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── FigPii (A/B testing + CRO) ────────────────────────────
+        try {
+          window.FIGPII_DEBUG = false;
+          window.FIGPII_MPK = "test-mpk";
+          window.FIGPII_POLL = 500;
+          window.FIGPII_USAGE_ENDPOINT = "https://api.figpii.com/usage";
+          const s52 = document.createElement("script");
+          s52.src = "https://tracking-cdn.figpii.com/560e5b1ce8a50c2fb762be02e22f4b55.js";
+          s52.onerror = () => {};
+          document.head.appendChild(s52);
+          setTimeout(() => { try { s52.remove(); } catch (_) {} }, 100);
+          results.push("FigPii: FIGPII_DEBUG/FIGPII_MPK/FIGPII_POLL/FIGPII_USAGE_ENDPOINT globals + tracking-cdn.figpii.com/<hash>.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

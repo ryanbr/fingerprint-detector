@@ -1756,6 +1756,33 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "FigPii",
+      category: "FigPiiDetect",
+      // FigPii (formerly Pii) — A/B testing + CRO (conversion rate
+      // optimization) + session recording platform. Same category
+      // as Kameleoon / Optimizely / VWO. Customer-specific
+      // 32-hex-char filename on tracking-cdn.figpii.com.
+      globals: [
+        "FIGPII_DEBUG",
+        "FIGPII_DISABLE",
+        "FIGPII_MPK",
+        "FIGPII_POLL",
+        "FIGPII_VERIFY",
+        "FIGPII_USAGE_ENDPOINT",
+      ],
+      globalPrefixes: ["FIGPII_"],   // catches all uppercase FIGPII_* config/state globals
+      keyPatterns: [],
+      scriptSrcPatterns: [
+        /\bfigpii\.com\b/i,          // catches tracking-cdn / api subs
+        // /<32-hex-char>.js filename pattern deliberately NOT
+        // listed — too generic (webpack content hashes use the
+        // same shape). The figpii.com host + FIGPII_ globals are
+        // sufficient.
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

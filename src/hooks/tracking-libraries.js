@@ -1089,6 +1089,7 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
         /\bhs-banner\.com\b/i,        // smart banners
         /\bhubapi\.com\b/i,           // public API
         /\bhsappstatic\.net\b/i,      // app CDN
+        /\bhsadspixel\.net\b/i,       // HubSpot Ads conversion pixel
       ],
       domAttributes: [],
       classifyOrigin: true,

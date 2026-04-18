@@ -937,6 +937,28 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Geniuslink",
+      category: "GeniuslinkDetect",
+      // Geniuslink — affiliate link converter. Publisher-side
+      // snippet rewrites Amazon / Google Play / iTunes / Microsoft
+      // Store affiliate links into geo-routed geni.us short links
+      // for correct regional store attribution. Common on blogs,
+      // podcast sites and creator pages. Click-time redirect
+      // tracking at geni.us, not pervasive surveillance.
+      globals: [
+        "Genius",                    // primary namespace (with .snippet/.amazon/.google/.itunes/.microsoft)
+      ],
+      globalPrefixes: [],
+      keyPatterns: [],                // snippet itself doesn't set cookies/storage — tracking happens on the geni.us redirect
+      scriptSrcPatterns: [
+        /\bgeniuslinkcdn\.com\b/i,   // primary CDN
+        /\bgeni\.us\b/i,              // short-link domain (click tracking)
+        /\bcdn\.geni\.us\b/i,         // alternate CDN host
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

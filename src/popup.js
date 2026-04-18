@@ -68,6 +68,7 @@ const CATEGORY_META = {
   ClarityDetect: { icon: "🎥", color: "#fb8c00", risk: "medium", desc: "Microsoft Clarity session replay + heatmaps — clarity global, _clck/_clsk/CLID cookies, clarity.ms loader (www/scripts/c/j/k/l subs)" },
   RUMVisionDetect: { icon: "👁️", color: "#fb8c00", risk: "medium", desc: "RUM Vision Core Web Vitals monitoring — no cookies/globals, URL-only: rumvision.com + /RUM-<hex>/v<digit>-<domain>.js CloudFront build path" },
   NativoDetect: { icon: "🪶", color: "#fb8c00", risk: "medium", desc: "Nativo (formerly PostRelease) native advertising — Nativo/nativoSDK/ntv/ntvConfig globals, ntv.io + postrelease.com hosts, /serve/load.js loader" },
+  GeniuslinkDetect: { icon: "🔗", color: "#fb8c00", risk: "medium", desc: "Geniuslink affiliate link converter — Genius global with .snippet/.amazon/.google/.itunes/.microsoft, geniuslinkcdn.com + geni.us hosts" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -187,6 +188,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   ClarityDetect:          { label: "Microsoft Clarity",    icon: "🎥" },
   RUMVisionDetect:        { label: "RUM Vision",           icon: "👁️" },
   NativoDetect:           { label: "Nativo",               icon: "🪶" },
+  GeniuslinkDetect:       { label: "Geniuslink",           icon: "🔗" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

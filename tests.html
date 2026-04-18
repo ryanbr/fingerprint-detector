@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -1827,6 +1827,23 @@
           document.head.appendChild(s23);
           setTimeout(() => { try { s23.remove(); } catch (_) {} }, 100);
           results.push("Nativo: Nativo/nativoSDK/ntv/ntvConfig/PostRelease globals + s.ntv.io/serve/load.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── Geniuslink (affiliate link converter) ─────────────────
+        try {
+          window.Genius = window.Genius || {
+            snippet: { convertLinks: () => {}, __test: true },
+            amazon: {},
+            google: {},
+            itunes: {},
+            microsoft: {},
+          };
+          const s24 = document.createElement("script");
+          s24.src = "https://geniuslinkcdn.com/snippet.min.js";
+          s24.onerror = () => {};
+          document.head.appendChild(s24);
+          setTimeout(() => { try { s24.remove(); } catch (_) {} }, 100);
+          results.push("Geniuslink: Genius global (with .snippet/.amazon/.google/.itunes/.microsoft) + geniuslinkcdn.com URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

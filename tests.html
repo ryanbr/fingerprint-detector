@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -1876,6 +1876,19 @@
           document.head.appendChild(s26);
           setTimeout(() => { try { s26.remove(); } catch (_) {} }, 100);
           results.push("Chartbeat: _sf_async_config/pSUPERFLY/pSUPERFLY_mab globals + cbt/cb_svref/cbEventId cookies + static.chartbeat.com/js/chartbeat.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── Ziff Davis Consent (ZDNet/PCMag/IGN wrapper) ──────────
+        try {
+          window.zdconsent = window.zdconsent || { ready: () => {}, __test: true };
+          window._ZDCABADML = window._ZDCABADML || {};
+          window._ZDCCOMSCORE = window._ZDCCOMSCORE || {};
+          const s27 = document.createElement("script");
+          s27.src = "https://cdn.ziffstatic.com/jst/zdconsent.js";
+          s27.onerror = () => {};
+          document.head.appendChild(s27);
+          setTimeout(() => { try { s27.remove(); } catch (_) {} }, 100);
+          results.push("Ziff Davis: zdconsent/_ZDCABADML/_ZDCCOMSCORE globals + cdn.ziffstatic.com/jst/zdconsent.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

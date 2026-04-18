@@ -1023,6 +1023,32 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Ziff Davis Consent",
+      category: "ZiffDavisDetect",
+      // Ziff Davis consent wrapper (zdconsent.js) — custom CMP layer
+      // used across ZD properties (ZDNet, PCMag, IGN, Mashable,
+      // RetailMeNot, Speedtest/Ookla, Humble Bundle, etc.). Wraps
+      // OneTrust and orchestrates consent-gating for downstream
+      // trackers (Comscore, Chartbeat, HubSpot, ad networks).
+      // Deliberately skips OneTrustStub / __tcfapi / _hsq /
+      // _sf_async_config references — those are third-party
+      // trackers ZD loads, not ZD-specific signals.
+      globals: [
+        "zdconsent",                 // primary namespace
+        "_ZDCABADML",                // ZD-specific consent flag
+        "_ZDCCOMSCORE",              // ZD-specific Comscore consent gate
+      ],
+      globalPrefixes: [],
+      keyPatterns: [],                // wrapper delegates storage to OneTrust — no ZD-owned cookies
+      scriptSrcPatterns: [
+        /\bziffstatic\.com\b/i,      // ZD CDN
+        /\bziffdavis\.com\b/i,       // company site
+        /\/zdconsent\.js\b/i,         // distinctive filename
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

@@ -71,6 +71,7 @@ const CATEGORY_META = {
   GeniuslinkDetect: { icon: "🔗", color: "#fb8c00", risk: "medium", desc: "Geniuslink affiliate link converter — Genius global with .snippet/.amazon/.google/.itunes/.microsoft, geniuslinkcdn.com + geni.us hosts" },
   GoogleFundingChoicesDetect: { icon: "💰", color: "#fb8c00", risk: "medium", desc: "Google Funding Choices CMP (AdSense/Ad Manager consent) — googlefc globals, FCCDCF/FCIDCF/FCNEC cookies, fundingchoicesmessages.google.com/i/pub-<id>" },
   ChartbeatDetect: { icon: "📡", color: "#fb8c00", risk: "medium", desc: "Chartbeat real-time publisher analytics — _sf_async_config/pSUPERFLY globals, cb_* cookies, static.chartbeat.com loader + ping.chartbeat.net beacon" },
+  ZiffDavisDetect: { icon: "🗞️", color: "#fb8c00", risk: "medium", desc: "Ziff Davis consent wrapper (ZDNet, PCMag, IGN, Mashable, Speedtest) — zdconsent/_ZDCABADML/_ZDCCOMSCORE globals, ziffstatic.com + ziffdavis.com hosts, /zdconsent.js" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -193,6 +194,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   GeniuslinkDetect:       { label: "Geniuslink",           icon: "🔗" },
   GoogleFundingChoicesDetect: { label: "Google Funding Choices", icon: "💰" },
   ChartbeatDetect:        { label: "Chartbeat",            icon: "📡" },
+  ZiffDavisDetect:        { label: "Ziff Davis",           icon: "🗞️" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

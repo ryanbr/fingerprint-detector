@@ -2111,6 +2111,36 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Branch",
+      category: "BranchDetect",
+      // Branch.io — mobile deep linking + install attribution +
+      // cross-platform journey tracking. Used by apps to credit
+      // installs back to web / email / ad campaigns, handle
+      // deferred deep linking and stitch user journeys across
+      // web → app. First entry in the mobile-attribution category;
+      // adtech adjacents would include AppsFlyer, Adjust, Singular,
+      // Kochava. Loader at cdn.branch.io/branch-latest.min.js with
+      // deep links on app.link (prod) / test-app.link / legacy bnc.lt.
+      globals: [
+        "branch",                    // primary SDK (branch.init, branch.track, branch.deepview)
+        "_branch",                   // internal state
+        "BranchViewData",            // deep-view injected data
+      ],
+      globalPrefixes: [],
+      keyPatterns: [
+        /^_branch_/i,                // localStorage namespace prefix (e.g. _branch_session)
+        /^branch_session/i,          // session + session_first storage keys
+      ],
+      scriptSrcPatterns: [
+        /\bbranch\.io\b/i,           // company + CDN + API (cdn / api / api2 subs)
+        /\bapp\.link\b/i,            // deep-link shortener (prod)
+        /\btest-app\.link\b/i,       // deep-link shortener (test env)
+        /\bbnc\.lt\b/i,              // legacy short-link domain
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

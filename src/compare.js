@@ -154,6 +154,7 @@ const CATEGORY_META = {
   IntegralAdScienceDetect: { icon: "\u{1F52C}", color: "#fb8c00", risk: "medium" },
   AdobeAnalyticsDetect: { icon: "\u{1F150}", color: "#fb8c00", risk: "medium" },
   DynatraceDetect: { icon: "\u{1F409}", color: "#fb8c00", risk: "medium" },
+  BranchDetect: { icon: "\u{1F33F}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

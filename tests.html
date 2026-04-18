@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM / Elastic APM / Sentry / Awin / Bazaarvoice / FigPii / iubenda / accessiBe / Usercentrics / Swan / Global-e / TrueVault / Listrak / TrustedSite / IAS / Adobe Analytics / Dynatrace (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM / Elastic APM / Sentry / Awin / Bazaarvoice / FigPii / iubenda / accessiBe / Usercentrics / Swan / Global-e / TrueVault / Listrak / TrustedSite / IAS / Adobe Analytics / Dynatrace / Branch (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -2436,6 +2436,21 @@
           document.head.appendChild(s63);
           setTimeout(() => { try { s63.remove(); } catch (_) {} }, 100);
           results.push("Dynatrace: dtrum/dtmObject globals + dtCookie/dtLatC/dtSa/rxVisitor/rxvt cookies + js-cdn.dynatrace.com/jstag/... URL");
+        } catch (_) { /* noop */ }
+
+        // ── Branch.io (mobile deep linking + attribution) ─────────
+        try {
+          window.branch = window.branch || { init: () => {}, track: () => {}, deepview: () => {}, __test: true };
+          window._branch = window._branch || {};
+          window.BranchViewData = { __test: true };
+          localStorage.setItem("_branch_session", JSON.stringify({ __test: true }));
+          localStorage.setItem("branch_session_first", JSON.stringify({ __test: true }));
+          const s64 = document.createElement("script");
+          s64.src = "https://cdn.branch.io/branch-latest.min.js";
+          s64.onerror = () => {};
+          document.head.appendChild(s64);
+          setTimeout(() => { try { s64.remove(); } catch (_) {} }, 100);
+          results.push("Branch: branch/_branch/BranchViewData globals + _branch_session/branch_session_first storage + cdn.branch.io/branch-latest.min.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

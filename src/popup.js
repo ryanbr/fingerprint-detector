@@ -108,6 +108,7 @@ const CATEGORY_META = {
   IntegralAdScienceDetect: { icon: "🔬", color: "#fb8c00", risk: "medium", desc: "Integral Ad Science (IAS) ad verification + viewability + brand safety — __iasPET global, adsafeprotected.com + integralads.com hosts, iasPET.<n>.js" },
   AdobeAnalyticsDetect: { icon: "🅐", color: "#fb8c00", risk: "medium", desc: "Adobe Analytics / AppMeasurement (ex-Omniture SiteCatalyst) — AppMeasurement/s_gi/Visitor globals, s_vi/s_cc/s_sq/AMCV_* cookies, 2o7.net + omtrdc.net hosts, AppMeasurement.min.js" },
   DynatraceDetect: { icon: "🐉", color: "#fb8c00", risk: "medium", desc: "Dynatrace APM + RUM (ex-Ruxit) — dtrum/dtmObject globals, dtCookie/__dTCookie/dtLatC/rxVisitor cookies, js-cdn.dynatrace.com + ruxit.com + /jstag/ path" },
+  BranchDetect: { icon: "🌿", color: "#fb8c00", risk: "medium", desc: "Branch.io mobile deep linking + install attribution — branch/_branch/BranchViewData globals, _branch_*/branch_session* storage, branch.io + app.link + bnc.lt hosts" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -267,6 +268,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   IntegralAdScienceDetect: { label: "Integral Ad Science", icon: "🔬" },
   AdobeAnalyticsDetect:   { label: "Adobe Analytics",      icon: "🅐" },
   DynatraceDetect:        { label: "Dynatrace",            icon: "🐉" },
+  BranchDetect:           { label: "Branch",               icon: "🌿" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

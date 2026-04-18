@@ -107,6 +107,7 @@ const CATEGORY_META = {
   GoogleTagDetect: { icon: "\u{1F50E}", color: "#fb8c00", risk: "medium" },
   GoogleGPTDetect: { icon: "\u{1F4E3}", color: "#fb8c00", risk: "medium" },
   YahooOathDetect: { icon: "\u{1F49C}", color: "#fb8c00", risk: "medium" },
+  KameleoonDetect: { icon: "\u{1F9EA}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

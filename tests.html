@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -1719,6 +1719,23 @@
           document.head.appendChild(s16b);
           setTimeout(() => { try { s16a.remove(); s16b.remove(); } catch (_) {} }, 100);
           results.push("Yahoo/Oath: YAHOO/YahooCJS globals + GUC/guce_*/A1/A1S/ySID cookies + _vuid storage + s.yimg.com + consent.cmp.oath.com URLs");
+        } catch (_) { /* noop */ }
+
+        // ── Kameleoon (A/B testing) ───────────────────────────────
+        try {
+          window.Kameleoon = window.Kameleoon || { API: { Visitor: {} }, __test: true };
+          window.kameleoonQueue = window.kameleoonQueue || [];
+          window.kameleoonDisplayPage = window.kameleoonDisplayPage || function () { /* noop */ };
+          document.cookie = "kameleoonVisitorCode=test-visitor-code; path=/; max-age=60";
+          localStorage.setItem("kameleoonData", JSON.stringify({ __test: true }));
+          localStorage.setItem("kameleoonExperiment-12345", '{"variation":1}');
+          localStorage.setItem("kameleoonTabId", "tab-1");
+          const s17 = document.createElement("script");
+          s17.src = "https://yxsu5ufd2m.kameleoon.eu/kameleoon.js";
+          s17.onerror = () => {};
+          document.head.appendChild(s17);
+          setTimeout(() => { try { s17.remove(); } catch (_) {} }, 100);
+          results.push("Kameleoon: Kameleoon/kameleoonQueue globals + kameleoonVisitorCode cookie + kameleoonData/kameleoonExperiment-*/kameleoonTabId storage + kameleoon.eu URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

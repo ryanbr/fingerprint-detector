@@ -61,6 +61,7 @@ const CATEGORY_META = {
   GoogleTagDetect: { icon: "🔎", color: "#fb8c00", risk: "medium", desc: "Google Tag Manager + Google tag (gtag.js) — gtag/dataLayer/google_tag_manager globals, _ga/_ga_*/_gid/_gat cookies, googletagmanager.com + google-analytics.com + doubleclick.net" },
   GoogleGPTDetect: { icon: "📣", color: "#fb8c00", risk: "medium", desc: "Google Publisher Tag (GPT) ad serving — googletag global, pagead2.googlesyndication.com + googletagservices.com + securepubads.g.doubleclick.net loaders, /tag/js/gpt.js filename" },
   YahooOathDetect: { icon: "💜", color: "#fb8c00", risk: "medium", desc: "Yahoo / Oath / Verizon Media (Rapid analytics + Oath CMP) — YAHOO/YahooCJS globals, GUC/guce_*/A1/A1S cookies, s.yimg.com + consent.cmp.oath.com + guce.* hosts" },
+  KameleoonDetect: { icon: "🧪", color: "#fb8c00", risk: "medium", desc: "Kameleoon A/B testing and personalization — Kameleoon/kameleoonQueue globals, kameleoon* cookies/storage, kameleoon.eu customer-CNAME loader" },
 };
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -173,6 +174,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   GoogleTagDetect:        { label: "Google Tag / GA",      icon: "🔎" },
   GoogleGPTDetect:        { label: "Google Publisher Tag", icon: "📣" },
   YahooOathDetect:        { label: "Yahoo / Oath",         icon: "💜" },
+  KameleoonDetect:        { label: "Kameleoon",            icon: "🧪" },
 };
 
 // Update the tracking-library banner above the tabs. Shown whenever any

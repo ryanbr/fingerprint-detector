@@ -735,6 +735,37 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Kameleoon",
+      category: "KameleoonDetect",
+      // Kameleoon — French A/B testing, personalization and feature-
+      // flagging SaaS (competitor to Optimizely / VWO / Dynamic Yield).
+      // Loader served from <customer-hash>.kameleoon.eu/kameleoon.js
+      // with a full SDK at /kameleoon-full.js. Tracks visitor codes,
+      // experiment exposures, conversions and custom data; uses
+      // BroadcastChannel + iframe postMessage for cross-tab/domain sync.
+      globals: [
+        "Kameleoon",                    // primary namespace
+        "kameleoonQueue",               // event queue
+        "kameleoonDisplayPage",
+        "kameleoonEvents",
+      ],
+      globalPrefixes: [],
+      keyPatterns: [
+        /^kameleoon/i,                   // kameleoonVisitorCode, kameleoonData,
+                                          // kameleoonExperiment-<id>,
+                                          // kameleoonSimulationVisitorData,
+                                          // kameleoonGlobalPersonalizationExposition,
+                                          // kameleoonTabId — all share prefix
+      ],
+      scriptSrcPatterns: [
+        /\bkameleoon\.eu\b/i,            // primary host (customer CNAMEs)
+        /\bkameleoon\.com\b/i,           // company site + API
+        /\/kameleoon(?:-full)?\.js\b/i,  // loader + full SDK filenames
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

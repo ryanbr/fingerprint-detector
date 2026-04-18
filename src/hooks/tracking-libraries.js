@@ -2031,6 +2031,49 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       domAttributes: [],
       classifyOrigin: true,
     },
+    {
+      name: "Adobe Analytics",
+      category: "AdobeAnalyticsDetect",
+      // Adobe Analytics / AppMeasurement — the Omniture /
+      // SiteCatalyst analytics library, rebranded to Adobe
+      // Analytics after Adobe's 2009 Omniture acquisition. The
+      // cookie naming (s_vi, s_cc, s_sq etc.) and the bare s
+      // global (s.t() for page views, s.tl() for links) date back
+      // to the SiteCatalyst era and persist through every rebrand.
+      // Often loaded as an Adobe Launch extension
+      // (assets.adobedtm.com/extensions/<ID>/AppMeasurement.min.js)
+      // so AdobeDTMDetect will fire alongside this entry. Beacons
+      // flow to 2o7.net (classic Omniture host) or omtrdc.net
+      // (Adobe Marketing Cloud) with customer CNAMEs like
+      // metrics.<customer>.com.
+      //
+      // Deliberately does NOT use the bare s global as a signal —
+      // too generic (sites frequently use window.s for unrelated
+      // purposes). The AppMeasurement constructor name + the
+      // distinctive s_vi cookie family are sufficient.
+      globals: [
+        "AppMeasurement",            // constructor class name (var s = new AppMeasurement())
+        "s_gi",                      // AppMeasurement factory function
+        "Visitor",                   // Adobe Visitor API / MCID service
+      ],
+      globalPrefixes: [],
+      keyPatterns: [
+        /^s_vi$/,                    // visitor ID (2-year TTL, Omniture heritage since ~2000)
+        /^s_fid$/,                   // fallback first-party visitor ID
+        /^s_cc$/,                    // cookie check
+        /^s_sq$/,                    // previous page name (queryValue)
+        /^s_ppv$/,                   // previous page-view percent
+        /^s_ppn$/,                   // previous page name
+        /^AMCVS?_/,                  // AMCV_<orgID>@AdobeOrg + session AMCVS_
+      ],
+      scriptSrcPatterns: [
+        /\b2o7\.net\b/i,             // classic Omniture tracking host
+        /\bomtrdc\.net\b/i,          // Adobe Marketing Cloud tracking
+        /\/AppMeasurement(?:\.min)?\.js\b/i, // AppMeasurement.min.js / AppMeasurement.js
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
   ];
 
   // ── Shared fired-key dedupe ──────────────────────────────────────────

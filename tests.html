@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM / Elastic APM / Sentry / Awin / Bazaarvoice / FigPii / iubenda / accessiBe / Usercentrics / Swan / Global-e / TrueVault / Listrak / TrustedSite / IAS (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo / Kameleoon / Webtrekk / Pushly / Quantcast / Clarity / RUM Vision / Nativo / Geniuslink / Google FC / Chartbeat / Ziff Davis / HubSpot / LinkedIn / Noibu / Criteo / OneTrust / Transcend / mPulse / LogRocket / ThreatMetrix / LUX / Insider / BrightEdge / Qualtrics / Klaviyo / Adobe DTM / Adobe Commerce / Adobe Recs / Osano / Salesforce MC / Helix RUM / Elastic APM / Sentry / Awin / Bazaarvoice / FigPii / iubenda / accessiBe / Usercentrics / Swan / Global-e / TrueVault / Listrak / TrustedSite / IAS / Adobe Analytics (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -2402,6 +2402,23 @@
           document.head.appendChild(s61);
           setTimeout(() => { try { s61.remove(); } catch (_) {} }, 100);
           results.push("IAS: __iasPET global + cdn.adsafeprotected.com/iasPET.<n>.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── Adobe Analytics / AppMeasurement (ex-Omniture) ────────
+        try {
+          window.AppMeasurement = window.AppMeasurement || function () { this.t = () => {}; this.tl = () => {}; };
+          window.s_gi = window.s_gi || function () { return new window.AppMeasurement(); };
+          window.Visitor = window.Visitor || { getInstance: () => ({ getMarketingCloudVisitorID: () => "test-mcid" }) };
+          document.cookie = "s_vi=[CS]v1|test-visitor-id[CE]; path=/; max-age=60";
+          document.cookie = "s_cc=true; path=/; max-age=60";
+          document.cookie = "s_sq=test-sq; path=/; max-age=60";
+          document.cookie = "AMCV_TESTORG%40AdobeOrg=test-amcv; path=/; max-age=60";
+          const s62 = document.createElement("script");
+          s62.src = "https://assets.adobedtm.com/extensions/EP31dbb9c60e404ba1aa6e746d49be6f29/AppMeasurement.min.js";
+          s62.onerror = () => {};
+          document.head.appendChild(s62);
+          setTimeout(() => { try { s62.remove(); } catch (_) {} }, 100);
+          results.push("Adobe Analytics: AppMeasurement/s_gi/Visitor globals + s_vi/s_cc/s_sq/AMCV_* cookies + AppMeasurement.min.js URL");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

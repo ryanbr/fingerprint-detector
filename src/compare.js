@@ -106,6 +106,7 @@ const CATEGORY_META = {
   ScorecardResearchDetect: { icon: "\u{1F4FA}", color: "#fb8c00", risk: "medium" },
   GoogleTagDetect: { icon: "\u{1F50E}", color: "#fb8c00", risk: "medium" },
   GoogleGPTDetect: { icon: "\u{1F4E3}", color: "#fb8c00", risk: "medium" },
+  YahooOathDetect: { icon: "\u{1F49C}", color: "#fb8c00", risk: "medium" },
 };
 
 function escapeHtml(str) {

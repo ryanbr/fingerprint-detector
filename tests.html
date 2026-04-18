@@ -204,7 +204,7 @@
   </section>
 
   <section data-test="otherTrackerLibs">
-    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT (simulated signals) <button class="run-btn">Run</button></h2>
+    <h2>Cloudflare / DataDome / PerimeterX / Imperva / Kasada / Piano / Hotjar / Meta Pixel / Bing UET / Parse.ly / New Relic / Blockthrough / Admiral / Publift Fuse / Media.net / Tealium / WP.com Stats / Comscore / Google Tag / GPT / Yahoo (simulated signals) <button class="run-btn">Run</button></h2>
     <ul class="ops"></ul>
   </section>
 
@@ -1697,6 +1697,28 @@
           document.head.appendChild(s15);
           setTimeout(() => { try { s15.remove(); } catch (_) {} }, 100);
           results.push("Google GPT: googletag global + pagead2.googlesyndication.com/tag/js/gpt.js URL");
+        } catch (_) { /* noop */ }
+
+        // ── Yahoo / Oath (Rapid analytics + Oath CMP) ─────────────
+        try {
+          window.YAHOO = window.YAHOO || { i13n: { __test: true }, comscore: {} };
+          window.YahooCJS = window.YahooCJS || { __test: true };
+          document.cookie = "GUC=test-guc-cookie; path=/; max-age=60";
+          document.cookie = "guce_test=1; path=/; max-age=60";
+          document.cookie = "A1=d=test-a1; path=/; max-age=60";
+          document.cookie = "A1S=test-a1s; path=/; max-age=60";
+          document.cookie = "ySID=test-ysid; path=/; max-age=60";
+          localStorage.setItem("_vuid", "test-vuid");
+          const s16a = document.createElement("script");
+          s16a.src = "https://s.yimg.com/ss/analytics-3.78.3.js";
+          s16a.onerror = () => {};
+          document.head.appendChild(s16a);
+          const s16b = document.createElement("script");
+          s16b.src = "https://consent.cmp.oath.com/version/7.0.2/cmp.js";
+          s16b.onerror = () => {};
+          document.head.appendChild(s16b);
+          setTimeout(() => { try { s16a.remove(); s16b.remove(); } catch (_) {} }, 100);
+          results.push("Yahoo/Oath: YAHOO/YahooCJS globals + GUC/guce_*/A1/A1S/ySID cookies + _vuid storage + s.yimg.com + consent.cmp.oath.com URLs");
         } catch (_) { /* noop */ }
 
         return results.length > 0 ? results : ["(failed to simulate any signals)"];

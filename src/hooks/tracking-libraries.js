@@ -622,6 +622,7 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
         /\bscorecardresearch\.com\b/i,   // primary host (sb / b / www subs)
         /\bcomscore\.com\b/i,              // parent company CDN
         /\/beacon\.js\b/i,                 // distinctive loader filename
+        /\/aaq\/vzm\/cs_\d/i,              // Yahoo-CDN-served Comscore module (s.yimg.com/aaq/vzm/cs_<ver>.js)
       ],
       domAttributes: [],
       classifyOrigin: true,
@@ -690,6 +691,47 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
         /\/tag\/js\/gpt\.js\b/i,                   // distinctive GPT path
         /\/gampad\/ads\b/i,                         // GPT ad request endpoint
       ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
+    {
+      name: "Yahoo / Oath",
+      category: "YahooOathDetect",
+      // Yahoo / Oath / Verizon Media tracking stack. Covers Yahoo
+      // Analytics (Rapid framework, YAHOO.i13n) served from s.yimg.com
+      // and the Oath CMP served from consent.cmp.oath.com. Seen on
+      // Yahoo News / Mail / Finance / AOL / HuffPost / TechCrunch /
+      // Engadget and sites licensing Oath's CMP. Avoids IAB standard
+      // globals (__tcfapi / __gpp / __uspapi) since every CMP sets
+      // those — relies on Yahoo-specific guce / GUC cookies and the
+      // YAHOO.i13n Rapid global.
+      globals: [
+        "YAHOO",                 // Rapid framework namespace (YAHOO.i13n, YAHOO.comscore)
+        "YahooCJS",              // consent / CMP bridge
+        "YAWebBridge",           // mobile app bridge
+      ],
+      globalPrefixes: [],
+      keyPatterns: [
+        /^GUC$/,                 // primary Oath consent + ID cookie
+        /^guce_/i,               // guce_* cross-domain consent cookies
+        /^A1$/, /^A1S$/, /^A3$/, // Yahoo ID cookies
+        /^B$/,                   // legacy Yahoo bucket cookie (short — exact match only)
+        /^ySID$/i,               // Yahoo session ID
+        /^_vuid$/i,              // visit UID localStorage
+        /^_vuidList$/i,
+      ],
+      scriptSrcPatterns: [
+        /\bs\.yimg\.com\b/i,            // Yahoo CDN (serves analytics-*.js + cs_*.js)
+        /\bconsent\.cmp\.oath\.com\b/i, // Oath CMP host
+        /\bguce\.(?:oath|yahoo|aol|techcrunch|huffpost|engadget)\.com\b/i, // GUCE consent hosts
+        /\bgeo\.yahoo\.com\b/i,          // geo beacon
+        /\b3p-(?:geo|udc)\.yahoo\.com\b/i, // cross-domain beacons
+        /\bganon\.yahoo\.com\b/i,         // anonymous analytics
+        /\/ss\/analytics-[\d.]+\.js\b/i, // Rapid analytics filename pattern
+      ],
+      // Note: Yahoo Rapid uses data-ylk / data-rapid-skip on content
+      // elements (links, divs), not <script> tags, so they don't fit
+      // the registry's domAttributes (<script>-only) model.
       domAttributes: [],
       classifyOrigin: true,
     },

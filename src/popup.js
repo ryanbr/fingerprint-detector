@@ -437,10 +437,24 @@ function renderSummary(response) {
     html += `</div></div>`;
   }
 
-  // Preserve scroll position across re-renders
+  // Preserve scroll position AND expanded-categories state across
+  // re-renders. renderSummary runs at popup open and after every
+  // mute action — without this, clicking a mute button on one
+  // category collapses every other category that was open.
   const scrollParent = content.closest(".panel") || content.parentElement;
   const prevScroll = scrollParent.scrollTop;
+  const prevOpen = new Set();
+  content.querySelectorAll(".category.open > .category-header[data-cat]").forEach(h => {
+    prevOpen.add(h.dataset.cat);
+  });
   content.innerHTML = html;
+  if (prevOpen.size) {
+    content.querySelectorAll(".category-header[data-cat]").forEach(h => {
+      if (prevOpen.has(h.dataset.cat)) {
+        h.parentElement.classList.add("open");
+      }
+    });
+  }
   scrollParent.scrollTop = prevScroll;
 
   // Category expand/collapse

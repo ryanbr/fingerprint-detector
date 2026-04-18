@@ -1380,6 +1380,16 @@
           results.push('localStorage["_abck", "bm_sv"]');
         } catch (_) { /* noop */ }
 
+        // Signal 6: /akam/<version>/<hex> sensor path (first-party proxy)
+        try {
+          const s = document.createElement("script");
+          s.src = "https://example.com/akam/13/4ce82e4a";
+          s.onerror = () => {};
+          document.head.appendChild(s);
+          results.push('<script src=".../akam/13/<hex>"> ABM sensor path');
+          setTimeout(() => { try { s.remove(); } catch (_) {} }, 100);
+        } catch (_) { /* noop */ }
+
         return results.length > 0 ? results : ["(failed to simulate any signals)"];
       },
 

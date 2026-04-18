@@ -103,7 +103,13 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
         /^_abck$/, /^bm_sz$/, /^bm_s$/, /^bm_sv$/, /^bm_mi$/,
         /^bm_so$/, /^ak_bmsc$/, /^sbsd$/, /^sbsd_o$/,
       ],
-      scriptSrcPatterns: [],  // ABM URLs are randomized per customer
+      // ABM sensor hash is randomised per customer, but the path
+      // shape /akam/<version>/<hex> is stable across all deployments
+      // (v10-v13+ seen in the wild). Matching the path catches
+      // first-party proxy deployments like <site>.com/akam/13/<hash>.
+      scriptSrcPatterns: [
+        /\/akam\/\d+\/[0-9a-f]{6,}\b/i,
+      ],
       domAttributes: [],
       classifyOrigin: false,
     },

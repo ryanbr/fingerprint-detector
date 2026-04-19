@@ -110,6 +110,7 @@ const CATEGORY_META = {
   DynatraceDetect: { icon: "🐉", color: "#fb8c00", risk: "medium", desc: "Dynatrace APM + RUM (ex-Ruxit) — dtrum/dtmObject globals, dtCookie/__dTCookie/dtLatC/rxVisitor cookies, js-cdn.dynatrace.com + ruxit.com + /jstag/ path" },
   BranchDetect: { icon: "🌿", color: "#fb8c00", risk: "medium", desc: "Branch.io mobile deep linking + install attribution — branch/_branch/BranchViewData globals, _branch_*/branch_session* storage, branch.io + app.link + bnc.lt hosts" },
   CloudflareAnalyticsDetect: { icon: "⛅", color: "#fb8c00", risk: "medium", desc: "Cloudflare Web Analytics (ex-Insights) — __cfBeacon/__cfQR/__cfRl globals, cloudflareinsights.com + /beacon.min.js/v<hash> path, /cdn-cgi/rum beacon (distinct from CloudflareBotManagement)" },
+  SourcepointDetect: { icon: "🔏", color: "#fb8c00", risk: "medium", desc: "Sourcepoint enterprise CMP — _sp_* globals (85+ refs), _sp_v1_/consentUUID cookies, privacy-mgmt.com + sourcepoint.com + sp-prod.net, /unified/wrapperMessaging.js" },
   YotpoDetect: { icon: "💬", color: "#fb8c00", risk: "medium", desc: "Yotpo e-commerce reviews + UGC + loyalty (Shopify-popular) — Yotpo/YotpoAnalytics/yotpoWidgetsContainer/yotpo_pixel/yotpoapi globals, yotpo.com hosts" },
 };
 
@@ -272,6 +273,7 @@ const TRACKING_LIBRARY_CATEGORIES = {
   DynatraceDetect:        { label: "Dynatrace",            icon: "🐉" },
   BranchDetect:           { label: "Branch",               icon: "🌿" },
   CloudflareAnalyticsDetect: { label: "Cloudflare Analytics", icon: "⛅" },
+  SourcepointDetect:      { label: "Sourcepoint",          icon: "🔏" },
   YotpoDetect:            { label: "Yotpo",                icon: "💬" },
 };
 

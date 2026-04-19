@@ -2142,6 +2142,43 @@ export function register({ hookMethod, hookMethodHot, hookMethodViaAccess, hookG
       classifyOrigin: true,
     },
     {
+      name: "Sourcepoint",
+      category: "SourcepointDetect",
+      // Sourcepoint — major enterprise CMP (alongside OneTrust,
+      // Usercentrics, iubenda etc. already in the registry).
+      // Distinctive privacy-mgmt.com CDN — most other CMPs use
+      // their product-branded domain, Sourcepoint deliberately
+      // chose a generic-sounding one. Wrapper variants:
+      // wrapperMessagingWithoutDetection.js (skips adblock
+      // detection) and wrapperMessaging.js (full suite). Deep
+      // _sp_* global namespace — 85+ references in the bundle.
+      // Deliberately skips IAB-standard __tcfapi / __gpp /
+      // __uspapi globals since every CMP sets those.
+      globals: [
+        "_sp_",                      // primary namespace
+        "_sp_local_state",
+        "_sp_env",
+        "_sp_debug",
+        "_sp_idfa_status",
+        "_sp_legal_basis_changes",
+        "_sp_pass_consent",
+        "_sp_pm_server_consent",
+      ],
+      globalPrefixes: ["_sp_"],      // catches _sp_queue / _sp_observe_cls / _sp_sample_me / etc. — all internal state
+      keyPatterns: [
+        /^_sp_v1_/i,                 // Sourcepoint-specific consent state cookies
+        /^consentUUID$/,             // generic but used by Sourcepoint SDK
+      ],
+      scriptSrcPatterns: [
+        /\bprivacy-mgmt\.com\b/i,    // primary CDN (catches cdn. + any other subs)
+        /\bsourcepoint\.com\b/i,     // company domain
+        /\bsp-prod\.net\b/i,         // CCPA / GPP service hosts (ccpa-service, ccpa-notice, etc.)
+        /\/unified\/wrapperMessaging/i, // /unified/wrapperMessaging.js + wrapperMessagingWithoutDetection.js
+      ],
+      domAttributes: [],
+      classifyOrigin: true,
+    },
+    {
       name: "Cloudflare Web Analytics",
       category: "CloudflareAnalyticsDetect",
       // Cloudflare Web Analytics (successor to "Cloudflare Insights")

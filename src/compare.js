@@ -156,6 +156,7 @@ const CATEGORY_META = {
   DynatraceDetect: { icon: "\u{1F409}", color: "#fb8c00", risk: "medium" },
   BranchDetect: { icon: "\u{1F33F}", color: "#fb8c00", risk: "medium" },
   CloudflareAnalyticsDetect: { icon: "\u{26C5}", color: "#fb8c00", risk: "medium" },
+  SourcepointDetect: { icon: "\u{1F50F}", color: "#fb8c00", risk: "medium" },
   YotpoDetect: { icon: "\u{1F4AC}", color: "#fb8c00", risk: "medium" },
 };
 

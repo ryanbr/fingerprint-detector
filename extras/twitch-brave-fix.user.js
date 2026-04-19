@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Twitch: hide Brave markers on login (debug build)
 // @namespace    https://github.com/ryanbr/fingerprint-detector
-// @version      1.2.0
-// @description  v1.2: patch at the prototype level (not instance) so brands / getHighEntropyValues / navigator.brave overrides actually stick through Brave's fingerprint-farming. Rename the toString spoof so .name reports 'toString' instead of 'nativeToString'. Keep verbose debug logging.
+// @version      1.3.0
+// @description  v1.3: don't stop walking the prototype chain after the first 'brave' hit — Brave defines it on BOTH the instance AND Navigator.prototype, so the first delete succeeded but 'brave' in navigator stayed true because the prototype copy took over. Now walks all levels, deletes/overrides each, and installs a last-resort shadowing getter on the instance if anything survives. Also auto-expands the banner-appearance group so the state is visible without clicking.
 // @author       mp3geek
 // @match        https://*.twitch.tv/*
 // @match        https://passport.twitch.tv/*
@@ -18,13 +18,18 @@ const DEBUG = true;
   const TAG = "[twitch-brave-fix]";
   const log = DEBUG ? (...a) => console.log(TAG, ...a) : () => {};
   const warn = DEBUG ? (...a) => console.warn(TAG, ...a) : () => {};
-  const group = DEBUG ? (label, fn) => { console.groupCollapsed(TAG + " " + label); try { fn(); } finally { console.groupEnd(); } } : (_, fn) => fn();
+  // v1.3: use console.group (auto-expanded) for banner-appearance +
+  // similar critical state dumps so the details are visible without
+  // the user needing to click-to-expand. Pre-patch snapshot stays
+  // collapsed since it's informational only.
+  const group = DEBUG ? (label, fn) => { console.group(TAG + " " + label); try { fn(); } finally { console.groupEnd(); } } : (_, fn) => fn();
+  const groupCollapsed = DEBUG ? (label, fn) => { console.groupCollapsed(TAG + " " + label); try { fn(); } finally { console.groupEnd(); } } : (_, fn) => fn();
 
   const startedAt = Date.now();
   log("userscript injected at", new Date().toISOString(), "readyState=", document.readyState);
 
   // ── SNAPSHOT: pre-patch state ────────────────────────────────────
-  group("pre-patch snapshot", () => {
+  groupCollapsed("pre-patch snapshot", () => {
     try {
       console.log("navigator.brave =", navigator.brave);
       console.log("'brave' in navigator =", "brave" in navigator);
@@ -114,41 +119,60 @@ const DEBUG = true;
     }
   } catch (e) { warn("userAgentData prototype patch failed:", e); }
 
-  // ── 2. navigator.brave — prototype-level deletion
+  // ── 2. navigator.brave — remove from EVERY level of the prototype chain
   //
-  // `delete navigator.brave` failed silently on the instance (the
-  // property may be non-configurable). Try deleting from the prototype
-  // chain; if it's an accessor on Navigator.prototype, override that
-  // accessor to return undefined.
+  // v1.2 bug: walked the chain but `break`d after the first hit. Brave
+  // defines 'brave' on BOTH the navigator instance AND on Navigator.prototype
+  // (or an intermediate). Deleting the instance copy exposed the
+  // prototype copy, so 'brave' in navigator stayed true.
+  //
+  // v1.3: walk the full chain (up to 6 levels), delete-or-override
+  // each occurrence. As a last resort, install a shadowing getter on
+  // the navigator instance that returns undefined, so even if some
+  // native code re-adds the property we win on read.
   try {
     let target = navigator;
-    let deleted = false;
-    for (let depth = 0; depth < 5 && target; depth++) {
+    const hits = [];
+    for (let depth = 0; depth < 6 && target; depth++) {
       if (Object.prototype.hasOwnProperty.call(target, "brave")) {
         const desc = Object.getOwnPropertyDescriptor(target, "brave");
+        hits.push({ depth, configurable: !!(desc && desc.configurable), isAccessor: !!(desc && desc.get) });
         try {
           if (desc && desc.configurable) {
-            delete target.brave;
-            deleted = true;
-            log("deleted 'brave' from", depth === 0 ? "navigator instance" : "Navigator.prototype[depth=" + depth + "]");
-            break;
+            const deleted = delete target.brave;
+            if (deleted) {
+              log("deleted 'brave' at depth=" + depth);
+            } else {
+              // delete returned false despite configurable=true, fall through
+              Object.defineProperty(target, "brave", { get: () => undefined, configurable: true, enumerable: false });
+              log("delete returned false at depth=" + depth + " — overrode with undefined getter");
+            }
+          } else {
+            // Non-configurable — override is impossible on this level
+            warn("'brave' at depth=" + depth + " is non-configurable, cannot delete or override there");
           }
-          // Non-configurable — override with accessor returning undefined
-          Object.defineProperty(target, "brave", {
-            get: () => undefined,
-            configurable: true,
-            enumerable: false,
-          });
-          log("overrode 'brave' getter on depth=" + depth + " (returns undefined)");
-          deleted = true;
-          break;
-        } catch (e) {
-          warn("override/delete at depth=" + depth + " failed:", e);
-        }
+        } catch (e) { warn("handling depth=" + depth + " threw:", e); }
       }
       target = Object.getPrototypeOf(target);
     }
-    if (!deleted) log("'brave' not found in navigator prototype chain (may already be hidden)");
+    log("'brave' prototype-chain hits:", hits);
+
+    // Last-resort shadowing property on the instance — if 'brave' still
+    // resolves to something (e.g. a prototype copy we couldn't delete
+    // because non-configurable, or Brave re-adds it on access), install
+    // an own-property accessor that returns undefined. Own-property
+    // lookup beats prototype lookup so this wins.
+    if ("brave" in navigator) {
+      try {
+        Object.defineProperty(navigator, "brave", {
+          get: () => undefined,
+          configurable: true,
+          enumerable: false,
+        });
+        log("installed last-resort shadow getter on navigator instance");
+      } catch (e) { warn("shadow getter install failed:", e); }
+    }
+
     log("post-patch: 'brave' in navigator =", "brave" in navigator, ", navigator.brave =", navigator.brave);
   } catch (e) { warn("navigator.brave block failed:", e); }
 

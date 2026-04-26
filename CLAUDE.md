@@ -28,7 +28,7 @@ tests.html (project root) — standalone test harness, manually opened
 
 ## Key files
 
-- `manifest.json` — Chrome MV3 manifest. Includes `browser_specific_settings.gecko` with `data_collection_permissions: { required: ["none"] }` for Firefox/AMO. Chrome ignores unrecognized top-level keys, so one manifest works for both browsers.
+- `manifest.json` — Chrome MV3 manifest. Includes `browser_specific_settings.gecko` with `data_collection_permissions: { required: ["none"] }` for Firefox/AMO. Chrome ignores unrecognized top-level keys, so one manifest works for both browsers. Both content scripts (`dist/inject.js` MAIN + `src/bridge.js` ISOLATED) declare `exclude_matches: ["*://challenges.cloudflare.com/*"]` to skip injection into Cloudflare Turnstile iframes — Turnstile probes ~130 fingerprinting APIs (Function.toString, Object.toString, full WebGL/Canvas/Audio/Math/Intl suite) and detects our wrappers, sending the challenge into a refresh loop. The parent page hosting the widget still gets full hooks.
 - `src/inject.js` — Entry point (~490 lines): core infrastructure (batching, mute state, rate limiting, record/recordHot, hook helpers, anti-tamper spoofing: `fnWrapperMap` + `copyFnIdentity` + descriptor spoof). Imports all 22 hook modules.
 - `src/hooks/*.js` — 22 modular hook files, each exporting a `register(helpers)` function.
 - `src/bridge.js` — Bridges page events to extension, syncs mute state (global + per-domain).
@@ -338,6 +338,7 @@ Run the "Build and Release CRX" workflow from the Actions tab:
 - The release workflow runs the build automatically — don't commit `dist/` to the repo
 - `navigator.serviceWorker` access throws in sandboxed iframes — hook `ServiceWorkerContainer.prototype` directly instead
 - `chrome.tabs.sendMessage` to tabs without content scripts (chrome://, extension pages) triggers `runtime.lastError` — always consume it in callbacks
+- **Don't remove `exclude_matches: ["*://challenges.cloudflare.com/*"]` from manifest.json content scripts.** Turnstile iframes run a full anti-tamper fingerprint suite that detects our wrappers; injecting there sends Turnstile into a verification loop and prevents the user from completing the challenge. Verified on dl.acm.org. The exclude pattern matches per-frame URL so it covers Turnstile iframes embedded on any parent site.
 - Setters can't return values — `no-setter-return` ESLint rule catches this (use `setter(val); return;` pattern)
 - Adding a new category requires updating: `popup.js` CATEGORY_META + `compare.js` CATEGORY_META + `fingerprint_table.md`
 - Adding a new tracking library requires updating: `hooks/tracking-libraries.js` LIBRARIES array + `popup.js` CATEGORY_META + TRACKING_LIBRARY_CATEGORIES + `compare.js` CATEGORY_META + `tests.html`. Also check the icon isn't already used elsewhere (collisions have caught us multiple times — e.g. 🛡️ was in use by GPC / Akamai BM / Transcend, 🌐 by Network / Media.net, ⭐ by Bazaarvoice, ☁️ by Cloudflare).

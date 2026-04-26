@@ -40,8 +40,10 @@ manifest.browser_specific_settings = {
     data_collection_permissions: { required: ["none"] },
   },
 };
-if (manifest.background && manifest.background.service_worker) {
-  manifest.background = { scripts: [manifest.background.service_worker] };
+// Keep both service_worker (Chrome) and scripts (Firefox fallback) — recent
+// web-ext / AMO rules require service_worker to be paired with scripts.
+if (manifest.background && manifest.background.service_worker && !manifest.background.scripts) {
+  manifest.background.scripts = [manifest.background.service_worker];
 }
 fs.writeFileSync(path.join(OUT, "manifest.json"), JSON.stringify(manifest, null, 2));
 copy(path.join(ROOT, "LICENSE"), path.join(OUT, "LICENSE"));

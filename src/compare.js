@@ -3,9 +3,6 @@
 // ── Cached DOM references (queried once at init) ──────────────────────
 const $container = document.querySelector(".container");
 const $diffSummary = document.getElementById("diff-summary");
-const $themeIconDark = document.getElementById("theme-icon-dark");
-const $themeIconLight = document.getElementById("theme-icon-light");
-const $themeLabel = document.getElementById("theme-label");
 const $domainsSection = document.getElementById("domains-section");
 
 // Side element cache — built once per load, reused on every render
@@ -24,24 +21,20 @@ const $sides = {
   },
 };
 
-// ── Theme toggle ──────────────────────────────────────────────────────
+// ── Theme (read-only) ─────────────────────────────────────────────────
+// The popup owns the theme toggle. Compare follows it: load the
+// current value at init and live-update if the user flips it from the
+// popup while compare is open.
 function applyTheme(theme) {
-  const isLight = theme === "light";
-  document.body.classList.toggle("light", isLight);
-  $themeIconDark.style.display = isLight ? "none" : "";
-  $themeIconLight.style.display = isLight ? "" : "none";
-  $themeLabel.textContent = isLight ? "Dark" : "Light";
+  document.body.classList.toggle("light", theme === "light");
 }
 
-chrome.storage.local.get(["compareTheme"], (stored) => {
-  applyTheme(stored.compareTheme || "dark");
+chrome.storage.local.get(["theme"], (stored) => {
+  applyTheme(stored.theme || "dark");
 });
 
-document.getElementById("theme-toggle").addEventListener("click", () => {
-  const isLight = document.body.classList.contains("light");
-  const next = isLight ? "dark" : "light";
-  applyTheme(next);
-  chrome.storage.local.set({ compareTheme: next });
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "local" && changes.theme) applyTheme(changes.theme.newValue);
 });
 
 const CATEGORY_META = {

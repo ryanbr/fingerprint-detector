@@ -103,7 +103,21 @@
     header h1 { font-size: 18px; font-weight: 600; color: var(--accent); }
     header .subtitle { color: var(--text-dim); font-size: 12px; margin-left: auto; }
 
-    /* Two-column layout */
+    /* + Add Site C button in header */
+    .add-c-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .add-c-btn:hover { background: var(--panel-2); color: var(--text); }
+    body.three-way .add-c-btn { background: var(--accent); color: var(--danger-text); border-color: var(--accent); }
+
+    /* Two- or three-column layout */
     .container {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -113,6 +127,13 @@
       margin: 0 auto;
       align-items: start; /* don't stretch cards to match each other's height */
     }
+    body.three-way .container { grid-template-columns: 1fr 1fr 1fr; max-width: 2200px; }
+    /* Site C is hidden in 2-way mode and shown in 3-way mode */
+    #side-center { display: none; }
+    body.three-way #side-center { display: flex; flex-direction: column; }
+    /* Site C column in domain table — only visible in 3-way mode */
+    .col-c { display: none; }
+    body.three-way .col-c { display: table-cell; }
 
     .side {
       background: var(--panel);
@@ -298,6 +319,11 @@
       background: var(--success-bg-soft);
       border-left-color: var(--success);
     }
+    .method-row.method-only-center {
+      background: var(--link)22;
+      border-left-color: var(--link);
+    }
+    .method-row.only-center { background: var(--link)22; border-left-color: var(--link); }
     .method-row.method-both {
       opacity: 0.55;
     }
@@ -318,10 +344,28 @@
       background: var(--success-bg);
       border-left: 4px solid var(--success);
     }
+    .category-row.only-center {
+      background: var(--link)22;
+      border-left: 4px solid var(--link);
+    }
+    .category-row.in-two {
+      background: var(--warning-bg);
+      border-left: 4px solid var(--warning);
+      opacity: 0.85;
+    }
     .category-row.both {
       background: transparent;
       border-left: 4px solid transparent;
       opacity: 0.55;
+    }
+    .diff-label.unique-center {
+      background: var(--link);
+      color: var(--danger-text);
+      box-shadow: 0 0 0 1px var(--link);
+    }
+    .diff-label.partial {
+      background: var(--warning);
+      color: var(--danger-text);
     }
     .category-row.both .name { color: var(--chip-text); }
     .diff-label {
@@ -495,6 +539,7 @@
     </svg>
     <h1>Fingerprint Detector — Compare</h1>
     <span class="subtitle">Compare fingerprinting between two sites</span>
+    <button class="add-c-btn" id="toggle-c" title="Add or remove a third site for comparison">+ Add Site C</button>
   </header>
 
   <div class="container">
@@ -545,6 +590,32 @@
       </div>
     </div>
 
+    <!-- Center side (Site C) — hidden until 3-way mode is enabled -->
+    <div class="side" id="side-center">
+      <div class="side-header">
+        <span class="label">Site C</span>
+        <span class="site-url" id="center-url">(no data)</span>
+        <span class="view-toggle" data-side="center">
+          <button data-view="all" class="active">All</button>
+          <button data-view="fingerprinting">Fingerprinting</button>
+          <button data-view="trackers">Trackers</button>
+        </span>
+        <button id="center-load">Load file</button>
+        <input type="file" id="center-file" accept=".json" style="display:none">
+      </div>
+      <div class="side-body" id="center-body">
+        <div class="dropzone" id="center-drop">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <p><strong>Drop or click to load an exported summary JSON</strong></p>
+          <p class="hint">Or click "Load file" in the header</p>
+        </div>
+      </div>
+    </div>
+
     <!-- Domains section (hidden until both sides loaded) -->
     <div class="domains-section" id="domains-section" style="display:none">
       <h2>Domain Comparison</h2>
@@ -554,6 +625,7 @@
             <th>Domain</th>
             <th>Site A</th>
             <th>Site B</th>
+            <th class="col-c">Site C</th>
             <th>Present</th>
           </tr>
         </thead>

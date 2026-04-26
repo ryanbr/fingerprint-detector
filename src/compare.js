@@ -19,6 +19,12 @@ const $sides = {
     file: document.getElementById("right-file"),
     load: document.getElementById("right-load"),
   },
+  center: {
+    url: document.getElementById("center-url"),
+    body: document.getElementById("center-body"),
+    file: document.getElementById("center-file"),
+    load: document.getElementById("center-load"),
+  },
 };
 
 // ── Theme (read-only) ─────────────────────────────────────────────────
@@ -162,8 +168,15 @@ function escapeHtml(str) {
 // ── State ─────────────────────────────────────────────────────────────
 let leftData = null;
 let rightData = null;
+let centerData = null;
 let leftFilename = ""; // filename of loaded file (or "current tab")
 let rightFilename = "";
+let centerFilename = "";
+// 3-way mode is opt-in. Toggled via the "+ Add Site C" button in the
+// header. When true, body.three-way is set so the layout switches to
+// 3 columns and Site C is shown; the diff classification expands from
+// 2-way (only A / only B / shared) to 7-way membership.
+let threeWayMode = false;
 
 // ── Loaders ───────────────────────────────────────────────────────────
 // Convert a Debug Log JSON (flat entries array) into a Summary JSON
@@ -326,6 +339,10 @@ function loadFromFile(file, side) {
         leftData = data;
         leftFilename = file.name;
         renderSide("left", data, file.name);
+      } else if (side === "center") {
+        centerData = data;
+        centerFilename = file.name;
+        renderSide("center", data, file.name);
       } else {
         rightData = data;
         rightFilename = file.name;
@@ -347,7 +364,11 @@ function renderSide(side, data, filename) {
 
   // Show URL + filename in brackets (if loaded from a file)
   const url = data.url || "(unknown URL)";
-  const fname = filename || (side === "left" ? leftFilename : rightFilename);
+  const fname = filename || (
+    side === "left" ? leftFilename :
+    side === "center" ? centerFilename :
+    rightFilename
+  );
   urlEl.textContent = fname ? url + " [" + fname + "]" : url;
   urlEl.title = fname ? url + "\nFile: " + fname : url;
 
@@ -388,6 +409,7 @@ function riskClass(label) {
 // accurate even when filtered.
 let leftView = "all";
 let rightView = "all";
+let centerView = "all";
 
 // Tracker-vs-fingerprinting heuristic. Tracker-library categories all
 // follow the *Detect naming convention. The four exclusions are
@@ -415,20 +437,18 @@ document.querySelectorAll(".view-toggle").forEach(group => {
       group.querySelectorAll("button").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       if (side === "left") leftView = btn.dataset.view;
+      else if (side === "center") centerView = btn.dataset.view;
       else rightView = btn.dataset.view;
-      const data = side === "left" ? leftData : rightData;
+      const data = side === "left" ? leftData :
+                   side === "center" ? centerData : rightData;
       if (!data) return;
       // Re-render the affected side. If the diff is already populated
       // (both sides loaded), use the diff renderer so labels stay
       // intact; otherwise fall back to the standalone single-side view.
       if (leftData && rightData) {
-        const leftCats = new Set(Object.keys(leftData.categories || {}));
-        const rightCats = new Set(Object.keys(rightData.categories || {}));
-        const allCats = new Set([...leftCats, ...rightCats]);
-        const onlyLeft = [...leftCats].filter(c => !rightCats.has(c));
-        const onlyRight = [...rightCats].filter(c => !leftCats.has(c));
-        const showMethods = document.getElementById("show-methods")?.checked;
-        renderCategoriesDiff(side, data, allCats, onlyLeft, onlyRight, side, !!showMethods);
+        // Trigger a full re-render so 2-way / 3-way classification stays
+        // consistent — cheaper than partial-recomputing membership here.
+        maybeRenderDiff();
       } else {
         renderCategoriesStandalone(side, data);
       }
@@ -439,6 +459,11 @@ document.querySelectorAll(".view-toggle").forEach(group => {
 // Cached method sets per side, recomputed when data changes
 let leftMethodCache = null;
 let rightMethodCache = null;
+let centerMethodCache = null;
+// 3-way membership map cat → "A"|"B"|"C"|"AB"|"AC"|"BC"|"ABC".
+// Built in maybeRenderDiff when 3-way mode is on, consumed by render
+// helpers + export.
+let membership3 = null;
 
 function buildMethodCache(data) {
   const cache = {};
@@ -459,28 +484,52 @@ function maybeRenderDiff() {
   if (!leftData || !rightData) {
     if (leftData) renderCategoriesStandalone("left", leftData);
     if (rightData) renderCategoriesStandalone("right", rightData);
+    if (centerData) renderCategoriesStandalone("center", centerData);
     return;
   }
 
   // Invalidate caches — fresh data means fresh method sets
   leftMethodCache = buildMethodCache(leftData);
   rightMethodCache = buildMethodCache(rightData);
+  centerMethodCache = centerData ? buildMethodCache(centerData) : null;
   methodsRendered = false; // reset lazy render flag
 
   const leftCats = new Set(Object.keys(leftData.categories || {}));
   const rightCats = new Set(Object.keys(rightData.categories || {}));
+  const centerCats = centerData ? new Set(Object.keys(centerData.categories || {})) : null;
 
-  const allCats = new Set([...leftCats, ...rightCats]);
-  const onlyLeft = [...leftCats].filter(c => !rightCats.has(c));
-  const onlyRight = [...rightCats].filter(c => !leftCats.has(c));
-  const shared = [...leftCats].filter(c => rightCats.has(c));
+  const useThreeWay = threeWayMode && centerData !== null;
+  const allCats = new Set([...leftCats, ...rightCats, ...(centerCats || [])]);
+  const onlyLeft = [...leftCats].filter(c => !rightCats.has(c) && !(centerCats && centerCats.has(c)));
+  const onlyRight = [...rightCats].filter(c => !leftCats.has(c) && !(centerCats && centerCats.has(c)));
 
-  // Diff summary bar
+  // 3-way membership: build cat → "A"/"B"/"C"/"AB"/"AC"/"BC"/"ABC"
+  if (useThreeWay) {
+    membership3 = new Map();
+    for (const cat of allCats) {
+      let m = "";
+      if (leftCats.has(cat)) m += "A";
+      if (rightCats.has(cat)) m += "B";
+      if (centerCats.has(cat)) m += "C";
+      membership3.set(cat, m);
+    }
+  } else {
+    membership3 = null;
+  }
+
+  const onlyCenter = useThreeWay
+    ? [...centerCats].filter(c => !leftCats.has(c) && !rightCats.has(c))
+    : [];
+  const sharedAll = useThreeWay
+    ? [...leftCats].filter(c => rightCats.has(c) && centerCats.has(c))
+    : [...leftCats].filter(c => rightCats.has(c));
+
+  // Diff summary bar — varies between 2-way and 3-way
   $diffSummary.style.display = "flex";
-  $diffSummary.innerHTML = `
+  let summaryHtml = `
     <div class="stat">
-      <div class="stat-label">Shared Techniques</div>
-      <div class="stat-value">${shared.length}</div>
+      <div class="stat-label">${useThreeWay ? "Shared by all" : "Shared Techniques"}</div>
+      <div class="stat-value">${sharedAll.length}</div>
     </div>
     <div class="stat">
       <div class="stat-label">Unique to A</div>
@@ -489,7 +538,23 @@ function maybeRenderDiff() {
     <div class="stat">
       <div class="stat-label">Unique to B</div>
       <div class="stat-value low">${onlyRight.length}</div>
+    </div>`;
+  if (useThreeWay) {
+    summaryHtml += `
+    <div class="stat">
+      <div class="stat-label">Unique to C</div>
+      <div class="stat-value">${onlyCenter.length}</div>
     </div>
+    <div class="stat">
+      <div class="stat-label">Total (A / B / C)</div>
+      <div class="stat-value">${leftCats.size} / ${rightCats.size} / ${centerCats.size}</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Calls (A / B / C)</div>
+      <div class="stat-value">${leftData.totalCalls || 0} / ${rightData.totalCalls || 0} / ${centerData.totalCalls || 0}</div>
+    </div>`;
+  } else {
+    summaryHtml += `
     <div class="stat">
       <div class="stat-label">Total (A / B)</div>
       <div class="stat-value">${leftCats.size} / ${rightCats.size}</div>
@@ -497,7 +562,9 @@ function maybeRenderDiff() {
     <div class="stat">
       <div class="stat-label">Calls (A / B)</div>
       <div class="stat-value">${leftData.totalCalls || 0} / ${rightData.totalCalls || 0}</div>
-    </div>
+    </div>`;
+  }
+  summaryHtml += `
     <div class="actions">
       <label>
         <input type="checkbox" id="diffs-only"> Show only differences
@@ -508,6 +575,7 @@ function maybeRenderDiff() {
       <button id="export-diffs">Export differences</button>
     </div>
   `;
+  $diffSummary.innerHTML = summaryHtml;
 
   // Wire up toggles and export button
   const diffsOnlyCb = document.getElementById("diffs-only");
@@ -522,6 +590,7 @@ function maybeRenderDiff() {
       methodsRendered = true;
       renderCategoriesDiff("left", leftData, allCats, onlyLeft, onlyRight, "left", true);
       renderCategoriesDiff("right", rightData, allCats, onlyLeft, onlyRight, "right", true);
+      if (useThreeWay) renderCategoriesDiff("center", centerData, allCats, onlyLeft, onlyRight, "center", true);
     }
   });
   document.getElementById("export-diffs").addEventListener("click", exportDifferences);
@@ -529,6 +598,7 @@ function maybeRenderDiff() {
   // Render category lists with diff labels
   renderCategoriesDiff("left", leftData, allCats, onlyLeft, onlyRight, "left");
   renderCategoriesDiff("right", rightData, allCats, onlyLeft, onlyRight, "right");
+  if (useThreeWay) renderCategoriesDiff("center", centerData, allCats, onlyLeft, onlyRight, "center");
 
   // Domain comparison
   renderDomainDiff();
@@ -537,7 +607,7 @@ function maybeRenderDiff() {
 function renderCategoriesStandalone(side, data) {
   const container = document.getElementById(side + "-categories");
   if (!container) return;
-  const view = side === "left" ? leftView : rightView;
+  const view = side === "left" ? leftView : side === "center" ? centerView : rightView;
   const cats = filterCatsByView(Object.keys(data.categories || {}), view).sort();
   const parts = [];
   for (let i = 0; i < cats.length; i++) {
@@ -565,18 +635,34 @@ function renderCategoriesDiff(side, data, allCats, onlyLeft, onlyRight, sideLabe
 
   const onlyLeftSet = new Set(onlyLeft);
   const onlyRightSet = new Set(onlyRight);
-  const thisOnlySet = sideLabel === "left" ? onlyLeftSet : onlyRightSet;
+  const useThreeWay = membership3 !== null;
 
-  // Use cached method sets (built once in maybeRenderDiff) instead of rebuilding
-  const otherMethodCache = sideLabel === "left" ? rightMethodCache : leftMethodCache;
+  // For per-method classification we treat "any other side has this method"
+  // as method-both. In 3-way mode we union both other-side caches.
+  let otherMethodCacheA = null, otherMethodCacheB = null;
+  if (sideLabel === "left") {
+    otherMethodCacheA = rightMethodCache;
+    otherMethodCacheB = useThreeWay ? centerMethodCache : null;
+  } else if (sideLabel === "right") {
+    otherMethodCacheA = leftMethodCache;
+    otherMethodCacheB = useThreeWay ? centerMethodCache : null;
+  } else { // center
+    otherMethodCacheA = leftMethodCache;
+    otherMethodCacheB = rightMethodCache;
+  }
 
-  const view = sideLabel === "left" ? leftView : rightView;
+  const view = sideLabel === "left" ? leftView : sideLabel === "center" ? centerView : rightView;
   const thisSideCats = filterCatsByView(Object.keys(data.categories || {}), view);
   const sorted = thisSideCats.sort((a, b) => {
-    const aUnique = thisOnlySet.has(a);
-    const bUnique = thisOnlySet.has(b);
-    if (aUnique && !bUnique) return -1;
-    if (!aUnique && bUnique) return 1;
+    // Sort by membership specificity: unique to this side first.
+    const aIsUnique = (sideLabel === "left" && onlyLeftSet.has(a)) ||
+                      (sideLabel === "right" && onlyRightSet.has(a)) ||
+                      (sideLabel === "center" && useThreeWay && membership3.get(a) === "C");
+    const bIsUnique = (sideLabel === "left" && onlyLeftSet.has(b)) ||
+                      (sideLabel === "right" && onlyRightSet.has(b)) ||
+                      (sideLabel === "center" && useThreeWay && membership3.get(b) === "C");
+    if (aIsUnique && !bIsUnique) return -1;
+    if (!aIsUnique && bIsUnique) return 1;
     return a.localeCompare(b);
   });
 
@@ -585,32 +671,55 @@ function renderCategoriesDiff(side, data, allCats, onlyLeft, onlyRight, sideLabe
     const inThisSide = data.categories[cat];
     const meta = CATEGORY_META[cat] || { icon: "?", color: "#78909c", risk: "low" };
     const calls = inThisSide.totalCalls || 0;
-    const isUniqueLeft = onlyLeftSet.has(cat);
-    const isUniqueRight = onlyRightSet.has(cat);
 
+    // Classification
     let diffClass = "both";
     let label = "";
-    if (sideLabel === "left" && isUniqueLeft) {
-      diffClass = "only-left";
-      label = `<span class="diff-label unique-left">only A</span>`;
-    } else if (sideLabel === "right" && isUniqueRight) {
-      diffClass = "only-right";
-      label = `<span class="diff-label unique-right">only B</span>`;
+    if (useThreeWay) {
+      const m = membership3.get(cat) || "";
+      if (m === "A") {
+        diffClass = "only-left";
+        label = `<span class="diff-label unique-left">only A</span>`;
+      } else if (m === "B") {
+        diffClass = "only-right";
+        label = `<span class="diff-label unique-right">only B</span>`;
+      } else if (m === "C") {
+        diffClass = "only-center";
+        label = `<span class="diff-label unique-center">only C</span>`;
+      } else if (m === "ABC") {
+        diffClass = "both";
+        label = `<span class="diff-label shared">A+B+C</span>`;
+      } else {
+        // 2-of-3
+        diffClass = "in-two";
+        label = `<span class="diff-label partial">${m.split("").join("+")}</span>`;
+      }
     } else {
-      label = `<span class="diff-label shared">shared</span>`;
+      const isUniqueLeft = onlyLeftSet.has(cat);
+      const isUniqueRight = onlyRightSet.has(cat);
+      if (sideLabel === "left" && isUniqueLeft) {
+        diffClass = "only-left";
+        label = `<span class="diff-label unique-left">only A</span>`;
+      } else if (sideLabel === "right" && isUniqueRight) {
+        diffClass = "only-right";
+        label = `<span class="diff-label unique-right">only B</span>`;
+      } else {
+        label = `<span class="diff-label shared">shared</span>`;
+      }
     }
 
     let methodsHtml = "";
-    // Lazy: only build method sub-list when requested (saves ~450 DOM nodes
-    // on typical comparisons when "Show methods" is not yet toggled)
+    // Lazy: only build method sub-list when requested
     if (withMethods) {
       const thisMethods = inThisSide.uniqueMethods || [];
-      const otherMethodNames = (otherMethodCache && otherMethodCache[cat]) || new Set();
+      const setA = (otherMethodCacheA && otherMethodCacheA[cat]) || null;
+      const setB = (otherMethodCacheB && otherMethodCacheB[cat]) || null;
 
       if (thisMethods.length > 0) {
+        const inOtherFn = (mname) => (setA && setA.has(mname)) || (setB && setB.has(mname));
         const sortedMethods = thisMethods.slice().sort((a, b) => {
-          const aInOther = otherMethodNames.has(a.method);
-          const bInOther = otherMethodNames.has(b.method);
+          const aInOther = inOtherFn(a.method);
+          const bInOther = inOtherFn(b.method);
           if (!aInOther && bInOther) return -1;
           if (aInOther && !bInOther) return 1;
           return a.method.localeCompare(b.method);
@@ -619,12 +728,16 @@ function renderCategoriesDiff(side, data, allCats, onlyLeft, onlyRight, sideLabe
         const parts = ["<div class=\"methods-list\">"];
         for (let i = 0; i < sortedMethods.length; i++) {
           const m = sortedMethods[i];
-          const inOther = otherMethodNames.has(m.method);
+          const inOther = inOtherFn(m.method);
           let methodClass;
-          if (isUniqueLeft || isUniqueRight) {
+          if (diffClass === "only-left" || diffClass === "only-right" || diffClass === "only-center") {
             methodClass = diffClass;
           } else {
-            methodClass = inOther ? "method-both" : (sideLabel === "left" ? "method-only-left" : "method-only-right");
+            methodClass = inOther ? "method-both" : (
+              sideLabel === "left" ? "method-only-left" :
+              sideLabel === "center" ? "method-only-center" :
+              "method-only-right"
+            );
           }
           const detailStr = m.detail || "";
           const detailHtml = detailStr ? escapeHtml(detailStr) : "";
@@ -659,9 +772,15 @@ const $domainsTbody = $domainsSection.querySelector("tbody");
 function renderDomainDiff() {
   const section = $domainsSection;
   const tbody = $domainsTbody;
+  const useThreeWay = threeWayMode && centerData !== null;
   const leftDomains = leftData.domains || {};
   const rightDomains = rightData.domains || {};
-  const allDomains = new Set([...Object.keys(leftDomains), ...Object.keys(rightDomains)]);
+  const centerDomains = useThreeWay ? (centerData.domains || {}) : {};
+  const allDomains = new Set([
+    ...Object.keys(leftDomains),
+    ...Object.keys(rightDomains),
+    ...Object.keys(centerDomains),
+  ]);
 
   if (allDomains.size === 0) {
     section.style.display = "none";
@@ -670,28 +789,44 @@ function renderDomainDiff() {
   section.style.display = "block";
 
   const sorted = [...allDomains].sort((a, b) => {
-    const aTotal = (leftDomains[a]?.calls || 0) + (rightDomains[a]?.calls || 0);
-    const bTotal = (leftDomains[b]?.calls || 0) + (rightDomains[b]?.calls || 0);
+    const aTotal = (leftDomains[a]?.calls || 0) + (rightDomains[a]?.calls || 0) + (centerDomains[a]?.calls || 0);
+    const bTotal = (leftDomains[b]?.calls || 0) + (rightDomains[b]?.calls || 0) + (centerDomains[b]?.calls || 0);
     return bTotal - aTotal;
   });
+
+  function fmt(d) {
+    return d ? d.calls + " calls / " + (d.categories?.length || 0) + " cats" : "—";
+  }
 
   let html = "";
   for (const domain of sorted) {
     const left = leftDomains[domain];
     const right = rightDomains[domain];
-    const isThirdPartyA = left?.isThirdParty;
-    const isThirdPartyB = right?.isThirdParty;
-    const isThird = isThirdPartyA || isThirdPartyB;
+    const center = centerDomains[domain];
+    const isThird = left?.isThirdParty || right?.isThirdParty || center?.isThirdParty;
 
     let rowClass = "both";
     let present = "shared";
-    if (left && !right) { rowClass = "only-left"; present = "A only"; }
-    else if (!left && right) { rowClass = "only-right"; present = "B only"; }
+    if (useThreeWay) {
+      let mark = "";
+      if (left) mark += "A";
+      if (right) mark += "B";
+      if (center) mark += "C";
+      present = mark.length === 3 ? "shared" : mark.split("").join("+");
+      if (mark === "A") rowClass = "only-left";
+      else if (mark === "B") rowClass = "only-right";
+      else if (mark === "C") rowClass = "only-center";
+      else if (mark.length === 2) rowClass = "in-two";
+    } else {
+      if (left && !right) { rowClass = "only-left"; present = "A only"; }
+      else if (!left && right) { rowClass = "only-right"; present = "B only"; }
+    }
 
     html += `<tr class="${rowClass}">
       <td class="domain-name">${escapeHtml(domain)}${isThird ? '<span class="third-party">3rd-party</span>' : ''}</td>
-      <td>${left ? left.calls + " calls / " + (left.categories?.length || 0) + " cats" : "—"}</td>
-      <td>${right ? right.calls + " calls / " + (right.categories?.length || 0) + " cats" : "—"}</td>
+      <td>${fmt(left)}</td>
+      <td>${fmt(right)}</td>
+      <td class="col-c">${fmt(center)}</td>
       <td>${present}</td>
     </tr>`;
   }
@@ -702,6 +837,12 @@ function renderDomainDiff() {
 function exportDifferences() {
   if (!leftData || !rightData) {
     alert("Load both sides before exporting differences.");
+    return;
+  }
+
+  const useThreeWay = threeWayMode && centerData !== null;
+  if (useThreeWay) {
+    exportDifferences3Way();
     return;
   }
 
@@ -835,15 +976,104 @@ function exportDifferences() {
   URL.revokeObjectURL(url);
 }
 
+// ── 3-way export ──────────────────────────────────────────────────────
+// Membership-based diff: each technique is tagged with which sites it
+// appeared on (A / B / C / AB / AC / BC / ABC). Methods within shared
+// techniques get the same membership treatment.
+function exportDifferences3Way() {
+  const cats = {
+    A: leftData.categories || {},
+    B: rightData.categories || {},
+    C: centerData.categories || {},
+  };
+  const allCats = new Set([...Object.keys(cats.A), ...Object.keys(cats.B), ...Object.keys(cats.C)]);
+  const buckets = {
+    A: [], B: [], C: [],
+    AB: [], AC: [], BC: [],
+    ABC: [],
+  };
+  for (const cat of allCats) {
+    let m = "";
+    if (cats.A[cat]) m += "A";
+    if (cats.B[cat]) m += "B";
+    if (cats.C[cat]) m += "C";
+    const entry = {
+      category: cat,
+      callsA: cats.A[cat]?.totalCalls || 0,
+      callsB: cats.B[cat]?.totalCalls || 0,
+      callsC: cats.C[cat]?.totalCalls || 0,
+    };
+    if (m.length >= 2) {
+      // Method-level membership for shared techniques
+      const methodSets = {
+        A: new Set((cats.A[cat]?.uniqueMethods || []).map(x => x.method)),
+        B: new Set((cats.B[cat]?.uniqueMethods || []).map(x => x.method)),
+        C: new Set((cats.C[cat]?.uniqueMethods || []).map(x => x.method)),
+      };
+      const methodMembership = {};
+      for (const sub of [...methodSets.A, ...methodSets.B, ...methodSets.C]) {
+        let mm = "";
+        if (methodSets.A.has(sub)) mm += "A";
+        if (methodSets.B.has(sub)) mm += "B";
+        if (methodSets.C.has(sub)) mm += "C";
+        if (!methodMembership[mm]) methodMembership[mm] = [];
+        methodMembership[mm].push(sub);
+      }
+      entry.methodsByMembership = methodMembership;
+    } else {
+      // Unique to one side — list its methods
+      const side = m;
+      entry.uniqueMethods = cats[side][cat]?.uniqueMethods || [];
+    }
+    buckets[m].push(entry);
+  }
+
+  function siteSlug(url) {
+    if (!url) return "unknown";
+    try {
+      return new URL(url).hostname.replace(/^www\./, "").replace(/[^a-z0-9.-]/gi, "_");
+    } catch {
+      return "unknown";
+    }
+  }
+
+  const diff = {
+    exportedAt: new Date().toISOString(),
+    siteA: { url: leftData.url || "", source: leftFilename || "current tab", totalTechniques: Object.keys(cats.A).length, totalCalls: leftData.totalCalls || 0 },
+    siteB: { url: rightData.url || "", source: rightFilename || "", totalTechniques: Object.keys(cats.B).length, totalCalls: rightData.totalCalls || 0 },
+    siteC: { url: centerData.url || "", source: centerFilename || "", totalTechniques: Object.keys(cats.C).length, totalCalls: centerData.totalCalls || 0 },
+    summary: {
+      onlyA: buckets.A.length, onlyB: buckets.B.length, onlyC: buckets.C.length,
+      AB: buckets.AB.length, AC: buckets.AC.length, BC: buckets.BC.length,
+      ABC: buckets.ABC.length,
+    },
+    techniques: buckets,
+  };
+
+  const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+  const filename = `fp-diff3-${siteSlug(leftData.url)}-vs-${siteSlug(rightData.url)}-vs-${siteSlug(centerData.url)}-${ts}.json`;
+  const blob = new Blob([JSON.stringify(diff, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 // ── File loading — button + drag/drop ─────────────────────────────────
 $sides.left.load.addEventListener("click", () => $sides.left.file.click());
 $sides.right.load.addEventListener("click", () => $sides.right.file.click());
+$sides.center.load.addEventListener("click", () => $sides.center.file.click());
 
 $sides.left.file.addEventListener("change", (e) => {
   if (e.target.files[0]) loadFromFile(e.target.files[0], "left");
 });
 $sides.right.file.addEventListener("change", (e) => {
   if (e.target.files[0]) loadFromFile(e.target.files[0], "right");
+});
+$sides.center.file.addEventListener("change", (e) => {
+  if (e.target.files[0]) loadFromFile(e.target.files[0], "center");
 });
 
 // Wire up a dropzone — drag/drop + click to open file dialog
@@ -874,16 +1104,56 @@ function wireDropzone(dropzoneEl, side) {
 }
 
 wireDropzone(document.getElementById("right-drop"), "right");
+wireDropzone(document.getElementById("center-drop"), "center");
 
-// Whole-window drag and drop — allows dropping on either side
+// Whole-window drag and drop — pick the side under the mouse. In
+// 2-way mode the window is split in half (left | right); in 3-way
+// mode it's split in thirds (left | center | right).
 document.addEventListener("dragover", (e) => e.preventDefault());
 document.addEventListener("drop", (e) => {
   e.preventDefault();
-  // Determine which side was dropped on based on mouse X
   const file = e.dataTransfer.files[0];
   if (!file) return;
-  const side = e.clientX < window.innerWidth / 2 ? "left" : "right";
+  const w = window.innerWidth;
+  let side;
+  if (threeWayMode) {
+    side = e.clientX < w / 3 ? "left" : e.clientX < 2 * w / 3 ? "center" : "right";
+  } else {
+    side = e.clientX < w / 2 ? "left" : "right";
+  }
   loadFromFile(file, side);
+});
+
+// ── 3-way mode toggle ────────────────────────────────────────────────
+const $toggleC = document.getElementById("toggle-c");
+$toggleC.addEventListener("click", () => {
+  threeWayMode = !threeWayMode;
+  document.body.classList.toggle("three-way", threeWayMode);
+  $toggleC.textContent = threeWayMode ? "− Remove Site C" : "+ Add Site C";
+  $toggleC.title = threeWayMode
+    ? "Drop back to 2-site comparison"
+    : "Add or remove a third site for comparison";
+  // If turning off, drop loaded center data so re-toggling starts fresh.
+  if (!threeWayMode) {
+    centerData = null;
+    centerFilename = "";
+    centerView = "all";
+    // Reset the center dropzone so it shows the empty state if re-enabled.
+    document.getElementById("center-body").innerHTML = `
+      <div class="dropzone" id="center-drop">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        <p><strong>Drop or click to load an exported summary JSON</strong></p>
+        <p class="hint">Or click "Load file" in the header</p>
+      </div>`;
+    wireDropzone(document.getElementById("center-drop"), "center");
+  }
+  // Re-render with the new mode (or fall back to 2-way render if center
+  // hasn't been loaded yet).
+  if (leftData && rightData) maybeRenderDiff();
 });
 
 // ── Load current tab summary into Site A on open ──────────────────────

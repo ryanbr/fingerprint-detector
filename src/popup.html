@@ -3,6 +3,64 @@
 <head>
   <meta charset="UTF-8">
   <style>
+    /* ── Theme: dark (default) ───────────────────────────── */
+    :root {
+      --bg: #1a1a2e;
+      --panel: #16213e;
+      --panel-deep: #12122a;
+      --border: #0f3460;
+      --border-soft: #0f346030;
+      --border-faint: #0f346033;
+      --text: #e0e0e0;
+      --text-dim: #b0bec5;
+      --text-mute: #90a4ae;
+      --text-faint: #78909c;
+      --text-fainter: #546e7a;
+      --accent: #e94560;
+      --high: #ef5350;
+      --medium: #ffa726;
+      --low: #66bb6a;
+      --link: #5c6bc0;
+      --iframe: #ab47bc;
+      --iframe-text: #ce93d8;
+      --iframe-bg: #ab47bc33;
+      --high-bg: #e5393533;
+      --medium-bg: #fb8c0033;
+      --low-bg: #43a04733;
+      --none-bg: #78909c33;
+      --accent-bg-soft: #e9456018;
+      --accent-bg: #e9456033;
+      --shadow: #00000066;
+    }
+    /* ── Theme: light ────────────────────────────────────── */
+    body.light {
+      --bg: #f5f5f8;
+      --panel: #ffffff;
+      --panel-deep: #e8eaf0;
+      --border: #b0b8c4;
+      --border-soft: #b0b8c460;
+      --border-faint: #b0b8c466;
+      --text: #1a1a2e;
+      --text-dim: #3a4254;
+      --text-mute: #5a6478;
+      --text-faint: #6a7488;
+      --text-fainter: #889098;
+      --accent: #c62147;
+      --high: #d32f2f;
+      --medium: #ed6c02;
+      --low: #2e7d32;
+      --link: #3949ab;
+      --iframe: #7b1fa2;
+      --iframe-text: #4a148c;
+      --iframe-bg: #7b1fa226;
+      --high-bg: #d32f2f22;
+      --medium-bg: #ed6c0222;
+      --low-bg: #2e7d3222;
+      --none-bg: #5a647822;
+      --accent-bg-soft: #c6214712;
+      --accent-bg: #c6214722;
+      --shadow: #00000033;
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       width: 480px;
@@ -11,8 +69,8 @@
       flex-direction: column;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 13px;
-      color: #e0e0e0;
-      background: #1a1a2e;
+      color: var(--text);
+      background: var(--bg);
     }
     code, .mono {
       font-family: Consolas, "Liberation Mono", Menlo, "Courier New", monospace;
@@ -21,20 +79,20 @@
     /* ── Header ─────────────────────────────────────── */
     header {
       padding: 12px 16px;
-      background: #16213e;
-      border-bottom: 1px solid #0f3460;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       gap: 10px;
       flex-shrink: 0;
     }
-    header h1 { font-size: 15px; font-weight: 600; color: #e94560; }
+    header h1 { font-size: 15px; font-weight: 600; color: var(--accent); }
 
     /* ── Tabs ────────────────────────────────────────── */
     .tabs {
       display: flex;
-      background: #16213e;
-      border-bottom: 1px solid #0f3460;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
       flex-shrink: 0;
     }
     .tab {
@@ -44,13 +102,13 @@
       font-size: 12px;
       font-weight: 600;
       cursor: pointer;
-      color: #78909c;
+      color: var(--text-faint);
       border-bottom: 2px solid transparent;
       user-select: none;
       transition: color 0.15s, border-color 0.15s;
     }
-    .tab:hover { color: #b0bec5; }
-    .tab.active { color: #e94560; border-bottom-color: #e94560; }
+    .tab:hover { color: var(--text-dim); }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
     /* ── Panels ──────────────────────────────────────── */
     .panel { display: none; flex: 1; overflow-y: auto; }
@@ -59,8 +117,8 @@
     /* ── Summary panel ───────────────────────────────── */
     .summary {
       padding: 12px 16px;
-      background: #16213e;
-      border-bottom: 1px solid #0f3460;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
@@ -75,30 +133,30 @@
       font-size: 11px;
       font-weight: 600;
     }
-    .badge.high   { background: #e5393533; color: #ef5350; }
-    .badge.medium { background: #fb8c0033; color: #ffa726; }
-    .badge.low    { background: #43a04733; color: #66bb6a; }
-    .badge.none   { background: #78909c33; color: #90a4ae; }
+    .badge.high   { background: var(--high-bg); color: var(--high); }
+    .badge.medium { background: var(--medium-bg); color: var(--medium); }
+    .badge.low    { background: var(--low-bg); color: var(--low); }
+    .badge.none   { background: var(--none-bg); color: var(--text-mute); }
 
     .empty {
       padding: 40px 16px;
       text-align: center;
-      color: #78909c;
+      color: var(--text-faint);
       flex: 1;
     }
     .empty svg { margin-bottom: 12px; opacity: 0.4; }
 
-    .category { border-bottom: 1px solid #0f3460; }
+    .category { border-bottom: 1px solid var(--border); }
     .category-header {
       padding: 10px 16px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: #1a1a2e;
+      background: var(--bg);
       user-select: none;
     }
-    .category-header:hover { background: #16213e; }
+    .category-header:hover { background: var(--panel); }
     .category-name {
       display: flex;
       align-items: center;
@@ -113,7 +171,7 @@
       font-size: 11px; flex-shrink: 0;
     }
     .count {
-      background: #0f3460; color: #90a4ae;
+      background: var(--border); color: var(--text-mute);
       padding: 2px 8px; border-radius: 10px; font-size: 11px;
     }
     .category-right {
@@ -125,7 +183,7 @@
       visibility: hidden;
       background: none;
       border: none;
-      color: #546e7a;
+      color: var(--text-fainter);
       font-size: 13px;
       cursor: pointer;
       padding: 0 2px;
@@ -133,44 +191,44 @@
     }
     .category-header:hover .summary-mute-btn { visibility: visible; }
     .detection:hover .summary-mute-btn { visibility: visible; }
-    .summary-mute-btn:hover { color: #ef5350; }
-    .summary-mute-btn.is-muted { visibility: visible; color: #ef5350; }
+    .summary-mute-btn:hover { color: var(--high); }
+    .summary-mute-btn.is-muted { visibility: visible; color: var(--high); }
     .category.is-muted .category-header { opacity: 0.4; }
     .detection.is-muted { opacity: 0.4; }
-    .arrow { transition: transform 0.2s; color: #546e7a; }
+    .arrow { transition: transform 0.2s; color: var(--text-fainter); }
     .category.open .arrow { transform: rotate(90deg); }
     .category-body { display: none; padding: 0 16px 10px; }
     .category.open .category-body { display: block; }
 
     .detection {
       padding: 6px 0;
-      border-bottom: 1px solid #0f346033;
+      border-bottom: 1px solid var(--border-faint);
       font-size: 12px;
     }
     .detection:last-child { border-bottom: none; }
     .detection .method {
-      color: #e94560;
+      color: var(--accent);
       font-family: Consolas, "Liberation Mono", Menlo, "Courier New", monospace;
       font-size: 11px;
     }
     .detection .detail {
-      color: #78909c; font-size: 11px;
+      color: var(--text-faint); font-size: 11px;
       margin-top: 2px; word-break: break-all;
     }
     .detection .source {
-      color: #5c6bc0; font-size: 10px;
+      color: var(--link); font-size: 10px;
       margin-top: 2px; word-break: break-all;
       font-family: Consolas, "Liberation Mono", Menlo, "Courier New", monospace;
     }
     .detection .frame-url {
-      color: #ab47bc; font-size: 10px;
+      color: var(--iframe); font-size: 10px;
       margin-top: 1px; word-break: break-all;
       font-family: Consolas, "Liberation Mono", Menlo, "Courier New", monospace;
     }
     .iframe-tag {
       display: inline-block;
-      background: #ab47bc33;
-      color: #ce93d8;
+      background: var(--iframe-bg);
+      color: var(--iframe-text);
       font-size: 9px;
       font-weight: 700;
       padding: 1px 5px;
@@ -179,12 +237,12 @@
       vertical-align: middle;
     }
     .detection .time {
-      color: #546e7a; font-size: 10px; float: right;
+      color: var(--text-fainter); font-size: 10px; float: right;
     }
 
     /* ── Trackers panel ─────────────────────────────── */
     .tracker-card {
-      border-bottom: 1px solid #0f3460;
+      border-bottom: 1px solid var(--border);
       padding: 10px 16px;
     }
     .tracker-card-header {
@@ -201,7 +259,7 @@
     }
     .tracker-card-name { flex: 1; }
     .tracker-card-count {
-      background: #0f3460; color: #90a4ae;
+      background: var(--border); color: var(--text-mute);
       padding: 2px 8px; border-radius: 10px; font-size: 11px;
       font-weight: 600;
     }
@@ -217,11 +275,11 @@
       font-size: 11px;
       line-height: 1.4;
       padding: 3px 8px;
-      background: #12122a;
+      background: var(--panel-deep);
       border-radius: 3px;
     }
     .tracker-signal-method {
-      color: #90a4ae;
+      color: var(--text-mute);
       font-weight: 600;
       flex-shrink: 0;
       max-width: 40%;
@@ -230,7 +288,7 @@
       white-space: nowrap;
     }
     .tracker-signal-detail {
-      color: #e94560;
+      color: var(--accent);
       font-family: Consolas, "Liberation Mono", Menlo, "Courier New", monospace;
       flex: 1;
       min-width: 0;
@@ -245,36 +303,36 @@
       align-items: center;
       gap: 8px;
       padding: 8px 12px;
-      background: #16213e;
-      border-bottom: 1px solid #0f3460;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
       flex-shrink: 0;
     }
     .log-toolbar input {
       flex: 1;
       padding: 5px 8px;
-      border: 1px solid #0f3460;
+      border: 1px solid var(--border);
       border-radius: 4px;
-      background: #1a1a2e;
-      color: #e0e0e0;
+      background: var(--bg);
+      color: var(--text);
       font-size: 11px;
       outline: none;
     }
-    .log-toolbar input::placeholder { color: #546e7a; }
-    .log-toolbar input:focus { border-color: #e94560; }
+    .log-toolbar input::placeholder { color: var(--text-fainter); }
+    .log-toolbar input:focus { border-color: var(--accent); }
     .log-toolbar button {
       padding: 5px 10px;
-      border: 1px solid #0f3460;
+      border: 1px solid var(--border);
       border-radius: 4px;
-      background: #1a1a2e;
-      color: #90a4ae;
+      background: var(--bg);
+      color: var(--text-mute);
       font-size: 11px;
       cursor: pointer;
     }
-    .log-toolbar button:hover { background: #0f3460; color: #e0e0e0; }
+    .log-toolbar button:hover { background: var(--border); color: var(--text); }
     .log-toolbar button.paused {
-      background: #e9456033;
-      color: #ef5350;
-      border-color: #e94560;
+      background: var(--accent-bg);
+      color: var(--high);
+      border-color: var(--accent);
     }
 
     /* ── Mute controls ──────────────────────────────── */
@@ -282,7 +340,7 @@
       visibility: hidden;
       background: none;
       border: none;
-      color: #546e7a;
+      color: var(--text-fainter);
       font-size: 12px;
       cursor: pointer;
       padding: 0 4px;
@@ -290,21 +348,21 @@
       line-height: 1;
     }
     .log-entry:hover .mute-btn { visibility: visible; }
-    .mute-btn:hover { color: #ef5350; }
+    .mute-btn:hover { color: var(--high); }
 
     .mute-bar {
       display: none;
       flex-wrap: wrap;
       gap: 4px;
       padding: 6px 12px;
-      background: #12122a;
-      border-bottom: 1px solid #0f3460;
+      background: var(--panel-deep);
+      border-bottom: 1px solid var(--border);
       flex-shrink: 0;
     }
     .mute-bar.active { display: flex; }
     .mute-bar-label {
       font-size: 10px;
-      color: #546e7a;
+      color: var(--text-fainter);
       align-self: center;
       margin-right: 4px;
     }
@@ -316,25 +374,25 @@
       border-radius: 3px;
       font-size: 10px;
       font-family: Consolas, "Liberation Mono", Menlo, "Courier New", monospace;
-      background: #e9456018;
-      color: #ef5350;
+      background: var(--accent-bg-soft);
+      color: var(--high);
       cursor: pointer;
-      border: 1px solid #e9456033;
+      border: 1px solid var(--accent-bg);
     }
     .mute-tag:hover {
-      background: #e9456033;
-      border-color: #e94560;
+      background: var(--accent-bg);
+      border-color: var(--accent);
     }
     .mute-tag .x {
       font-weight: 700;
       font-size: 11px;
     }
     .log-counter {
-      font-size: 11px; color: #546e7a; white-space: nowrap;
+      font-size: 11px; color: var(--text-fainter); white-space: nowrap;
     }
     #log-autoscroll-label {
       font-size: 11px;
-      color: #78909c;
+      color: var(--text-faint);
       display: flex;
       align-items: center;
       gap: 4px;
@@ -348,17 +406,17 @@
       padding: 0;
     }
     .log-entry {
-      border-bottom: 1px solid #0f346030;
+      border-bottom: 1px solid var(--border-soft);
       font-size: 12px;
       line-height: 1.5;
       padding: 4px 0;
       animation: logFlash 0.4s ease-out;
     }
     @keyframes logFlash {
-      from { background: #e9456018; }
+      from { background: var(--accent-bg-soft); }
       to   { background: transparent; }
     }
-    .log-entry:hover { background: #16213e; }
+    .log-entry:hover { background: var(--panel); }
     .log-row {
       display: flex;
       gap: 0;
@@ -368,7 +426,7 @@
       min-width: 78px;
       max-width: 78px;
       flex-shrink: 0;
-      color: #546e7a;
+      color: var(--text-fainter);
       padding: 0 6px;
       font-family: Consolas, "Liberation Mono", Menlo, "Courier New", monospace;
       font-size: 11px;
@@ -388,7 +446,7 @@
     .log-method {
       flex: 1;
       min-width: 0;
-      color: #e94560;
+      color: var(--accent);
       font-family: Consolas, "Liberation Mono", Menlo, "Courier New", monospace;
       padding: 0 4px;
       overflow: hidden;
@@ -397,7 +455,7 @@
     }
     .log-detail {
       padding: 0 8px 0 4px;
-      color: #78909c;
+      color: var(--text-faint);
       max-width: 140px;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -406,7 +464,7 @@
     .log-source {
       padding: 0 8px 0 84px;
       font-size: 11px;
-      color: #5c6bc0;
+      color: var(--link);
       font-family: Consolas, "Liberation Mono", Menlo, "Courier New", monospace;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -415,7 +473,7 @@
     .log-frame {
       padding: 0 8px 0 84px;
       font-size: 11px;
-      color: #ab47bc;
+      color: var(--iframe);
       font-family: Consolas, "Liberation Mono", Menlo, "Courier New", monospace;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -426,18 +484,18 @@
       display: none;
       padding: 4px 8px 4px 84px;
       font-size: 11px;
-      color: #546e7a;
+      color: var(--text-fainter);
       font-family: Consolas, "Liberation Mono", Menlo, "Courier New", monospace;
       white-space: pre-wrap;
       word-break: break-all;
-      border-bottom: 1px solid #0f346030;
-      background: #12122a;
+      border-bottom: 1px solid var(--border-soft);
+      background: var(--panel-deep);
     }
 
     /* risk colors for log category */
-    .risk-high   { color: #ef5350; }
-    .risk-medium { color: #ffa726; }
-    .risk-low    { color: #66bb6a; }
+    .risk-high   { color: var(--high); }
+    .risk-medium { color: var(--medium); }
+    .risk-low    { color: var(--low); }
 
     /* ── Export dropdown ─────────────────────────────── */
     .export-wrap {
@@ -448,9 +506,9 @@
     }
     .export-btn {
       background: none;
-      border: 1px solid #0f3460;
+      border: 1px solid var(--border);
       border-radius: 4px;
-      color: #78909c;
+      color: var(--text-faint);
       font-size: 11px;
       padding: 4px 8px;
       cursor: pointer;
@@ -458,19 +516,20 @@
       align-items: center;
       gap: 4px;
     }
-    .export-btn:hover { background: #0f3460; color: #e0e0e0; }
+    .export-btn:hover { background: var(--border); color: var(--text); }
+    .theme-btn { padding: 4px 6px; }
     .export-menu {
       display: none;
       position: absolute;
       right: 0;
       top: 100%;
       margin-top: 4px;
-      background: #16213e;
-      border: 1px solid #0f3460;
+      background: var(--panel);
+      border: 1px solid var(--border);
       border-radius: 4px;
       z-index: 10;
       min-width: 180px;
-      box-shadow: 0 4px 12px #00000066;
+      box-shadow: 0 4px 12px var(--shadow);
     }
     .export-menu.open { display: block; }
     .export-item {
@@ -479,16 +538,16 @@
       padding: 8px 12px;
       background: none;
       border: none;
-      color: #e0e0e0;
+      color: var(--text);
       font-size: 11px;
       text-align: left;
       cursor: pointer;
     }
-    .export-item:hover { background: #0f3460; }
+    .export-item:hover { background: var(--border); }
     .export-item .export-desc {
       display: block;
       font-size: 9px;
-      color: #546e7a;
+      color: var(--text-fainter);
       margin-top: 2px;
     }
 
@@ -497,18 +556,34 @@
       padding: 8px 16px;
       text-align: center;
       font-size: 10px;
-      color: #546e7a;
-      border-top: 1px solid #0f3460;
+      color: var(--text-fainter);
+      border-top: 1px solid var(--border);
       flex-shrink: 0;
     }
   </style>
 </head>
 <body>
   <header>
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e94560" stroke-width="2">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2">
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
     </svg>
     <h1>Fingerprint Detector</h1>
+    <button class="export-btn theme-btn" id="theme-toggle" title="Toggle light/dark mode" aria-label="Toggle theme">
+      <svg id="theme-icon-dark" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+      <svg id="theme-icon-light" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+        <circle cx="12" cy="12" r="5"/>
+        <line x1="12" y1="1" x2="12" y2="3"/>
+        <line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="3" y2="12"/>
+        <line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+    </button>
     <button class="export-btn" id="compare-btn" title="Compare with another site">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M8 3H5a2 2 0 00-2 2v14a2 2 0 002 2h3"/>

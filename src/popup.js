@@ -186,6 +186,29 @@ function cleanStack(stack) {
 document.getElementById("footer").textContent =
   "Fingerprint Detector v" + chrome.runtime.getManifest().version;
 
+// ── Theme (light / dark) ───────────────────────────────────────────────
+// Persisted in chrome.storage.local as `theme` ("light" | "dark"). Dark
+// is the default. The toggle swaps the body.light class and the visible
+// SVG so the icon reflects the *next* state the user would switch to.
+function applyTheme(theme) {
+  const isLight = theme === "light";
+  document.body.classList.toggle("light", isLight);
+  const dark = document.getElementById("theme-icon-dark");
+  const light = document.getElementById("theme-icon-light");
+  if (dark) dark.style.display = isLight ? "none" : "";
+  if (light) light.style.display = isLight ? "" : "none";
+}
+
+document.getElementById("theme-toggle")?.addEventListener("click", () => {
+  const next = document.body.classList.contains("light") ? "dark" : "light";
+  applyTheme(next);
+  chrome.storage.local.set({ theme: next });
+});
+
+chrome.storage.local.get(["theme"], (s) => {
+  if (s.theme === "light") applyTheme("light");
+});
+
 // ── Tab Switching ──────────────────────────────────────────────────────
 document.querySelectorAll(".tab").forEach(tab => {
   tab.addEventListener("click", () => {

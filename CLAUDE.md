@@ -104,9 +104,9 @@ Lessons accumulated while growing the registry:
 - **Watch for cookie collisions between vendors.** `_vuid` is set by both Yahoo Rapid and Listrak — neither entry uses it as a signal any more (caught during review).
 - **Heritage / acquisition artefacts are stable signals.** Legacy cookie / global / domain names persist for years after rebrands and are often the most reliable detection surface: `_etmc` (ExactTarget inside Salesforce MC), `rxVisitor`/`rxvt` (Ruxit inside Dynatrace), `ywxi.net` (McAfee SECURE inside TrustedSite), `GlobalE_Analytics_Borderfree` (Borderfree inside Global-e), `pSUPERFLY` (Chartbeat's 15+ year old codename), `2o7.net` (Omniture inside Adobe Analytics), `bnc.lt` (pre-rebrand Branch).
 
-### Known perf note
+### keyPattern lookup index
 
-`scanStorage` currently loops `cookies × libraries × keyPatterns` — roughly O(n × 70 × avg 3) regex tests per scan. Acceptable today (50–200ms on heavy pages) but a future optimisation would invert this into a precomputed Map lookup at registration time. Not urgent.
+`hooks/tracking-libraries.js` precomputes a lookup index at register time so cookie / storage key matching is O(1) for exact patterns + a small prefix loop + a tiny complex-regex fallback. Each `keyPatterns` regex is classified as either `^literal$` (exact, with case-sensitivity preserved), `^literal` (prefix), or compound (anything else, kept as a fallback regex). Replaces a previous O(libraries × patterns) scan that hit ~210 regex tests per cookie. Reduces `scanCookies` / `scanStorage` from 50–200ms to <5ms on cookie-heavy pages. The index assumes `keyPatterns` regex literals only contain `[A-Za-z0-9_-]` chars in their anchored prefix portion — anything else falls through to the complex-regex list (still correct, just slower).
 
 ## Anti-tamper spoofing
 

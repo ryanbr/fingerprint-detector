@@ -404,7 +404,7 @@ const NON_TRACKER_DETECT = new Set([
 ]);
 
 function isTrackerCategory(cat) {
-  return /Detect$/.test(cat) && !NON_TRACKER_DETECT.has(cat);
+  return cat.endsWith("Detect") && !NON_TRACKER_DETECT.has(cat);
 }
 
 function filterCatsByView(cats, view) {

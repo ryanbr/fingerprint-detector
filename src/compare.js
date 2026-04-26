@@ -246,6 +246,59 @@ function convertLogToSummary(logData) {
   };
 }
 
+// Convert a Trackers JSON ({ libraries: [...] }) into a Summary JSON
+// (categories object). Each detected library becomes a synthetic
+// category whose uniqueMethods are its signals.
+//
+// Trackers signals share generic method labels ("Cookie key",
+// "Global variable", "Script URL match"), so the bare label isn't
+// distinctive enough for the diff — two sites both seeing different
+// cookies would still count as a "shared method". To match on the
+// actual values, we fold the detail into the method field as
+// "method: detail" so the diff sees the full signal as the identifier.
+// The original detail is preserved separately for the per-row UI.
+function convertTrackersToSummary(trackersData) {
+  const libs = trackersData.libraries || [];
+  const categories = {};
+  let totalCalls = 0;
+
+  for (const lib of libs) {
+    const cat = lib.category || lib.name;
+    if (!cat) continue;
+    const signals = Array.isArray(lib.signals) ? lib.signals : [];
+    categories[cat] = {
+      totalCalls: lib.totalEvents || signals.length,
+      uniqueMethods: signals.map(s => {
+        const m = s.method || "";
+        const d = s.detail || "";
+        return {
+          method: d ? (m ? m + ": " + d : d) : m,
+          detail: d,
+          source: "",
+        };
+      }),
+    };
+    totalCalls += categories[cat].totalCalls;
+  }
+
+  const catNames = Object.keys(categories);
+  let riskLevel = "No Risk";
+  if (catNames.length >= 4) riskLevel = "High Risk";
+  else if (catNames.length >= 2) riskLevel = "Medium Risk";
+  else if (catNames.length > 0) riskLevel = "Low Risk";
+
+  return {
+    exportedAt: trackersData.exportedAt,
+    url: trackersData.url || "",
+    riskLevel,
+    totalTechniques: catNames.length,
+    totalCalls,
+    domains: {},
+    categories,
+    _convertedFromTrackers: true,
+  };
+}
+
 function loadFromFile(file, side) {
   const reader = new FileReader();
   reader.onload = (e) => {
@@ -255,11 +308,14 @@ function loadFromFile(file, side) {
       // 1. Full report: { summary: {...}, log: [...] } → use summary
       // 2. Summary: { categories: {...} } → use as-is
       // 3. Debug log: { entries: [...] } → convert to summary shape
+      // 4. Trackers: { libraries: [...] } → convert to summary shape
       let data;
       if (json.summary && json.summary.categories) {
         data = json.summary;
       } else if (json.categories) {
         data = json;
+      } else if (Array.isArray(json.libraries)) {
+        data = convertTrackersToSummary(json);
       } else if (Array.isArray(json.entries)) {
         data = convertLogToSummary(json);
       } else if (Array.isArray(json)) {
@@ -331,6 +387,61 @@ function riskClass(label) {
   if (l.indexOf("low") !== -1) return "low";
   return "none";
 }
+
+// Per-side view filter — "all" | "fingerprinting" | "trackers". Applied
+// only to what's rendered in each side's category list; the diff
+// classifications (only-A / only-B / shared) and the diff-summary stats
+// continue to use the full underlying data, so per-row labels remain
+// accurate even when filtered.
+let leftView = "all";
+let rightView = "all";
+
+// Tracker-vs-fingerprinting heuristic. Tracker-library categories all
+// follow the *Detect naming convention. The four exclusions are
+// fingerprinting-side categories that also end in "Detect".
+const NON_TRACKER_DETECT = new Set([
+  "AdBlockDetect", "ExtensionDetect", "HeadlessDetect", "VendorDetect",
+]);
+
+function isTrackerCategory(cat) {
+  return /Detect$/.test(cat) && !NON_TRACKER_DETECT.has(cat);
+}
+
+function filterCatsByView(cats, view) {
+  if (view === "trackers") return cats.filter(isTrackerCategory);
+  if (view === "fingerprinting") return cats.filter(c => !isTrackerCategory(c));
+  return cats;
+}
+
+// Wire up per-side view toggles. Re-renders the affected side using
+// whatever data is currently loaded — diff data unchanged.
+document.querySelectorAll(".view-toggle").forEach(group => {
+  const side = group.dataset.side;
+  group.querySelectorAll("button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      group.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      if (side === "left") leftView = btn.dataset.view;
+      else rightView = btn.dataset.view;
+      const data = side === "left" ? leftData : rightData;
+      if (!data) return;
+      // Re-render the affected side. If the diff is already populated
+      // (both sides loaded), use the diff renderer so labels stay
+      // intact; otherwise fall back to the standalone single-side view.
+      if (leftData && rightData) {
+        const leftCats = new Set(Object.keys(leftData.categories || {}));
+        const rightCats = new Set(Object.keys(rightData.categories || {}));
+        const allCats = new Set([...leftCats, ...rightCats]);
+        const onlyLeft = [...leftCats].filter(c => !rightCats.has(c));
+        const onlyRight = [...rightCats].filter(c => !leftCats.has(c));
+        const showMethods = document.getElementById("show-methods")?.checked;
+        renderCategoriesDiff(side, data, allCats, onlyLeft, onlyRight, side, !!showMethods);
+      } else {
+        renderCategoriesStandalone(side, data);
+      }
+    });
+  });
+});
 
 // Cached method sets per side, recomputed when data changes
 let leftMethodCache = null;
@@ -433,7 +544,8 @@ function maybeRenderDiff() {
 function renderCategoriesStandalone(side, data) {
   const container = document.getElementById(side + "-categories");
   if (!container) return;
-  const cats = Object.keys(data.categories || {}).sort();
+  const view = side === "left" ? leftView : rightView;
+  const cats = filterCatsByView(Object.keys(data.categories || {}), view).sort();
   const parts = [];
   for (let i = 0; i < cats.length; i++) {
     const cat = cats[i];
@@ -465,7 +577,8 @@ function renderCategoriesDiff(side, data, allCats, onlyLeft, onlyRight, sideLabe
   // Use cached method sets (built once in maybeRenderDiff) instead of rebuilding
   const otherMethodCache = sideLabel === "left" ? rightMethodCache : leftMethodCache;
 
-  const thisSideCats = Object.keys(data.categories || {});
+  const view = sideLabel === "left" ? leftView : rightView;
+  const thisSideCats = filterCatsByView(Object.keys(data.categories || {}), view);
   const sorted = thisSideCats.sort((a, b) => {
     const aUnique = thisOnlySet.has(a);
     const bUnique = thisOnlySet.has(b);

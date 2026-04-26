@@ -182,6 +182,63 @@
       color: #546e7a; font-size: 10px; float: right;
     }
 
+    /* ── Trackers panel ─────────────────────────────── */
+    .tracker-card {
+      border-bottom: 1px solid #0f3460;
+      padding: 10px 16px;
+    }
+    .tracker-card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .tracker-card-icon {
+      width: 22px; height: 22px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
+    }
+    .tracker-card-name { flex: 1; }
+    .tracker-card-count {
+      background: #0f3460; color: #90a4ae;
+      padding: 2px 8px; border-radius: 10px; font-size: 11px;
+      font-weight: 600;
+    }
+    .tracker-signals {
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .tracker-signal {
+      display: flex;
+      gap: 6px;
+      font-size: 11px;
+      line-height: 1.4;
+      padding: 3px 8px;
+      background: #12122a;
+      border-radius: 3px;
+    }
+    .tracker-signal-method {
+      color: #90a4ae;
+      font-weight: 600;
+      flex-shrink: 0;
+      max-width: 40%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .tracker-signal-detail {
+      color: #e94560;
+      font-family: Consolas, "Liberation Mono", Menlo, "Courier New", monospace;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     /* ── Debug Log panel ─────────────────────────────── */
     .log-toolbar {
       display: flex;
@@ -435,100 +492,6 @@
       margin-top: 2px;
     }
 
-    /* ── Tracking-library detection banner ────────────────── */
-    #fingerprint-banner {
-      display: none;
-      flex-direction: column;
-      background: linear-gradient(90deg, #e94560 0%, #c62b47 100%);
-      color: #fff;
-      font-size: 12px;
-      font-weight: 600;
-      border-bottom: 1px solid #8b1e38;
-      flex-shrink: 0;
-      letter-spacing: 0.2px;
-    }
-    #fingerprint-banner.active { display: flex; }
-
-    .banner-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 16px;
-    }
-    #fingerprint-banner .banner-icon { font-size: 14px; flex-shrink: 0; }
-    #fingerprint-banner .banner-text { flex: 1; }
-    #fingerprint-banner .banner-toggle {
-      /* Collapse toggle — only shown in multi-tracker (stacked) mode
-         where the banner-list is expandable. Hidden via CSS in
-         single-tracker mode (no list to collapse). */
-      display: none;
-      background: rgba(255,255,255,0.18);
-      border: 0;
-      color: #fff;
-      font-size: 10px;
-      font-weight: 700;
-      line-height: 1;
-      cursor: pointer;
-      padding: 3px 7px;
-      border-radius: 10px;
-      flex-shrink: 0;
-      letter-spacing: 0.3px;
-      transition: background 0.12s ease;
-    }
-    #fingerprint-banner .banner-toggle:hover { background: rgba(255,255,255,0.32); }
-    #fingerprint-banner.stacked .banner-toggle { display: inline-block; }
-    #fingerprint-banner .banner-count {
-      background: rgba(255,255,255,0.22);
-      padding: 2px 8px;
-      border-radius: 10px;
-      font-size: 10px;
-      font-weight: 700;
-      flex-shrink: 0;
-    }
-
-    .banner-list {
-      display: none;
-      flex-direction: column;
-      gap: 3px;
-      padding: 0 12px 8px;
-    }
-    /* .active sets display, .collapsed forces hide even when active.
-       Collapsed state is persisted in chrome.storage.local. */
-    .banner-list.active:not(.collapsed) { display: flex; }
-    /* 6+ trackers: cap height at ~5 rows (the last visible row is cut
-       off to signal more content below) and allow mouse-wheel scroll.
-       Scrollbar is hidden via vendor rules — users can still scroll
-       with trackpad / mousewheel / touch. */
-    .banner-list.scrollable {
-      max-height: 125px;
-      overflow-y: auto;
-      scrollbar-width: none;        /* Firefox */
-      -ms-overflow-style: none;     /* legacy Edge */
-    }
-    .banner-list.scrollable::-webkit-scrollbar {
-      display: none;                /* Chrome / Safari / WebKit */
-    }
-    .banner-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 4px 10px;
-      background: rgba(255,255,255,0.14);
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 600;
-    }
-    .banner-row-icon { font-size: 13px; flex-shrink: 0; }
-    .banner-row-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .banner-row-count {
-      background: rgba(255,255,255,0.22);
-      padding: 1px 7px;
-      border-radius: 8px;
-      font-size: 10px;
-      font-weight: 700;
-      flex-shrink: 0;
-    }
-
     /* ── Footer ──────────────────────────────────────── */
     footer {
       padding: 8px 16px;
@@ -569,6 +532,14 @@
           Summary (JSON)
           <span class="export-desc">Categories, risk levels, unique detections</span>
         </button>
+        <button class="export-item" id="export-trackers-json">
+          Trackers (JSON)
+          <span class="export-desc">Detected tracking libraries with their signals</span>
+        </button>
+        <button class="export-item" id="export-trackers-csv">
+          Trackers (CSV)
+          <span class="export-desc">Spreadsheet-friendly: tracker, signal type, value</span>
+        </button>
         <button class="export-item" id="export-log-json">
           Debug Log (JSON)
           <span class="export-desc">Full event log with timestamps and stacks</span>
@@ -585,18 +556,9 @@
     </div>
   </header>
 
-  <div id="fingerprint-banner">
-    <div class="banner-header">
-      <span class="banner-icon">🕵️</span>
-      <span class="banner-text">FingerprintJS detected on this page</span>
-      <button type="button" class="banner-toggle" id="banner-toggle" aria-expanded="true" aria-controls="banner-list" title="Collapse / expand tracker list">Hide</button>
-      <span class="banner-count" id="banner-count">0</span>
-    </div>
-    <div class="banner-list" id="banner-list"></div>
-  </div>
-
   <div class="tabs">
     <div class="tab active" data-panel="summary-panel">Summary</div>
+    <div class="tab" data-panel="trackers-panel">Trackers</div>
     <div class="tab" data-panel="log-panel">Debug Log</div>
   </div>
 
@@ -611,6 +573,21 @@
           <line x1="15" y1="9" x2="15.01" y2="9"/>
         </svg>
         <p>No fingerprinting detected on this page.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trackers Panel -->
+  <div id="trackers-panel" class="panel">
+    <div id="trackers-content">
+      <div class="empty">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M8 15s1.5 2 4 2 4-2 4-2"/>
+          <line x1="9" y1="9" x2="9.01" y2="9"/>
+          <line x1="15" y1="9" x2="15.01" y2="9"/>
+        </svg>
+        <p>No tracking libraries detected on this page.</p>
       </div>
     </div>
   </div>

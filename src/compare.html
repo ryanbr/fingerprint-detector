@@ -171,6 +171,30 @@
     }
     .side-header button:hover { background: var(--border); color: var(--text); }
 
+    /* Per-side view toggle (All / Fingerprinting / Trackers) */
+    .view-toggle {
+      display: inline-flex;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .view-toggle button {
+      background: none;
+      border: 0;
+      border-right: 1px solid var(--border);
+      color: var(--text-faint);
+      padding: 4px 8px;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .view-toggle button:last-child { border-right: 0; }
+    .view-toggle button:hover { background: var(--border); color: var(--text); }
+    .view-toggle button.active { background: var(--accent); color: var(--danger-text); }
+
     /* Drop zone */
     .dropzone {
       padding: 60px 20px;
@@ -513,6 +537,11 @@
       <div class="side-header">
         <span class="label">Site A</span>
         <span class="site-url" id="left-url">(no data)</span>
+        <span class="view-toggle" data-side="left">
+          <button data-view="all" class="active">All</button>
+          <button data-view="fingerprinting">Fingerprinting</button>
+          <button data-view="trackers">Trackers</button>
+        </span>
         <button id="left-load">Load file</button>
         <input type="file" id="left-file" accept=".json" style="display:none">
       </div>
@@ -526,6 +555,11 @@
       <div class="side-header">
         <span class="label">Site B</span>
         <span class="site-url" id="right-url">(no data)</span>
+        <span class="view-toggle" data-side="right">
+          <button data-view="all" class="active">All</button>
+          <button data-view="fingerprinting">Fingerprinting</button>
+          <button data-view="trackers">Trackers</button>
+        </span>
         <button id="right-load">Load file</button>
         <input type="file" id="right-file" accept=".json" style="display:none">
       </div>

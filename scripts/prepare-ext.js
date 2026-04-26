@@ -40,10 +40,14 @@ manifest.browser_specific_settings = {
     data_collection_permissions: { required: ["none"] },
   },
 };
-// Keep both service_worker (Chrome) and scripts (Firefox fallback) — recent
-// web-ext / AMO rules require service_worker to be paired with scripts.
-if (manifest.background && manifest.background.service_worker && !manifest.background.scripts) {
-  manifest.background.scripts = [manifest.background.service_worker];
+// Replace service_worker with scripts for the Firefox build. Chrome
+// rejects MV3 manifests that include `background.scripts`, so the
+// source manifest must keep service_worker only — but Firefox's
+// web-ext lint flags service_worker as unsupported unless it's swapped
+// out (or paired with scripts) for the XPI build. Match the release
+// workflow: delete service_worker, set scripts only.
+if (manifest.background && manifest.background.service_worker) {
+  manifest.background = { scripts: [manifest.background.service_worker] };
 }
 fs.writeFileSync(path.join(OUT, "manifest.json"), JSON.stringify(manifest, null, 2));
 copy(path.join(ROOT, "LICENSE"), path.join(OUT, "LICENSE"));

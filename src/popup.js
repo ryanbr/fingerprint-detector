@@ -277,60 +277,6 @@ const TRACKING_LIBRARY_CATEGORIES = {
   YotpoDetect:            { label: "Yotpo",                icon: "💬" },
 };
 
-// Update the tracking-library banner above the tabs. Shown whenever any
-// of the TRACKING_LIBRARY_CATEGORIES has events on the current tab.
-//
-// Single detection: compact one-line banner with icon + name + count
-//   🕵️ FingerprintJS detected on this page   [3 signals]
-// Multiple detections: generic header + stacked list of libraries,
-// each on its own row with icon + name + per-library signal count:
-//   ⚠️ 3 tracking libraries detected
-//     🕵️ FingerprintJS         3 signals
-//     📊 Matomo                2 signals
-//     🚧 PerimeterX / HUMAN    5 signals
-// Tracker-list collapsed state persisted in chrome.storage.local as
-// trackerBannerCollapsed. Loaded once at popup init (see bottom of
-// file) and kept in sync with the button click below.
-let trackerBannerCollapsed = false;
-
-function applyBannerCollapsedState() {
-  const list = document.getElementById("banner-list");
-  const toggle = document.getElementById("banner-toggle");
-  if (list) list.classList.toggle("collapsed", trackerBannerCollapsed);
-  if (toggle) {
-    toggle.textContent = trackerBannerCollapsed ? "Show" : "Hide";
-    toggle.setAttribute("aria-expanded", String(!trackerBannerCollapsed));
-  }
-}
-
-// Build a plain-text tooltip listing the distinct signals that fired
-// for a tracker. Each signal is a pair:
-//   method = label ("Cookie key", "Global variable", "Script URL match",
-//                   "localStorage key", "sessionStorage key",
-//                   "DOM integration tag", or an anomaly label)
-//   detail = the actual identifier (cookie name like "_fbp",
-//            global like "window.fbq", URL, or "<script data-*>" tag)
-// Rendered as "label: detail" so users see both the type of signal
-// and the specific key / value. Long URLs are truncated and the list
-// is capped to keep the native title tooltip readable.
-function buildTrackerSignalsTooltip(label, signals) {
-  const MAX_SIGNALS = 15;
-  const MAX_LINE_LEN = 110;
-  const lines = [label + " — detected signals:"];
-  const shown = signals.slice(0, MAX_SIGNALS);
-  for (const s of shown) {
-    const full = s.method + ": " + s.detail;
-    const truncated = full.length > MAX_LINE_LEN
-      ? full.slice(0, MAX_LINE_LEN - 1) + "…"
-      : full;
-    lines.push("• " + truncated);
-  }
-  if (signals.length > MAX_SIGNALS) {
-    lines.push("…and " + (signals.length - MAX_SIGNALS) + " more");
-  }
-  return lines.join("\n");
-}
-
 // Collect the distinct (method, detail) signal pairs for a category's
 // event stream. Dedupes by method+detail and strips the " (call #N)"
 // suffix that record() appends to detail after the first 3 calls (rare
@@ -355,14 +301,22 @@ function collectTrackerSignals(events) {
   return signals;
 }
 
-function updateFingerprintBanner(categories) {
-  const banner = document.getElementById("fingerprint-banner");
-  if (!banner) return;
-  const list = document.getElementById("banner-list");
+// ── Trackers Panel ──────────────────────────────────────────────────────
+// Builds the dedicated Trackers tab content. Each detected tracking
+// library gets a card with its icon + name + signal count, followed by
+// the full list of distinct signals (cookie keys, global variables,
+// script URLs, DOM tags). Same data source as the banner tooltip but
+// rendered as proper UI instead of a native title attribute.
+function renderTrackers(response) {
+  const container = document.getElementById("trackers-content");
+  if (!container) return;
+
+  const categories = response && response.categories;
   const hits = [];
-  for (const cat of Object.keys(TRACKING_LIBRARY_CATEGORIES)) {
-    const events = categories && categories[cat];
-    if (events && events.length > 0) {
+  if (categories) {
+    for (const cat of Object.keys(TRACKING_LIBRARY_CATEGORIES)) {
+      const events = categories[cat];
+      if (!events || events.length === 0) continue;
       const signals = collectTrackerSignals(events);
       if (signals.length === 0) continue;
       hits.push({
@@ -372,96 +326,89 @@ function updateFingerprintBanner(categories) {
       });
     }
   }
+
   if (hits.length === 0) {
-    banner.classList.remove("active");
-    banner.classList.remove("stacked");
-    banner.removeAttribute("title");
-    if (list) {
-      list.classList.remove("active");
-      list.classList.remove("scrollable");
-    }
+    container.innerHTML = `<div class="empty">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M8 15s1.5 2 4 2 4-2 4-2"/>
+        <line x1="9" y1="9" x2="9.01" y2="9"/>
+        <line x1="15" y1="9" x2="15.01" y2="9"/>
+      </svg>
+      <p>No tracking libraries detected on this page.</p>
+    </div>`;
     return;
   }
-  banner.classList.add("active");
-  const iconEl = banner.querySelector(".banner-icon");
-  const textEl = banner.querySelector(".banner-text");
-  const countEl = document.getElementById("banner-count");
-  if (hits.length === 1) {
-    // Compact single-line layout — no collapse button (nothing to collapse)
-    banner.classList.remove("stacked");
-    const h = hits[0];
-    if (iconEl) iconEl.textContent = h.icon;
-    if (textEl) textEl.textContent = h.label + " detected on this page";
-    if (countEl) countEl.textContent = h.count + (h.count === 1 ? " signal" : " signals");
-    // Tooltip on the whole banner — hovering anywhere reveals the signal list.
-    banner.setAttribute("title", buildTrackerSignalsTooltip(h.label, h.signals));
-    if (list) {
-      list.classList.remove("active");
-      list.classList.remove("scrollable");
-      list.innerHTML = "";
+
+  let html = `<div class="summary">
+    <span class="badge none">${hits.length} ${hits.length === 1 ? "library" : "libraries"}</span>
+    <span class="badge none">${hits.reduce((n, h) => n + h.count, 0)} total signals</span>
+  </div>`;
+
+  for (const h of hits) {
+    html += `<div class="tracker-card">
+      <div class="tracker-card-header">
+        <span class="tracker-card-icon">${escapeHtml(h.icon)}</span>
+        <span class="tracker-card-name">${escapeHtml(h.label)}</span>
+        <span class="tracker-card-count">${h.count} ${h.count === 1 ? "signal" : "signals"}</span>
+      </div>
+      <div class="tracker-signals">`;
+    for (const s of h.signals) {
+      html += `<div class="tracker-signal">
+        <span class="tracker-signal-method">${escapeHtml(s.method)}</span>
+        <span class="tracker-signal-detail" title="${escapeHtml(s.detail)}">${escapeHtml(s.detail)}</span>
+      </div>`;
     }
-  } else {
-    // Stacked multi-line layout — toggle button visible, collapsible
-    banner.classList.add("stacked");
-    if (iconEl) iconEl.textContent = "⚠️";
-    if (textEl) textEl.textContent = hits.length + " tracking libraries detected";
-    if (countEl) countEl.textContent = "";
-    // Clear any single-tracker tooltip — each row owns its own title in stacked mode.
-    banner.removeAttribute("title");
-    if (list) {
-      list.innerHTML = "";
-      for (const h of hits) {
-        const row = document.createElement("div");
-        row.className = "banner-row";
-        // Tooltip showing the exact signals for this tracker.
-        row.setAttribute("title", buildTrackerSignalsTooltip(h.label, h.signals));
-        const icon = document.createElement("span");
-        icon.className = "banner-row-icon";
-        icon.textContent = h.icon;
-        const label = document.createElement("span");
-        label.className = "banner-row-label";
-        label.textContent = h.label;
-        const count = document.createElement("span");
-        count.className = "banner-row-count";
-        count.textContent = h.count + (h.count === 1 ? " signal" : " signals");
-        row.appendChild(icon);
-        row.appendChild(label);
-        row.appendChild(count);
-        list.appendChild(row);
-      }
-      list.classList.add("active");
-      // 6+ trackers: cap list height and enable hidden-scrollbar
-      // mouse-wheel scrolling. Threshold is 6 because the banner
-      // stays tidy up to 5 rows; beyond that it dominates the popup.
-      list.classList.toggle("scrollable", hits.length >= 6);
-      // Reapply collapsed state — list.innerHTML rebuild preserves
-      // classes on the element itself, but this also updates the
-      // toggle button label in case it wasn't visible before.
-      applyBannerCollapsedState();
-    }
+    html += `</div></div>`;
   }
+
+  container.innerHTML = html;
 }
 
 // ── Summary Panel ──────────────────────────────────────────────────────
 function renderSummary(response) {
   const content = document.getElementById("content");
   if (!response || Object.keys(response.categories).length === 0) {
-    updateFingerprintBanner(null);
+    renderTrackers(response);
     return;
   }
 
   const { categories } = response;
-  updateFingerprintBanner(categories);
-  const risk = getRiskLevel(categories);
+  renderTrackers(response);
+
+  // Filter out tracking-library categories — those are shown in the
+  // dedicated Trackers tab now, not in Summary.
+  const summaryCats = {};
+  let nonTrackerCallCount = 0;
+  for (const cat of Object.keys(categories)) {
+    if (TRACKING_LIBRARY_CATEGORIES[cat]) continue;
+    summaryCats[cat] = categories[cat];
+    nonTrackerCallCount += categories[cat].length;
+  }
+
+  if (Object.keys(summaryCats).length === 0) {
+    content.innerHTML = `<div class="empty">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M8 15s1.5 2 4 2 4-2 4-2"/>
+        <line x1="9" y1="9" x2="9.01" y2="9"/>
+        <line x1="15" y1="9" x2="15.01" y2="9"/>
+      </svg>
+      <p>No fingerprinting detected on this page.</p>
+    </div>`;
+    return;
+  }
+
+  const risk = getRiskLevel(summaryCats);
 
   let html = `<div class="summary">
     <span class="badge ${risk.cls}">${risk.label}</span>
-    <span class="badge none">${Object.keys(categories).length} techniques</span>
-    <span class="badge none">${response.detections.length} total calls</span>
+    <span class="badge none">${Object.keys(summaryCats).length} techniques</span>
+    <span class="badge none">${nonTrackerCallCount} total calls</span>
   </div>`;
 
   const riskOrder = { high: 0, medium: 1, low: 2 };
-  const sortedCats = Object.keys(categories).sort((a, b) => {
+  const sortedCats = Object.keys(summaryCats).sort((a, b) => {
     const ra = riskOrder[CATEGORY_META[a]?.risk] ?? 2;
     const rb = riskOrder[CATEGORY_META[b]?.risk] ?? 2;
     return ra - rb;
@@ -469,7 +416,7 @@ function renderSummary(response) {
 
   for (const cat of sortedCats) {
     const meta = CATEGORY_META[cat] || { icon: "?", color: "#78909c", risk: "low", desc: cat };
-    const items = dedupeDetections(categories[cat]);
+    const items = dedupeDetections(summaryCats[cat]);
     const catMuted = mutedCategories.has(cat);
 
     html += `<div class="category${catMuted ? " is-muted" : ""}">
@@ -479,7 +426,7 @@ function renderSummary(response) {
           ${cat}
         </span>
         <span class="category-right">
-          <span class="count">${categories[cat].length} calls</span>
+          <span class="count">${summaryCats[cat].length} calls</span>
           <button class="summary-mute-btn${catMuted ? " is-muted" : ""}" data-mute-cat="${escapeHtml(cat)}" title="${catMuted ? "Unmute" : "Mute"} ${escapeHtml(cat)} category">&#x1F507;</button>
           <span class="arrow">&#9654;</span>
         </span>
@@ -1190,6 +1137,69 @@ document.getElementById("export-summary-json").addEventListener("click", () => {
   });
 });
 
+// Build the same hits[] shape the Trackers panel uses, derived from the
+// background's get-detections response. Used by both export handlers.
+function buildTrackersHits(callback) {
+  chrome.runtime.sendMessage({ type: "get-detections", tabId: activeTabId }, (response) => {
+    const hits = [];
+    const categories = response && response.categories;
+    if (categories) {
+      for (const cat of Object.keys(TRACKING_LIBRARY_CATEGORIES)) {
+        const events = categories[cat];
+        if (!events || events.length === 0) continue;
+        const signals = collectTrackerSignals(events);
+        if (signals.length === 0) continue;
+        hits.push({
+          category: cat,
+          name: TRACKING_LIBRARY_CATEGORIES[cat].label,
+          icon: TRACKING_LIBRARY_CATEGORIES[cat].icon,
+          totalEvents: events.length,
+          signalCount: signals.length,
+          signals,
+        });
+      }
+    }
+    callback(hits);
+  });
+}
+
+document.getElementById("export-trackers-json").addEventListener("click", () => {
+  buildTrackersHits((hits) => {
+    const report = {
+      exportedAt: new Date().toISOString(),
+      url: activeTabInfo.url || "",
+      tabTitle: activeTabInfo.title || "",
+      totalLibraries: hits.length,
+      totalSignals: hits.reduce((n, h) => n + h.signalCount, 0),
+      libraries: hits,
+    };
+    downloadFile(
+      makeFilename("fp-trackers", "json"),
+      JSON.stringify(report, null, 2),
+      "application/json"
+    );
+  });
+});
+
+document.getElementById("export-trackers-csv").addEventListener("click", () => {
+  buildTrackersHits((hits) => {
+    const rows = ["tracker,category,signal_type,signal_value"];
+    for (const h of hits) {
+      for (const s of h.signals) {
+        const row = [h.name, h.category, s.method, s.detail]
+          .map(v => `"${String(v).replace(/"/g, '""')}"`)
+          .join(",");
+        rows.push(row);
+      }
+    }
+    downloadFile(
+      makeFilename("fp-trackers", "csv"),
+      rows.join("\n"),
+      "text/csv"
+    );
+  });
+});
+
 document.getElementById("export-log-json").addEventListener("click", () => {
   const log = buildLogExport();
   downloadFile(
@@ -1250,28 +1260,15 @@ function saveUIState() {
 logFilter.addEventListener("input", saveUIState);
 logAutoscroll.addEventListener("change", saveUIState);
 
-// Tracker-banner collapse toggle — click handler. Flips the persisted
-// state in chrome.storage.local so it survives popup close / reopen
-// and across browser restarts.
-document.getElementById("banner-toggle")?.addEventListener("click", () => {
-  trackerBannerCollapsed = !trackerBannerCollapsed;
-  applyBannerCollapsedState();
-  chrome.storage.local.set({ trackerBannerCollapsed });
-});
-
 // ── Load everything and connect ───────────────────────────────────────
 chrome.storage.local.get(
-  ["mutedGlobal", "mutedByDomain", "trackerBannerCollapsed"],
+  ["mutedGlobal", "mutedByDomain"],
   (localStored) => {
   if (localStored.mutedGlobal) {
     mutedGlobal = localStored.mutedGlobal;
   }
   if (localStored.mutedByDomain) {
     mutedByDomain = localStored.mutedByDomain;
-  }
-  if (localStored.trackerBannerCollapsed === true) {
-    trackerBannerCollapsed = true;
-    applyBannerCollapsedState();
   }
 
   sessionStore.get(["uiPaused", "uiFilter", "uiAutoscroll", "uiActivePanel"], (ui) => {
@@ -1320,26 +1317,6 @@ chrome.storage.local.get(
 
       port.onMessage.addListener((msg) => {
         if (msg.type === "fp-batch") {
-          // Live tracking-library detection — flip the banner on as
-          // soon as an event in any tracking category arrives, before
-          // the next full summary fetch.
-          let hasTrackerEvent = false;
-          for (let i = 0; i < msg.data.length; i++) {
-            if (TRACKING_LIBRARY_CATEGORIES[msg.data[i].category]) {
-              hasTrackerEvent = true;
-              break;
-            }
-          }
-          if (hasTrackerEvent) {
-            const banner = document.getElementById("fingerprint-banner");
-            if (banner && !banner.classList.contains("active")) {
-              banner.classList.add("active");
-              const counter = document.getElementById("banner-count");
-              if (counter && !counter.textContent.trim()) {
-                counter.textContent = "detected";
-              }
-            }
-          }
           if (paused) {
             pausedQueue.push(...msg.data);
             updateCounter();

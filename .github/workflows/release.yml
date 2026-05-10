@@ -118,6 +118,8 @@ jobs:
           # Copy non-bundled src files (popup, bridge, background)
           mkdir -p ext/src
           cp src/popup.html src/popup.js src/bridge.js src/background.js src/compare.html src/compare.js ext/src/
+          # Vendored libraries (html2canvas for compare-page PNG export)
+          if [ -d src/vendor ]; then cp -r src/vendor ext/src/vendor; fi
 
           crx3 ext \
             --keyPath key.pem \

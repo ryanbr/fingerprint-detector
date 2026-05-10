@@ -73,4 +73,10 @@ for (const f of srcFiles) {
   copy(path.join(ROOT, "src", f), path.join(OUT, "src", f));
 }
 
+// Vendored libraries (html2canvas for compare-page screenshots)
+const vendorDir = path.join(ROOT, "src", "vendor");
+if (fs.existsSync(vendorDir)) {
+  copyDir(vendorDir, path.join(OUT, "src", "vendor"));
+}
+
 console.log("Assembled extension at " + OUT);

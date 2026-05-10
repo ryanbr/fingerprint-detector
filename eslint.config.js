@@ -192,6 +192,7 @@ export default [
         Response: "readonly",
         btoa: "readonly",
         atob: "readonly",
+        getComputedStyle: "readonly",
       },
     },
   },
@@ -209,6 +210,6 @@ export default [
     },
   },
   {
-    ignores: ["dist/", "node_modules/"],
+    ignores: ["dist/", "node_modules/", "src/vendor/"],
   },
 ];

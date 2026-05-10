@@ -577,6 +577,7 @@ function maybeRenderDiff() {
         <input type="checkbox" id="show-methods"> Show methods
       </label>
       <button id="export-diffs">Export differences</button>
+      <button id="export-png" title="Save the entire compare view as a PNG screenshot">Save PNG</button>
     </div>
   `;
   $diffSummary.innerHTML = summaryHtml;
@@ -598,6 +599,7 @@ function maybeRenderDiff() {
     }
   });
   document.getElementById("export-diffs").addEventListener("click", exportDifferences);
+  document.getElementById("export-png").addEventListener("click", exportComparePng);
 
   // Render category lists with diff labels
   renderCategoriesDiff("left", leftData, allCats, onlyLeft, onlyRight, "left");
@@ -978,6 +980,62 @@ function exportDifferences() {
   a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+// ── PNG screenshot of the compare view ───────────────────────────────
+// Renders the full diff (including off-screen content) into a canvas
+// via html2canvas and triggers a PNG download. Bundled vendor lib at
+// src/vendor/html2canvas.min.js — loaded as a regular <script> tag in
+// compare.html so it's available globally as window.html2canvas.
+function exportComparePng() {
+  if (typeof window.html2canvas !== "function") {
+    alert("Screenshot library failed to load.");
+    return;
+  }
+  const target = $container;
+  if (!target) return;
+  const btn = document.getElementById("export-png");
+  const prevText = btn ? btn.textContent : "";
+  if (btn) {
+    btn.textContent = "Saving…";
+    btn.disabled = true;
+  }
+  // Match the page background so the PNG doesn't have transparent
+  // edges around the rounded card corners. CSS var lookup needs to
+  // happen against body since :root vars are computed there.
+  const bg = getComputedStyle(document.body).getPropertyValue("--bg").trim() || "#1a1a2e";
+  // scale=3 super-samples the DOM at 3× CSS pixels, giving sharp text
+  // and crisp borders independent of the user's monitor DPR. Trade-off
+  // is memory + file size — on a typical compare with 50+ categories
+  // the PNG comes in around 2–4 MB. Increase if you want even higher
+  // quality (and Chrome's 32767px canvas dimension cap allows it).
+  window.html2canvas(target, {
+    backgroundColor: bg,
+    scale: 3,
+    useCORS: true,
+    logging: false,
+    imageTimeout: 0,
+    windowWidth: target.scrollWidth,
+    windowHeight: target.scrollHeight,
+  }).then(canvas => {
+    canvas.toBlob(blob => {
+      if (!blob) {
+        if (btn) { btn.textContent = prevText; btn.disabled = false; }
+        return;
+      }
+      const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `fp-compare-${ts}.png`;
+      a.click();
+      URL.revokeObjectURL(url);
+      if (btn) { btn.textContent = prevText; btn.disabled = false; }
+    }, "image/png");
+  }).catch(err => {
+    alert("Screenshot failed: " + (err && err.message ? err.message : err));
+    if (btn) { btn.textContent = prevText; btn.disabled = false; }
+  });
 }
 
 // ── 3-way export ──────────────────────────────────────────────────────

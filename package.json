@@ -10,9 +10,10 @@
     "lint:all": "npm run lint && npm run lint:ext"
   },
   "devDependencies": {
+    "@eslint/js": "^9.0.0",
     "esbuild": "^0.25.0",
     "eslint": "^9.0.0",
-    "@eslint/js": "^9.0.0",
+    "html2canvas": "^1.4.1",
     "web-ext": "^8.0.0"
   }
 }

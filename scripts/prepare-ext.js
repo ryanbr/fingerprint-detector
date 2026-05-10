@@ -40,14 +40,17 @@ manifest.browser_specific_settings = {
     data_collection_permissions: { required: ["none"] },
   },
 };
-// Replace service_worker with scripts for the Firefox build. Chrome
-// rejects MV3 manifests that include `background.scripts`, so the
-// source manifest must keep service_worker only — but Firefox's
-// web-ext lint flags service_worker as unsupported unless it's swapped
-// out (or paired with scripts) for the XPI build. Match the release
-// workflow: delete service_worker, set scripts only.
+// Pair service_worker with scripts for the Firefox build. AMO's
+// validator rejects "/background/service_worker without
+// /background/scripts" so we ship both keys in the XPI manifest.
+// Chrome would reject background.scripts in MV3 — but Chrome never
+// sees this file (it reads the unpatched source manifest, which
+// keeps service_worker only).
 if (manifest.background && manifest.background.service_worker) {
-  manifest.background = { scripts: [manifest.background.service_worker] };
+  manifest.background = {
+    service_worker: manifest.background.service_worker,
+    scripts: [manifest.background.service_worker],
+  };
 }
 fs.writeFileSync(path.join(OUT, "manifest.json"), JSON.stringify(manifest, null, 2));
 copy(path.join(ROOT, "LICENSE"), path.join(OUT, "LICENSE"));

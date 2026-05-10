@@ -134,7 +134,9 @@ jobs:
           # Firefox 128+ supports "world": "MAIN", so we keep the same
           # content script setup as Chrome. Only differences:
           # 1. browser_specific_settings with gecko ID (min version 128)
-          # 2. background.scripts instead of service_worker
+          # 2. background.scripts paired with service_worker (AMO's
+          #    validator requires both keys; Firefox uses scripts,
+          #    Chrome would reject scripts but never sees this file)
           cp -r ext/* ext-firefox/
           jq '
             . + {
@@ -148,8 +150,10 @@ jobs:
                 }
               }
             }
-            | del(.background.service_worker)
-            | .background = { "scripts": ["src/background.js"] }
+            | .background = {
+                "service_worker": "src/background.js",
+                "scripts": ["src/background.js"]
+              }
           ' ext/manifest.json > ext-firefox/manifest.json
 
           cd ext-firefox

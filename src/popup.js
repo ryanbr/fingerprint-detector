@@ -1484,6 +1484,13 @@ chrome.storage.local.get(
       // reads from there to decide whether to show the icon at all.
       applySiteDisabledState();
 
+      // Compare against an extension/internal page is meaningless (no
+      // detections to capture), so hide the Compare button on those.
+      if (!isToggleableUrl()) {
+        const compareBtn = document.getElementById("compare-btn");
+        if (compareBtn) compareBtn.style.display = "none";
+      }
+
       port = chrome.runtime.connect({ name: "fp-log" });
       port.postMessage({ type: "watch-tab", tabId: activeTabId });
 

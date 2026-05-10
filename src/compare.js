@@ -362,15 +362,19 @@ function renderSide(side, data, filename) {
   const urlEl = refs.url;
   const bodyEl = refs.body;
 
-  // Show URL + filename in brackets (if loaded from a file)
+  // URL is editable (contenteditable). Filename badge sits in its own
+  // span next to it so edits don't have to round-trip through bracket
+  // parsing.
   const url = data.url || "(unknown URL)";
   const fname = filename || (
     side === "left" ? leftFilename :
     side === "center" ? centerFilename :
     rightFilename
   );
-  urlEl.textContent = fname ? url + " [" + fname + "]" : url;
-  urlEl.title = fname ? url + "\nFile: " + fname : url;
+  urlEl.textContent = url;
+  urlEl.title = fname ? "Click to edit  •  Loaded from: " + fname : "Click to edit";
+  const fnameEl = document.getElementById(side + "-filename");
+  if (fnameEl) fnameEl.textContent = fname ? "[" + fname + "]" : "";
 
   // Also show exportedAt timestamp if present
   const exportedAt = data.exportedAt ? " — exported " + new Date(data.exportedAt).toLocaleString() : "";
@@ -1123,6 +1127,46 @@ document.addEventListener("drop", (e) => {
   }
   loadFromFile(file, side);
 });
+
+// ── Editable site URL ────────────────────────────────────────────────
+// The site-url span on each side is contenteditable. Edits are
+// persisted to data.url for the current session so subsequent renders
+// (and the export filename) use the new label. Enter commits, Escape
+// reverts, blur commits.
+function wireUrlEdit(side, getData) {
+  const el = $sides[side].url;
+  if (!el) return;
+  function commit() {
+    const data = getData();
+    if (!data) {
+      // No data loaded — refuse the edit, restore placeholder.
+      el.textContent = "(no data)";
+      return;
+    }
+    const text = el.textContent.trim();
+    if (!text) {
+      // Empty input — restore previous value rather than save blank.
+      el.textContent = data.url || "(unknown URL)";
+      return;
+    }
+    data.url = text;
+  }
+  el.addEventListener("blur", commit);
+  el.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      el.blur();
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      const data = getData();
+      el.textContent = (data && data.url) || "(no data)";
+      el.blur();
+    }
+  });
+}
+wireUrlEdit("left", () => leftData);
+wireUrlEdit("right", () => rightData);
+wireUrlEdit("center", () => centerData);
 
 // ── 3-way mode toggle ────────────────────────────────────────────────
 const $toggleC = document.getElementById("toggle-c");

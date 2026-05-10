@@ -163,10 +163,36 @@
       font-family: Consolas, "Liberation Mono", Menlo, monospace;
       font-size: 12px;
       flex: 1;
+      min-width: 0;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      padding: 2px 4px;
+      border-radius: 3px;
+      border: 1px dashed transparent;
+      cursor: text;
+      outline: none;
     }
+    .side-header .site-url:hover { border-color: var(--border); }
+    .side-header .site-url:focus {
+      background: var(--panel);
+      border-color: var(--accent);
+      border-style: solid;
+      overflow: visible;
+      white-space: normal;
+      word-break: break-all;
+    }
+    .side-header .site-filename {
+      color: var(--text-faint);
+      font-family: Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 11px;
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .side-header .site-filename:empty { display: none; }
     .side-header button {
       background: none;
       border: 1px solid var(--border);
@@ -550,7 +576,8 @@
     <div class="side" id="side-left">
       <div class="side-header">
         <span class="label">Site A</span>
-        <span class="site-url" id="left-url">(no data)</span>
+        <span class="site-url" id="left-url" contenteditable="true" spellcheck="false" title="Click to edit">(no data)</span>
+        <span class="site-filename" id="left-filename"></span>
         <span class="view-toggle" data-side="left">
           <button data-view="all" class="active">All</button>
           <button data-view="fingerprinting">Fingerprinting</button>
@@ -568,7 +595,8 @@
     <div class="side" id="side-right">
       <div class="side-header">
         <span class="label">Site B</span>
-        <span class="site-url" id="right-url">(no data)</span>
+        <span class="site-url" id="right-url" contenteditable="true" spellcheck="false" title="Click to edit">(no data)</span>
+        <span class="site-filename" id="right-filename"></span>
         <span class="view-toggle" data-side="right">
           <button data-view="all" class="active">All</button>
           <button data-view="fingerprinting">Fingerprinting</button>
@@ -594,7 +622,8 @@
     <div class="side" id="side-center">
       <div class="side-header">
         <span class="label">Site C</span>
-        <span class="site-url" id="center-url">(no data)</span>
+        <span class="site-url" id="center-url" contenteditable="true" spellcheck="false" title="Click to edit">(no data)</span>
+        <span class="site-filename" id="center-filename"></span>
         <span class="view-toggle" data-side="center">
           <button data-view="all" class="active">All</button>
           <button data-view="fingerprinting">Fingerprinting</button>

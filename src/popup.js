@@ -1475,11 +1475,14 @@ chrome.storage.local.get(
       }
       rebuildEffectiveMutes();
       renderMuteBar();
-      applySiteDisabledState();
 
       activeTabInfo.url = tabs[0].url || "";
       activeTabInfo.title = tabs[0].title || "";
       activeTabInfo.favIconUrl = tabs[0].favIconUrl || "";
+
+      // Must be after activeTabInfo.url is set — isToggleableUrl()
+      // reads from there to decide whether to show the icon at all.
+      applySiteDisabledState();
 
       port = chrome.runtime.connect({ name: "fp-log" });
       port.postMessage({ type: "watch-tab", tabId: activeTabId });

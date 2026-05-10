@@ -209,6 +209,129 @@ chrome.storage.local.get(["theme"], (s) => {
   if (s.theme === "light") applyTheme("light");
 });
 
+// ── Per-site disable ──────────────────────────────────────────────────
+// Toggles whether the extension injects content scripts on the current
+// domain. Background.js owns the chrome.scripting.registerContentScripts
+// call and rebuilds excludeMatches from chrome.storage.local
+// .disabledDomains whenever it changes. Storage key is the hostname
+// with any leading "www." stripped, so toggling on www.example.com and
+// example.com produces the same effect (background also generates a
+// `*://*.example.com/*` exclude pattern, covering all subdomains).
+let disabledDomains = {};
+const $disableToggle = document.getElementById("site-disable-toggle");
+
+function normalizeDomain(host) {
+  return (host || "").replace(/^www\./, "");
+}
+
+function isCurrentSiteDisabled() {
+  const key = normalizeDomain(currentDomain);
+  return !!key && !!disabledDomains[key];
+}
+
+// Replaces both panel bodies (Summary + Trackers) and the Debug Log
+// with a clear "disabled" indicator. Called whenever the current site
+// is in disabledDomains, so the popup matches reality even if events
+// from a previous (enabled) session are still in the background's
+// per-tab cache.
+function renderDisabledState() {
+  const html = `<div class="site-disabled-state">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
+      <line x1="12" y1="2" x2="12" y2="12"/>
+    </svg>
+    <strong>Detection disabled</strong>
+    <p>The extension is not running on this site. Click the power button above to re-enable.</p>
+  </div>`;
+  const content = document.getElementById("content");
+  const trackers = document.getElementById("trackers-content");
+  if (content) content.innerHTML = html;
+  if (trackers) trackers.innerHTML = html;
+  const list = document.getElementById("log-list");
+  if (list) list.innerHTML = `<div class="empty"><p style="color:var(--high);font-weight:600">Detection disabled on this site</p></div>`;
+  // Wipe any prior in-memory log so re-enabling on the same popup
+  // session doesn't mix pre-disable events with fresh post-reload ones.
+  if (Array.isArray(logEntries)) logEntries.length = 0;
+  logCount = 0;
+  domNodeCount = 0;
+  if (typeof updateCounter === "function") updateCounter();
+}
+
+// The per-site toggle only makes sense on real web pages. Extension
+// pages (chrome-extension://, moz-extension://), browser internals
+// (chrome://, edge://, about:), and other special schemes either
+// can't host our content scripts or aren't toggleable, so hide the
+// icon entirely on those.
+function isToggleableUrl() {
+  const url = (activeTabInfo && activeTabInfo.url) || "";
+  return /^https?:\/\//i.test(url);
+}
+
+function applySiteDisabledState() {
+  if (!$disableToggle) return;
+  if (!isToggleableUrl()) {
+    $disableToggle.style.display = "none";
+    return;
+  }
+  $disableToggle.style.display = "";
+  const off = isCurrentSiteDisabled();
+  $disableToggle.classList.toggle("disabled", off);
+  $disableToggle.title = off
+    ? "Detection disabled on this site — click to re-enable (reloads tab)"
+    : "Disable detection on this site (reloads tab)";
+  if (off) renderDisabledState();
+}
+
+$disableToggle?.addEventListener("click", () => {
+  const key = normalizeDomain(currentDomain);
+  if (!key) return;
+  const wasDisabled = !!disabledDomains[key];
+  if (wasDisabled) {
+    delete disabledDomains[key];
+  } else {
+    disabledDomains[key] = true;
+  }
+  chrome.storage.local.set({ disabledDomains });
+  applySiteDisabledState();
+  // Re-enabling: clear the disabled banner from every panel and pull
+  // fresh detections so the empty state matches the (now empty) bg
+  // tab data. The reloaded page populates panels via the existing
+  // port listener as new events arrive.
+  if (wasDisabled && activeTabId) {
+    const list = document.getElementById("log-list");
+    if (list) list.innerHTML = "";
+    chrome.runtime.sendMessage({ type: "get-detections", tabId: activeTabId }, renderSummary);
+  }
+  if (activeTabId) chrome.tabs.reload(activeTabId);
+});
+
+chrome.storage.local.get(["disabledDomains"], (s) => {
+  disabledDomains = s.disabledDomains || {};
+  applySiteDisabledState();
+});
+
+// Keep popup state in sync if the disabled list is changed elsewhere
+// (another popup window, or future programmatic toggles).
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "local" && changes.disabledDomains) {
+    disabledDomains = changes.disabledDomains.newValue || {};
+    applySiteDisabledState();
+  }
+});
+
+// Re-fetch the Summary whenever the watched tab finishes loading. The
+// existing flow only renders Summary on popup open and mute clicks, so
+// without this the panel stays stuck on the "no detections" empty
+// state after a re-enable+reload (and after any navigation while the
+// popup is open). status="complete" fires once per navigation, so this
+// is cheap.
+chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+  if (tabId !== activeTabId) return;
+  if (changeInfo.status !== "complete") return;
+  if (isCurrentSiteDisabled()) return;
+  chrome.runtime.sendMessage({ type: "get-detections", tabId }, renderSummary);
+});
+
 // ── Tab Switching ──────────────────────────────────────────────────────
 document.querySelectorAll(".tab").forEach(tab => {
   tab.addEventListener("click", () => {
@@ -390,8 +513,30 @@ function renderTrackers(response) {
 
 // ── Summary Panel ──────────────────────────────────────────────────────
 function renderSummary(response) {
+  // If the site is disabled, never paint detection data — even if the
+  // background returned cached events from before the toggle, they
+  // shouldn't be shown as if the extension were running here.
+  if (isCurrentSiteDisabled()) {
+    renderDisabledState();
+    return;
+  }
   const content = document.getElementById("content");
   if (!response || Object.keys(response.categories).length === 0) {
+    // Reset Summary to the standard "no detections" empty state. This
+    // matters after re-enabling on a previously-disabled site: the
+    // disabled message lives in this same #content element and would
+    // otherwise stay visible until real detections arrive.
+    if (content) {
+      content.innerHTML = `<div class="empty">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M8 15s1.5 2 4 2 4-2 4-2"/>
+          <line x1="9" y1="9" x2="9.01" y2="9"/>
+          <line x1="15" y1="9" x2="15.01" y2="9"/>
+        </svg>
+        <p>No fingerprinting detected on this page.</p>
+      </div>`;
+    }
     renderTrackers(response);
     return;
   }
@@ -1330,6 +1475,7 @@ chrome.storage.local.get(
       }
       rebuildEffectiveMutes();
       renderMuteBar();
+      applySiteDisabledState();
 
       activeTabInfo.url = tabs[0].url || "";
       activeTabInfo.title = tabs[0].title || "";

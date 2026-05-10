@@ -328,6 +328,75 @@ function updateBadge(tabId, data) {
   }).catch(() => {});
 }
 
+// ── Dynamic content script registration ──────────────────────────────
+// Content scripts are registered dynamically rather than declared in
+// manifest.content_scripts so we can rebuild the excludeMatches list
+// at runtime. The list always includes Cloudflare Turnstile iframes
+// (which trip our anti-tamper hooks) and any user-disabled domains
+// from chrome.storage.local.disabledDomains. Disabling a domain here
+// means the extension does not inject at all — same effect as a
+// static exclude_matches in the manifest, but per-user.
+//
+// Registration is idempotent: chrome.scripting registrations persist
+// across SW restarts, so we only need to refresh them when the
+// disabled list changes (or on install / update).
+const SCRIPT_IDS = ["fp-inject", "fp-bridge"];
+const ALWAYS_EXCLUDE = ["*://challenges.cloudflare.com/*"];
+
+async function registerDynamicScripts() {
+  const stored = await chrome.storage.local.get(["disabledDomains"]);
+  const disabled = stored.disabledDomains || {};
+  const excludeMatches = [...ALWAYS_EXCLUDE];
+  for (const d of Object.keys(disabled)) {
+    if (!disabled[d]) continue; // tombstoned
+    excludeMatches.push(`*://${d}/*`);
+    excludeMatches.push(`*://*.${d}/*`);
+  }
+
+  try {
+    await chrome.scripting.unregisterContentScripts({ ids: SCRIPT_IDS });
+  } catch { /* not yet registered */ }
+
+  await chrome.scripting.registerContentScripts([
+    {
+      id: "fp-inject",
+      matches: ["<all_urls>"],
+      excludeMatches,
+      js: ["dist/inject.js"],
+      runAt: "document_start",
+      world: "MAIN",
+      allFrames: true,
+      persistAcrossSessions: true,
+    },
+    {
+      id: "fp-bridge",
+      matches: ["<all_urls>"],
+      excludeMatches,
+      js: ["src/bridge.js"],
+      runAt: "document_start",
+      world: "ISOLATED",
+      allFrames: true,
+      persistAcrossSessions: true,
+    },
+  ]);
+}
+
+chrome.runtime.onInstalled.addListener(() => {
+  registerDynamicScripts().catch(() => { /* surfaced via chrome://extensions */ });
+});
+chrome.runtime.onStartup.addListener(() => {
+  // Defensive: registrations persist across SW restarts, but
+  // re-register handles edge cases where storage was modified while
+  // the SW was dead.
+  registerDynamicScripts().catch(() => {});
+});
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "local" && changes.disabledDomains) {
+    registerDynamicScripts().catch(() => {});
+  }
+});
+
 // ── Cleanup ───────────────────────────────────────────────────────────
 chrome.webNavigation?.onCommitted.addListener((details) => {
   if (details.frameId === 0) {

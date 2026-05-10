@@ -18,7 +18,11 @@
     "activeTab",
     "webNavigation",
     "storage",
-    "tabs"
+    "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
+    "<all_urls>"
   ],
   "icons": {
     "16": "icons/icon16.png",
@@ -38,36 +42,6 @@
   "background": {
     "service_worker": "src/background.js"
   },
-  "content_scripts": [
-    {
-      "matches": [
-        "<all_urls>"
-      ],
-      "exclude_matches": [
-        "*://challenges.cloudflare.com/*"
-      ],
-      "js": [
-        "dist/inject.js"
-      ],
-      "run_at": "document_start",
-      "world": "MAIN",
-      "all_frames": true
-    },
-    {
-      "matches": [
-        "<all_urls>"
-      ],
-      "exclude_matches": [
-        "*://challenges.cloudflare.com/*"
-      ],
-      "js": [
-        "src/bridge.js"
-      ],
-      "run_at": "document_start",
-      "world": "ISOLATED",
-      "all_frames": true
-    }
-  ],
   "web_accessible_resources": [
     {
       "resources": [
